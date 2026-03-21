@@ -8693,19 +8693,21 @@ function wizExportPDF() {
   var lm = 15; // left margin
   var pw = 185; // page width usable
 
-  // Header
-  doc.setFillColor(211, 47, 47);
-  doc.rect(0, 0, 220, 25, 'F');
+  // Header — Gold accent
+  doc.setFillColor(200, 149, 44);
+  doc.rect(0, 0, 220, 22, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('DUCTCALC PRO', lm, 10);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Professional HVAC Duct Design  |  Duct System Report', lm, 16);
+  doc.text('DUCTCALC PRO', lm, 9);
   doc.setFontSize(8);
-  doc.text('Generated: ' + new Date().toLocaleDateString(), lm, 21);
-  y = 32;
+  doc.setFont('helvetica', 'normal');
+  doc.text('Duct System Design Report', lm, 14);
+  doc.text(new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'}), lm, 19);
+  // Thin dark line under header
+  doc.setFillColor(40, 40, 40);
+  doc.rect(0, 22, 220, 1, 'F');
+  y = 28;
 
   doc.setTextColor(0, 0, 0);
 
@@ -8735,17 +8737,24 @@ function wizExportPDF() {
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     // Table header
-    doc.setFillColor(240, 240, 240);
-    doc.rect(lm, y-3, pw, 5, 'F');
+    doc.setFillColor(200, 149, 44);
+    doc.rect(lm, y-3.5, pw, 5, 'F');
+    doc.setTextColor(255,255,255);
     doc.setFont('helvetica', 'bold');
-    doc.text('Room', lm+2, y); doc.text('CFM', lm+80, y); y += 5;
+    doc.text('Room', lm+2, y); doc.text('CFM', lm+80, y); doc.text('Sq Ft', lm+100, y); y += 5;
+    doc.setTextColor(0,0,0);
     doc.setFont('helvetica', 'normal');
+    var stripe = false;
     rooms.forEach(function(rm) {
+      if (stripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 4, 'F'); }
+      stripe = !stripe;
       doc.text(rm.name, lm+2, y); doc.text(String(rm.cfm), lm+80, y); y += 4;
       if (y > 260) { doc.addPage(); y = 15; }
     });
+    doc.setDrawColor(200, 149, 44);
+    doc.line(lm, y-1, lm+pw, y-1);
     doc.setFont('helvetica', 'bold');
-    doc.text('Total: ' + roomsCFM + ' CFM', lm+2, y); y += 8;
+    doc.text('Total: ' + roomsCFM + ' CFM', lm+2, y+2); y += 8;
   }
 
   // Trunks
@@ -8828,21 +8837,29 @@ function wizExportPDF() {
   doc.text('Per-Run Results', lm, y); y += 5;
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.setFillColor(240, 240, 240);
-  doc.rect(lm, y-3, pw, 4, 'F');
+  doc.setFillColor(200, 149, 44);
+  doc.rect(lm, y-3, pw, 4.5, 'F');
+  doc.setTextColor(255,255,255);
   doc.setFont('helvetica', 'bold');
   doc.text('#', lm+1, y); doc.text('Room', lm+8, y); doc.text('Size', lm+55, y); doc.text('TEL', lm+75, y); doc.text('FR', lm+95, y); doc.text('CFM', lm+115, y); doc.text('Trunk', lm+135, y);
-  y += 4;
+  y += 4.5;
+  doc.setTextColor(0,0,0);
   doc.setFont('helvetica', 'normal');
+  var rStripe = false;
   runs.forEach(function(r) {
     var br = r.branch;
     var trunk = WIZ.trunks[br.trunkIdx];
     var rFR = r.tel > 0 ? avail / r.tel * 100 : 0;
+    if (rStripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 3.5, 'F'); }
+    rStripe = !rStripe;
+    // Color code FR
+    if (rFR > 0.08) doc.setTextColor(220, 38, 38); else doc.setTextColor(0,0,0);
     doc.text(String(br.num), lm+1, y);
     doc.text(br.room, lm+8, y);
     doc.text(br.size + '"' + (br.material==='flex'?' flex':''), lm+55, y);
     doc.text(Math.round(r.tel) + 'ft', lm+75, y);
     doc.text(rFR.toFixed(3), lm+95, y);
+    doc.setTextColor(0,0,0);
     doc.text(br.cfm ? String(br.cfm) : '--', lm+115, y);
     doc.text(trunk ? trunk.label : '--', lm+135, y);
     y += 3.5;
@@ -8851,10 +8868,15 @@ function wizExportPDF() {
 
   // Footer
   y += 6;
+  doc.setDrawColor(200, 149, 44);
+  doc.line(lm, y, lm+pw, y);
+  y += 4;
   doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
   doc.text('DuctCalc Pro \u2014 Professional HVAC Duct Design Tool', lm, y);
   doc.text('This report is an estimate based on field measurements and Manual D guidelines. Not a substitute for a full Manual J/D load calculation.', lm, y+3);
+  doc.setTextColor(200, 149, 44);
+  doc.text('ductcalcpro.com', lm + pw - 25, y);
 
   doc.save('DuctCalc-Pro-Report-' + new Date().toISOString().split('T')[0] + '.pdf');
 }
