@@ -138,6 +138,8 @@ function rbIcon(t) {
 function rbRender() {
   var el=document.getElementById('wizBranchArea');
   if(!el) return;
+  // Auto-init if needed
+  if(RB.runs.length===0) rbInit();
   if(RB.runs.length===0){ el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-3)">No start collars defined. Go back to Trunks and add collars on the plenum.</div>'; return; }
 
   var supRuns=RB.runs.filter(function(r){return r.airPath==='supply';});

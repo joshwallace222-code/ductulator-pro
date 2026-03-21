@@ -7037,7 +7037,7 @@ function wizGoTo(step) {
 
   // Init downstream data
   if (step === 2 && WIZ.trunks.length === 0) wizInitTrunks();
-  if (step === 3) { if (WIZ.trunks.length === 0) wizInitTrunks(); if (typeof rbInit === 'function' && RB.runs.length === 0) rbInit(); }
+  if (step === 3) { if (WIZ.trunks.length === 0) wizInitTrunks(); if (typeof RB !== 'undefined' && RB.runs.length === 0 && typeof rbInit === 'function') rbInit(); }
   if (step === 4) wizCalcResults();
 
   var prev = document.getElementById('wizStep' + WIZ.step);
