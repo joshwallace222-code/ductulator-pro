@@ -2562,6 +2562,7 @@ header.app-header { display: none !important; }
   max-height: 180px;
 }
 </style>
+<link rel="stylesheet" href="run-builder.css">
 </head>
 <body>
 
@@ -7036,7 +7037,7 @@ function wizGoTo(step) {
 
   // Init downstream data
   if (step === 2 && WIZ.trunks.length === 0) wizInitTrunks();
-  if (step === 3 && WIZ.branches.length === 0) wizInitBranches();
+  if (step === 3) { if (typeof rbInitRuns === 'function' && RB.runs.length === 0) rbInitRuns(); if (typeof rbRender === 'function') rbRender(); }
   if (step === 4) wizCalcResults();
 
   var prev = document.getElementById('wizStep' + WIZ.step);
@@ -8008,6 +8009,10 @@ function wizCalcRun(br) {
 }
 
 function wizCalcResults() {
+  // Translate run builder data to branches format for the calc engine
+  if (typeof rbTranslateToBranches === 'function' && typeof RB !== 'undefined' && RB.runs.length > 0) {
+    rbTranslateToBranches();
+  }
   // Results calculated lazily inside wizRenderResults
 }
 
@@ -8659,6 +8664,12 @@ function wizExportPDF() {
 function wizHandleClick(ev) {
   var t = ev.target;
 
+  // --- Run Builder click handler ---
+  if (WIZ.step === 3 && typeof rbHandleClick === 'function') {
+    var rbTarget = t.closest('[data-rb-tab],[data-rb-add],[data-rb-delete],[data-rb-piece],[data-rb-set],[data-rb-done]');
+    if (rbTarget) { rbHandleClick(ev); return true; }
+  }
+
   // --- Step pill navigation ---
   var pill = t.closest('[data-wiz-nav]');
   if (pill) {
@@ -9065,6 +9076,12 @@ function wizHandleClick(ev) {
 
 function wizHandleChange(ev) {
   var t = ev.target;
+
+  // --- Run Builder change handler ---
+  if (WIZ.step === 3 && typeof rbHandleChange === 'function') {
+    var rbTarget = t.closest('[data-rb-set],[data-rb-room],[data-rb-cfm]');
+    if (rbTarget) { rbHandleChange(ev); return false; }
+  }
 
   // Plenum type changed — update SVG
   if (t.id === 'plType') {
@@ -10631,5 +10648,6 @@ calcFrictionRate();
   });
 })();
 </script>
+<script src="run-builder.js"></script>
 </body>
 </html>
