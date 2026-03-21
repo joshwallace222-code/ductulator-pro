@@ -26,108 +26,122 @@
 
 <style>
 /* ============================================================
-   DuctCalc Pro V5 — "Frost" Design Language
-   Premium dark theme: indigo/lavender accent, soft shadows,
-   generous radius, Inter + DM Mono
+   DuctCalc Pro V6 — ServiceTitan-Inspired Rebuild
+   Champagne/gold accent, instrument panel aesthetic
+   COMPLETELY NEW LAYOUT — dashboard home, dial calculator,
+   expandable rooms, full-screen wizard steps, report card results
    ============================================================ */
 
 :root {
-  --bg: #0f0f11;
-  --surface: #1a1a1f;
-  --surface-2: #232329;
-  --surface-3: #2d2d35;
+  --bg: #0a0a0c;
+  --surface: #151517;
+  --surface-2: #1c1c20;
+  --surface-3: #252528;
+  --surface-4: #2e2e32;
+  --surface-5: #38383d;
 
-  --text: #f4f4f5;
-  --text-2: #a1a1aa;
-  --text-3: #63637a;
+  --text: #f0f0f2;
+  --text-2: #9898a0;
+  --text-3: #58585f;
 
-  --accent: #818cf8;
-  --accent-soft: rgba(129,140,248,0.1);
-  --accent-medium: rgba(129,140,248,0.2);
-  --accent-glow: 0 0 20px rgba(129,140,248,0.15);
+  --accent: #d4a853;
+  --accent-soft: rgba(212,168,83,0.08);
+  --accent-medium: rgba(212,168,83,0.15);
+  --accent-strong: #e6bc6a;
+  --accent-glow: 0 0 16px rgba(212,168,83,0.12);
 
-  --green: #34d399;
-  --amber: #fbbf24;
-  --red: #f87171;
+  --green: #2dd4a8;
+  --green-soft: rgba(45,212,168,0.1);
+  --amber: #f0b429;
+  --amber-soft: rgba(240,180,41,0.1);
+  --red: #ef5350;
+  --red-soft: rgba(239,83,80,0.1);
+  --blue: #5c9cf5;
+  --blue-soft: rgba(92,156,245,0.1);
 
-  --supply: #f87171;
-  --return: #60a5fa;
-  --airflow: #34d399;
-
-  --radius: 20px;
-  --radius-sm: 12px;
-  --radius-xs: 8px;
-
-  /* Legacy aliases for JS inline styles */
-  --bg-0: #0f0f11;
-  --bg-1: #1a1a1f;
-  --bg-2: #232329;
-  --bg-3: #2d2d35;
-  --bg-4: #3a3a44;
-  --bg-primary: #0f0f11;
-  --bg-card: #1a1a1f;
-  --bg-elevated: #2d2d35;
-  --bg-input: #0f0f11;
-  --surface-0: #0f0f11;
-  --surface-1: #1a1a1f;
-  --surface-4: #3a3a44;
-  --border-subtle: rgba(255,255,255,0.04);
-  --border-default: rgba(255,255,255,0.06);
-  --border-strong: rgba(255,255,255,0.10);
+  --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
   --border: rgba(255,255,255,0.06);
-  --border-focus: #818cf8;
-  --border-light: rgba(255,255,255,0.10);
-  --glass: rgba(15,15,17,0.92);
-  --glass-border: rgba(255,255,255,0.04);
-  --text-primary: #f4f4f5;
-  --text-0: #f4f4f5;
+  --border-2: rgba(255,255,255,0.1);
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 100px;
+
+  /* Legacy aliases — JS uses these in inline styles */
+  --bg-0: var(--bg);
+  --bg-1: var(--surface);
+  --bg-2: var(--surface-2);
+  --bg-3: var(--surface-3);
+  --bg-4: var(--surface-4);
+  --bg-primary: var(--bg);
+  --bg-card: var(--surface);
+  --bg-elevated: var(--surface-3);
+  --bg-input: var(--bg);
+  --surface-0: var(--bg);
+  --surface-1: var(--surface);
+  --surface-2: #1c1c20;
+  --surface-3: #252528;
+  --surface-4: #2e2e32;
+  --border-subtle: var(--border);
+  --border-default: var(--border);
+  --border-strong: var(--border-2);
+  --border-focus: var(--accent);
+  --border-light: var(--border-2);
+  --glass: rgba(10,10,12,0.92);
+  --glass-border: var(--border);
+  --text-primary: var(--text);
+  --text-0: var(--text);
   --text-1: #d4d4d8;
-  --text-secondary: #a1a1aa;
-  --text-muted: #63637a;
-  --text-dim: #63637a;
-  --accent-strong: #6366f1;
-  --accent-subtle: rgba(129,140,248,0.1);
-  --accent-dim: rgba(129,140,248,0.1);
-  --accent-hover: #6366f1;
-  --accent-light: #a5b4fc;
-  --accent-glow-legacy: rgba(129,140,248,0.15);
-  --green-soft: rgba(52,211,153,0.1);
-  --green-subtle: rgba(52,211,153,0.1);
-  --amber-soft: rgba(251,191,36,0.1);
-  --amber-subtle: rgba(251,191,36,0.1);
-  --red-soft: rgba(248,113,113,0.1);
-  --red-subtle: rgba(248,113,113,0.1);
-  --pass: #34d399;
-  --warn: #fbbf24;
-  --fail: #f87171;
-  --info: #818cf8;
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #f87171;
-  --supply-color: #f87171;
-  --return-color: #60a5fa;
-  --airflow-color: #34d399;
-  --red-glow: #818cf8;
-  --red-dark: #6366f1;
-  --yellow: #fbbf24;
-  --orange: #fbbf24;
-  --blue: #60a5fa;
-  --card-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.15);
-  --shadow-card: 0 2px 8px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.15);
-  --shadow-elevated: 0 4px 16px rgba(0,0,0,0.4), 0 12px 40px rgba(0,0,0,0.2);
-  --shadow-button: 0 2px 12px rgba(129,140,248,0.25);
-  --glow-red: 0 0 20px rgba(129,140,248,0.15);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
-  --shadow-lg: 0 16px 48px rgba(0,0,0,0.5);
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
-  --r-sm: 12px;
-  --r-md: 18px;
-  --r-lg: 24px;
-  --r-xl: 32px;
+  --text-2: #9898a0;
+  --text-3: #58585f;
+  --text-secondary: var(--text-2);
+  --text-muted: var(--text-3);
+  --text-dim: var(--text-3);
+  --accent-subtle: var(--accent-soft);
+  --accent-dim: var(--accent-soft);
+  --accent-hover: #c49a48;
+  --accent-light: var(--accent-strong);
+  --accent-glow-legacy: rgba(212,168,83,0.15);
+  --green-subtle: var(--green-soft);
+  --amber-subtle: var(--amber-soft);
+  --red-subtle: var(--red-soft);
+  --pass: var(--green);
+  --warn: var(--amber);
+  --fail: var(--red);
+  --info: var(--blue);
+  --success: var(--green);
+  --warning: var(--amber);
+  --danger: var(--red);
+  --supply: var(--red);
+  --supply-color: var(--red);
+  --return: var(--blue);
+  --return-color: var(--blue);
+  --airflow: var(--green);
+  --airflow-color: var(--green);
+  --red-glow: var(--accent);
+  --red-dark: var(--accent-hover);
+  --yellow: var(--amber);
+  --orange: var(--amber);
+  --gold: var(--accent);
+  --gold-soft: var(--accent-soft);
+  --card: var(--surface);
+  --card-hover: var(--surface-2);
+  --card-elevated: var(--surface-3);
+  --card-shadow: var(--shadow);
+  --glow-red: var(--accent-glow);
+  --shadow-sm: var(--shadow);
+  --shadow-md: var(--shadow-lg);
+  --shadow-card: var(--shadow);
+  --shadow-elevated: var(--shadow-lg);
+  --shadow-button: 0 2px 8px rgba(212,168,83,0.3);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
   --text-xs: 10px;
   --text-sm: 12px;
   --text-base: 14px;
@@ -152,7 +166,7 @@ body {
   color: var(--text);
   min-height: 100dvh;
   overflow-x: hidden;
-  padding-bottom: 80px;
+  padding-bottom: 72px;
   line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
@@ -160,569 +174,751 @@ body {
 }
 
 /* Mono for numbers */
-.mono, [class*="result-val"], input[type="number"],
+.mono, [class*="result-val"], [class*="cfm"], input[type="number"],
 .slider-value-input, .fr-input, .fr-result, .wiz-result-val,
 .compression-readout-value, .dial-readout-value {
   font-family: 'DM Mono', monospace;
   font-feature-settings: 'tnum';
 }
 
-/* ===== SCROLLBAR ===== */
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12); }
 
-/* ===== HEADER ===== */
-.header {
-  padding: 14px 20px;
-  background: rgba(15,15,17,0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.03);
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ===== TOP BAR — Thin, minimal ===== */
+.topbar {
   position: sticky;
   top: 0;
   z-index: 100;
+  background: rgba(10,10,12,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  height: 48px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 56px;
+  padding: 0 16px;
+  gap: 10px;
   cursor: pointer;
+  pointer-events: auto;
 }
 
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-logo {
-  width: 36px;
-  height: 36px;
+.topbar-logo {
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
 }
 
-.header-title {
-  font-size: 17px;
+.topbar-title {
+  font-size: 15px;
   font-weight: 700;
-  color: var(--text);
   letter-spacing: -0.02em;
-  line-height: 1.2;
+  color: var(--text);
 }
 
-.header-subtitle {
-  font-size: 10px;
+.topbar-badge {
+  font-size: 8px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   color: var(--accent);
-  font-weight: 600;
+  background: var(--accent-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
-/* ===== OLD NAV (hidden for JS compat) ===== */
+/* Old nav (hidden for JS compat) */
 .nav { display: none !important; }
 .nav-tabs { display: none; }
 .nav-tab { display: none; }
 
-/* ===== APP CONTAINER ===== */
-.app-container {
-  max-width: 430px;
-  margin: 0 auto;
-  padding: 0 16px;
-}
-
 /* ===== PAGE SYSTEM ===== */
-.page { display: none; padding-top: 8px; padding-bottom: 24px; }
-.page.active {
-  display: block;
-  animation: pageEnter 0.2s ease-out;
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.2s ease-out; }
+
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
 }
 
-@keyframes pageEnter {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ===== HOME PAGE — Dashboard Layout ===== */
+#page-home .app-container {
+  padding-top: 20px;
 }
 
-/* ===== PANELS / CARDS ===== */
-.panel {
-  background: var(--surface);
-  border-radius: var(--radius);
+/* Status summary card */
+.dash-status {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
   padding: 20px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow-card);
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
 }
-
-.panel-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.dash-status::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
 }
-.panel-title svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; }
-
-.section-card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow-card);
-}
-
-.section-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.section-title svg { flex-shrink: 0; }
-
-/* ===== INPUT FIELDS ===== */
-.input-field, select.input-field {
-  background: var(--bg);
-  border: 1.5px solid rgba(255,255,255,0.05);
-  border-radius: var(--radius-sm);
-  padding: 0 14px;
-  height: 48px;
-  font-size: 15px;
-  color: var(--text);
-  transition: border-color 0.2s, box-shadow 0.2s;
-  font-family: 'DM Mono', monospace;
-  width: 100%;
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-}
-.input-field:focus, select.input-field:focus {
-  border-color: var(--accent);
-  box-shadow: var(--accent-glow);
-}
-
-.input-label, .config-label {
+.dash-status-label {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-2);
-  margin-bottom: 6px;
-  display: block;
-}
-
-.input-group { margin-bottom: 8px; }
-
-/* ===== SEGMENTED CONTROLS ===== */
-.seg-control {
-  display: flex;
-  background: var(--bg);
-  border-radius: 16px;
-  padding: 4px;
-  gap: 3px;
-}
-.seg-btn {
-  flex: 1;
-  height: 42px;
-  border-radius: 13px;
-  border: none;
-  font-size: 13px;
-  font-weight: 600;
+  letter-spacing: 0.1em;
   color: var(--text-3);
-  background: transparent;
-  transition: all 0.15s ease;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  -webkit-tap-highlight-color: transparent;
-  font-family: 'Inter', -apple-system, sans-serif;
-  touch-action: manipulation;
+  margin-bottom: 6px;
 }
-.seg-btn.active {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: var(--shadow-button);
+.dash-status-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-2);
 }
-.seg-btn:active { transform: scale(0.96); }
+.dash-status-value .highlight {
+  color: var(--accent);
+}
 
-/* ===== OPTION BUTTONS (Wizard) ===== */
-.opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-.opt-btn {
-  background: var(--surface);
-  border: 2px solid transparent;
-  border-radius: var(--radius);
-  padding: 20px 14px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  position: relative;
-  overflow: hidden;
-  min-height: 90px;
+/* Quick actions — large pill buttons */
+.dash-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+
+.dash-actions {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.dash-action {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  box-shadow: var(--shadow-card);
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.opt-btn:active { transform: scale(0.97); }
-.opt-btn.active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+.dash-action:active {
+  transform: scale(0.98);
+  background: var(--surface-2);
 }
-.opt-btn .opt-icon { margin-bottom: 4px; display: flex; justify-content: center; align-items: center; color: var(--text-2); }
-.opt-btn.active .opt-icon { color: var(--accent); }
-.opt-btn .opt-icon svg { width: 24px; height: 24px; }
-.opt-btn .opt-label { font-size: 14px; font-weight: 600; color: var(--text); }
-.opt-btn.active .opt-label { color: var(--accent); }
-.opt-btn .opt-note { font-size: 11px; color: var(--text-3); }
-.opt-btn.active .opt-note { color: var(--accent); opacity: 0.8; }
-
-/* ===== BUTTONS ===== */
-.btn-primary, .wiz-btn-primary {
-  height: 52px;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 700;
-  font-size: 15px;
-  border: none;
-  border-radius: 16px;
-  box-shadow: var(--shadow-button);
-  transition: transform 0.12s, opacity 0.12s;
-  cursor: pointer;
-  width: 100%;
+.dash-action-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
-  font-family: 'Inter', -apple-system, sans-serif;
-  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
 }
-.btn-primary:active, .wiz-btn-primary:active {
-  transform: scale(0.97);
-  opacity: 0.9;
+.dash-action-icon svg { width: 22px; height: 22px; }
+.dash-action-icon.design { background: var(--accent-medium); color: var(--accent); }
+.dash-action-icon.calc { background: var(--blue-soft); color: var(--blue); }
+
+.dash-action-text {
+  flex: 1;
+  min-width: 0;
+}
+.dash-action-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.dash-action-desc {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.3;
+}
+.dash-action-arrow {
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.dash-action-arrow svg { width: 18px; height: 18px; }
+
+/* Tools grid */
+.dash-tools {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
-.wiz-btn-secondary {
-  background: transparent;
-  color: var(--accent);
-  border: 1.5px solid rgba(129,140,248,0.2);
-  border-radius: var(--radius-sm);
-  padding: 12px 16px;
+.dash-tool {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.dash-tool:active { transform: scale(0.97); background: var(--surface-2); }
+
+.dash-tool-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.dash-tool-icon svg { width: 18px; height: 18px; }
+.dash-tool-icon.eqlen { background: var(--amber-soft); color: var(--amber); }
+.dash-tool-icon.frwork { background: var(--red-soft); color: var(--red); }
+.dash-tool-icon.filter { background: var(--green-soft); color: var(--green); }
+.dash-tool-icon.psychro { background: var(--blue-soft); color: var(--blue); }
+
+.dash-tool-name {
   font-size: 13px;
   font-weight: 600;
-  width: 100%;
-  cursor: pointer;
-  margin-top: 8px;
-  min-height: 48px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.dash-tool-desc {
+  font-size: 10px;
+  color: var(--text-3);
+  line-height: 1.3;
+}
+
+/* Recent projects placeholder */
+.dash-recent {
+  background: var(--surface);
+  border: 1px dashed rgba(255,255,255,0.08);
+  border-radius: var(--r-md);
+  padding: 24px;
+  text-align: center;
+}
+.dash-recent-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--surface-3);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  transition: all .15s;
-  -webkit-tap-highlight-color: transparent;
-  font-family: 'Inter', -apple-system, sans-serif;
+  margin: 0 auto 10px;
+  color: var(--text-3);
 }
-.wiz-btn-secondary:active { background: var(--accent-soft); }
-
-.wiz-btn-add, .sys-add-step-btn {
-  background: transparent;
-  border: 1.5px dashed rgba(255,255,255,0.08);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  font-size: 14px;
+.dash-recent-icon svg { width: 20px; height: 20px; }
+.dash-recent-title {
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-2);
-  width: 100%;
-  cursor: pointer;
-  margin-top: 6px;
-  min-height: 52px;
+  margin-bottom: 4px;
+}
+.dash-recent-desc {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* Footer */
+.dash-footer {
+  text-align: center;
+  padding: 20px 0 8px;
+}
+.dash-footer a {
+  font-size: 10px;
+  color: var(--text-3);
+  text-decoration: none;
+}
+
+/* ===== ROOM CFM PAGE — Expandable List ===== */
+.room-header-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all .15s;
+  justify-content: space-between;
+  padding: 16px 0 12px;
+}
+.room-header-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.room-header-btn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.room-header-btn:active { opacity: 0.8; }
+
+/* Tightness panel */
+.tightness-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.tightness-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+.tightness-title svg { width: 16px; height: 16px; color: var(--accent); }
+.tightness-selector { margin-bottom: 6px; }
+.tightness-desc {
+  font-size: 10px;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+.tightness-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 6px;
+  margin-bottom: 4px;
+  transition: all 0.15s;
+}
+.tightness-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.tightness-btn-label { font-size: 11px; font-weight: 600; }
+.tightness-btn-ach { font-size: 9px; color: var(--text-3); font-family: 'DM Mono', monospace; }
+
+/* Room list — expandable rows */
+#roomCfmList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.room-cfm-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  transition: all 0.2s ease;
+  margin-bottom: 2px;
+}
+.room-cfm-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.wiz-btn-add:active, .sys-add-step-btn:active { border-color: var(--accent); color: var(--accent); }
-.wiz-btn-add svg { width: 15px; height: 15px; }
-
-.add-fitting-btn, .filter-apply-btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-xs);
-  padding: 10px 16px;
-  font-size: 13px;
+.room-cfm-header span { font-size: 12px; }
+.room-cfm-name {
+  flex: 1;
+  font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-  font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--text);
 }
-.add-fitting-btn:active, .filter-apply-btn:active { transform: scale(0.96); }
-.filter-apply-btn { width: 100%; margin-top: 10px; height: 48px; border-radius: var(--radius-sm); }
+.room-cfm-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 60px;
+  text-align: right;
+}
+.room-cfm-unit {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-left: 2px;
+}
+.room-cfm-expand {
+  color: var(--text-3);
+  transition: transform 0.2s;
+}
+.room-cfm-expand svg { width: 16px; height: 16px; }
+.room-cfm-body {
+  padding: 0 14px 14px;
+  display: none;
+}
+.room-cfm-card.expanded .room-cfm-body { display: block; }
+.room-cfm-card.expanded .room-cfm-expand { transform: rotate(180deg); }
 
-/* ===== RESULTS GRID ===== */
-.results-grid {
+/* Room inputs inside expanded body */
+.room-input-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
-.result-card {
-  background: var(--surface-2);
-  border-radius: 16px;
-  padding: 18px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.15s;
+.room-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.result-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--text-3);
-  border-radius: 16px 16px 0 0;
-}
-.result-card.success::after { background: var(--green); }
-.result-card.warning::after { background: var(--amber); }
-.result-card.danger::after { background: var(--red); }
-
-.result-value {
-  font-family: 'DM Mono', monospace;
-  font-size: 28px;
-  font-weight: 500;
-  color: var(--text);
-  line-height: 1;
-  margin-bottom: 4px;
-}
-.result-unit {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-3);
-  margin-top: 4px;
-}
-.result-label {
+.room-input-label {
   font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-3);
-  margin-top: 2px;
-  font-weight: 500;
 }
-
-.hero-number {
+.room-input-field {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
   font-family: 'DM Mono', monospace;
-  font-size: 36px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.02em;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+.room-input-field:focus { border-color: var(--accent); }
+
+.room-type-select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-/* ===== CONFIG ROWS ===== */
-.config-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.config-group { flex: 1; }
-
-/* ===== TOGGLE SWITCH ===== */
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
+.room-delete-btn {
+  background: var(--red-soft);
+  color: var(--red);
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
+  margin-top: 8px;
+  width: 100%;
+  font-family: inherit;
 }
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-slider {
+
+/* Room summary bar — sticky bottom */
+.room-summary-bar {
+  position: fixed;
+  bottom: 72px;
+  left: 0;
+  right: 0;
+  background: rgba(21,21,23,0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  display: none;
+  z-index: 50;
+}
+#page-roomcfm.active ~ .room-summary-bar,
+.room-summary-bar.visible { display: flex; }
+
+.room-summary-bar .summary-items {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.room-summary-item {
+  text-align: center;
+}
+.room-summary-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.room-summary-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ===== CALCULATOR PAGE — Dial Design ===== */
+.calc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0 12px;
+}
+.calc-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Mode toggle — pill shape */
+.mode-toggle {
+  display: flex;
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  padding: 3px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.mode-toggle-btn {
+  flex: 1;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.mode-toggle-btn.active {
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(212,168,83,0.3);
+}
+
+/* Dial container — the BIG visual change */
+.dial-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 16px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dial-ring {
   position: absolute;
   inset: 0;
-  background: var(--surface-3);
-  border-radius: 12px;
-  transition: 0.2s;
+  width: 100%;
+  height: 100%;
 }
-.toggle-slider::before {
-  content: '';
-  position: absolute;
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background: white;
-  border-radius: 50%;
-  transition: 0.2s;
+.dial-ring-bg {
+  fill: none;
+  stroke: var(--surface-3);
+  stroke-width: 8;
 }
-input:checked + .toggle-slider { background: var(--accent); }
-input:checked + .toggle-slider::before { transform: translateX(20px); }
+.dial-ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.15s ease;
+  filter: drop-shadow(0 0 6px rgba(212,168,83,0.3));
+}
+.dial-value {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+.dial-number {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+.dial-unit {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
 
-/* ===== SLIDER PANELS ===== */
+/* The slider under the dial */
+.dial-slider-wrap {
+  padding: 0 8px;
+  margin-bottom: 16px;
+}
+
+/* Config pills — inline controls */
+.config-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.config-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  width: 100%;
+  margin-bottom: 2px;
+  padding-left: 2px;
+}
+
+/* Segmented controls — smaller, pill-shaped */
+.seg-control {
+  display: inline-flex;
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  padding: 2px;
+  border: 1px solid var(--border);
+  gap: 1px;
+}
+.seg-btn {
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.seg-btn.active {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* Slider panels */
 .slider-panel {
   background: var(--surface);
-  border-radius: var(--radius);
-  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
   margin-bottom: 10px;
-  box-shadow: var(--shadow-card);
 }
 .slider-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
-.slider-label { font-size: 13px; font-weight: 600; color: var(--text); }
-.slider-value-wrap {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.slider-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 .slider-value-input {
   background: var(--bg);
-  border: 1.5px solid rgba(255,255,255,0.05);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
-  width: 64px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 8px;
   color: var(--accent);
   font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
   outline: none;
-  transition: border-color 0.2s;
+  text-align: center;
+  width: 64px;
 }
 .slider-value-input:focus { border-color: var(--accent); }
-.slider-value-unit {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-2);
-}
-.slider-range-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--text-3);
-  margin-top: 6px;
-}
 
-/* Range inputs */
-input[type="range"], .cfm-slider, .compression-slider {
+/* Range sliders */
+input[type="range"],
+.cfm-slider,
+.compression-slider {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
   height: 6px;
+  background: var(--surface-3);
   border-radius: 3px;
-  background: linear-gradient(to right, var(--green) 0%, var(--amber) 50%, var(--red) 100%);
   outline: none;
   cursor: pointer;
 }
-input[type="range"]::-webkit-slider-thumb {
+input[type="range"]::-webkit-slider-thumb,
+.cfm-slider::-webkit-slider-thumb,
+.compression-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: var(--text);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  cursor: pointer;
-  border: none;
-  transition: transform 0.1s;
-}
-input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.15); }
-input[type="range"]::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--text);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  cursor: pointer;
-  border: none;
-}
-
-/* ===== MODE TOGGLE ===== */
-.mode-toggle {
-  display: flex;
-  background: var(--bg);
-  border-radius: 16px;
-  padding: 4px;
-  gap: 3px;
-  margin-bottom: 14px;
-}
-.mode-btn {
-  flex: 1;
-  height: 42px;
-  border-radius: 13px;
-  border: none;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-3);
-  background: transparent;
-  transition: all 0.15s;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  font-family: 'Inter', -apple-system, sans-serif;
-}
-.mode-btn.active {
   background: var(--accent);
-  color: #fff;
-  box-shadow: var(--shadow-button);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
 }
-.mode-btn:active { transform: scale(0.97); }
 
-/* ===== COMPRESSION ===== */
-.compression-panel {
-  background: var(--surface-2);
-  border-radius: 16px;
+/* Compression section */
+.compression-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
   padding: 14px;
   margin-bottom: 10px;
 }
-.compression-panel-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-.compression-panel-title svg { width: 16px; height: 16px; color: var(--amber); }
 .compression-presets {
   display: flex;
   gap: 4px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
-.compression-preset-btn {
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: var(--surface-3);
-  border: none;
-  color: var(--text-2);
-  font-size: 11px;
+.compression-presets button {
+  padding: 4px 10px;
+  font-size: 10px;
   font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-3);
   cursor: pointer;
-  transition: all 0.15s;
-  font-family: 'DM Mono', monospace;
+  font-family: inherit;
 }
-.compression-preset-btn.active {
-  background: var(--accent);
-  color: #fff;
+.compression-presets button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .compression-impact {
-  font-size: 11px;
-  padding: 8px 12px;
+  font-size: 10px;
+  padding: 6px 10px;
   border-radius: 8px;
   margin-top: 6px;
 }
@@ -730,213 +926,1077 @@ input[type="range"]::-moz-range-thumb {
 .compression-impact.medium { background: var(--amber-soft); color: var(--amber); }
 .compression-impact.high { background: var(--red-soft); color: var(--red); }
 
-/* ===== STATUS BAR ===== */
+/* Config group / insulated toggle */
+.config-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.config-group label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+/* Results cards — grid */
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  text-align: center;
+}
+.result-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+}
+.result-value.green { color: var(--green); }
+.result-value.amber, .result-value.warn { color: var(--amber); }
+.result-value.red { color: var(--red); }
+.result-unit {
+  font-size: 10px;
+  color: var(--text-3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+.result-label {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
+/* Status bar */
 .status-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
-  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  margin-bottom: 10px;
 }
+.status-bar svg { width: 16px; height: 16px; flex-shrink: 0; }
 .status-bar.ok { background: var(--green-soft); color: var(--green); }
-.status-bar.error { background: var(--red-soft); color: var(--red); }
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-  flex-shrink: 0;
+.status-bar.warn { background: var(--amber-soft); color: var(--amber); }
+.status-bar.fail { background: var(--red-soft); color: var(--red); }
+
+/* Header results row */
+.calc-hdr-results {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  margin-bottom: 4px;
+}
+.hdr-stat {
+  text-align: center;
+}
+.hdr-stat-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.hdr-stat-label {
+  font-size: 9px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-/* ===== REVERSE MODE ===== */
-.size-panel {
+/* ===== PANEL — Generic card ===== */
+.panel {
   background: var(--surface);
-  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
   padding: 16px;
-  box-shadow: var(--shadow-card);
+  margin-bottom: 12px;
 }
-.rev-capacity-bar { margin-top: 8px; }
-.rev-bar-track {
+.panel-title {
   display: flex;
-  height: 12px;
-  border-radius: 6px;
-  overflow: hidden;
-  margin-bottom: 6px;
-}
-.rev-bar-zone { transition: width 0.3s ease; }
-.rev-bar-low { background: var(--amber); }
-.rev-bar-ok { background: var(--green); }
-.rev-bar-high { background: var(--red); }
-.rev-bar-labels {
-  display: flex;
-  justify-content: space-between;
-  font-family: 'DM Mono', monospace;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
 }
-.rev-bar-captions {
+.panel-title svg { width: 18px; height: 18px; color: var(--accent); }
+
+/* Input fields */
+.input-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 4px;
+  display: block;
+}
+.input-field {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+.input-field:focus { border-color: var(--accent); }
+.input-group { margin-bottom: 8px; }
+select.input-field { -webkit-appearance: none; }
+
+/* Checkbox / toggle */
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+}
+
+/* Info notes */
+.info-note {
   display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--accent-soft);
+  border-radius: var(--r-sm);
+  border-left: 3px solid var(--accent);
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.info-note svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--accent); margin-top: 1px; }
+
+/* ===== EQ LENGTH TABLE ===== */
+.eq-category {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 16px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.eq-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 8px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+}
+.eq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.eq-table th {
+  background: var(--surface-2);
+  padding: 8px 6px;
+  font-weight: 700;
+  color: var(--text-2);
+  text-align: left;
+  position: sticky;
+  top: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.eq-table td {
+  padding: 7px 6px;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+}
+.eq-table td:first-child { color: var(--text-2); white-space: normal; }
+.eq-table td:not(:first-child) { font-family: 'DM Mono', monospace; text-align: center; }
+.eq-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ===== SYSTEM PAGE (Wizard + Runs) ===== */
+.sys-page-header {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+  padding: 16px 0 8px;
+}
+.sys-page-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Section collapsible */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-bottom: 2px;
+}
+.section-header svg { width: 18px; height: 18px; color: var(--accent); }
+.section-header-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+}
+.section-header-toggle {
+  color: var(--text-3);
+  transition: transform 0.2s;
+}
+.section-header-toggle svg { width: 16px; height: 16px; }
+.section-header.collapsed .section-header-toggle { transform: rotate(-90deg); }
+
+.section-body {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.section-body.collapsed { display: none; }
+
+/* System config grid */
+.sys-config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Collar chips */
+.collar-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.collar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.collar-chip .x {
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+/* Plenum SVG */
+.plenum-svg-wrap {
+  margin: 8px 0;
+  text-align: center;
+}
+.plenum-svg-wrap svg { max-width: 100%; height: auto; }
+
+/* ===== WIZARD STEPS — Full-screen style ===== */
+.wiz-progress-track {
+  height: 3px;
+  background: var(--surface-3);
+  width: 100%;
+}
+.wiz-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+  width: 25%;
+  border-radius: 0 2px 2px 0;
+}
+
+.wiz-step-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.wiz-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: var(--r-pill);
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.wiz-pill.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.wiz-pill.done {
+  color: var(--green);
+}
+.wiz-pill-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--surface-3);
+  color: var(--text-3);
+}
+.wiz-pill.active .wiz-pill-num {
+  background: var(--accent);
+  color: #000;
+}
+.wiz-pill.done .wiz-pill-num {
+  background: var(--green-soft);
+  color: var(--green);
+}
+.wiz-pill-label { display: none; }
+@media (min-width: 380px) { .wiz-pill-label { display: inline; } }
+
+/* Wizard step content */
+.wiz-step {
+  display: none;
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  animation: slideUp 0.25s ease-out;
+}
+.wiz-step.active { display: block; }
+
+.wiz-step-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+.wiz-step-desc {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* Option grid — wizard choices */
+.opt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.opt-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.opt-card:active { transform: scale(0.97); }
+.opt-card.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.opt-card .opt-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 6px;
+}
+.opt-card .opt-desc {
   font-size: 10px;
   color: var(--text-3);
   margin-top: 2px;
 }
+.opt-card svg { width: 28px; height: 28px; color: var(--accent); margin: 0 auto; display: block; }
+.opt-card.active svg { color: var(--accent-strong); }
 
-/* ===== HOME PAGE ===== */
-#page-home {
-  padding: 0 20px 40px;
-  max-width: 480px;
-  margin: 0 auto;
-}
-#page-home.active { display: block; }
-
-.home-hero {
-  text-align: center;
-  padding: 36px 0 24px;
-}
-.home-logo-mark {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 16px;
-}
-.home-title {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  color: var(--text);
-  margin-bottom: 6px;
-}
-.home-subtitle {
-  font-size: 14px;
-  color: var(--text-3);
-  font-weight: 500;
-}
-.home-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-.home-card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 28px 16px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.15s;
-  box-shadow: var(--shadow-elevated);
-  position: relative;
-  overflow: hidden;
+/* Wizard primary button */
+.wiz-btn-primary {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: #000;
   border: none;
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 12px;
+  transition: opacity 0.15s;
 }
-.home-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius);
-  border: 1.5px solid transparent;
-  transition: border-color 0.2s;
+.wiz-btn-primary:active { opacity: 0.8; }
+
+.wiz-btn-add {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 8px;
 }
-.home-card:active { transform: scale(0.96); }
-.home-card:hover::before { border-color: var(--accent); }
-.home-card-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
+
+/* Wizard fitting SVG container */
+.wiz-fitting-svg {
+  text-align: center;
+}
+.wiz-fitting-svg svg { max-width: 100%; }
+
+/* Wizard shape toggle */
+.wiz-shape-toggle {
+  display: flex;
+  gap: 4px;
+}
+.wiz-shape-toggle button {
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: inherit;
+}
+.wiz-shape-toggle button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Wizard trunk cards */
+.wiz-trunk-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  margin-bottom: 8px;
+}
+.wiz-trunk-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto 14px;
-  background: var(--accent-soft);
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
-.home-card-icon svg { width: 24px; height: 24px; color: var(--accent); }
-.home-card-icon.design { background: var(--accent-soft); color: var(--accent); }
-.home-card-icon.calc { background: var(--accent-soft); color: var(--accent); }
-.home-card-title {
-  font-size: 15px;
+.wiz-trunk-title {
+  font-size: 13px;
   font-weight: 700;
-  color: var(--text);
+}
+.wiz-trunk-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Wizard results */
+.wiz-result-val {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+}
+
+/* Wizard branch area */
+.wiz-branch-group {
+  margin-bottom: 12px;
+}
+.wiz-branch-trunk-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Wizard fit buttons */
+.wiz-fit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+  margin: 2px;
+  font-family: inherit;
+}
+.wiz-fit-btn svg { width: 14px; height: 14px; }
+
+/* Wizard duct tree / summary */
+.wiz-tree-svg { text-align: center; }
+.wiz-tree-svg svg { max-width: 100%; }
+
+/* Summary cards in results */
+.wiz-summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px;
   margin-bottom: 6px;
 }
-.home-card-desc {
-  font-size: 12px;
-  color: var(--text-3);
-  line-height: 1.4;
+
+/* Friction gauge */
+.wiz-friction-gauge {
+  padding: 12px;
+  text-align: center;
 }
-.home-tools-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-3);
+
+/* Budget breakdown */
+.wiz-budget-bar {
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface-3);
+  margin: 8px 0;
+}
+
+/* ===== FRICTION RATE WORKSHEET ===== */
+.fr-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
   margin-bottom: 10px;
 }
-.home-tools-row {
+.fr-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fr-section-title svg { width: 16px; height: 16px; color: var(--accent); }
+
+.fr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.fr-row:last-child { border-bottom: none; }
+.fr-row-label {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.fr-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  text-align: right;
+  width: 80px;
+}
+.fr-input:focus { border-color: var(--accent); }
+.fr-select {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  text-align: left;
+}
+.fr-cpl-input { width: 70px; }
+.fr-result {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  color: var(--accent);
+}
+.fr-result-big {
+  font-family: 'DM Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* FR calc row */
+.fr-calc-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.fr-calc-row span { font-family: 'DM Mono', monospace; }
+
+/* FR result card */
+.fr-result-card {
+  border-radius: var(--r-md);
+  padding: 16px;
+  margin-top: 12px;
+}
+.fr-result-card .fr-result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.fr-result-card .fr-result-msg {
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+.fr-result-pass { background: var(--green-soft); color: var(--green); }
+.fr-result-warn { background: var(--amber-soft); color: var(--amber); }
+.fr-result-fail { background: var(--red-soft); color: var(--red); }
+
+/* FR chart */
+.fr-chart-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px;
+  margin-top: 10px;
+}
+
+/* ===== FILTER PAGE ===== */
+.filter-mfg-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.filter-mfg-btn {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+}
+.filter-mfg-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.filter-result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  margin-top: 10px;
+}
+.filter-result-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.filter-result-label {
+  font-size: 10px;
+  color: var(--text-3);
+}
+.filter-note {
+  font-size: 11px;
+  color: var(--text-2);
+  padding: 8px 0;
+  line-height: 1.4;
+}
+.filter-apply-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 8px;
+}
+
+/* Filter inline */
+.filter-inline-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.filter-inline-stat { text-align: center; padding: 8px; background: var(--surface-2); border-radius: 8px; }
+.filter-inline-stat-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; }
+.filter-inline-stat-label { font-size: 9px; color: var(--text-3); }
+.filter-inline-value { font-family: 'DM Mono', monospace; font-weight: 700; }
+.filter-impact-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px;
+  margin-top: 8px;
+}
+.filter-impact-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 11px;
+}
+.filter-impact-label { color: var(--text-2); }
+.filter-impact-value { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--text); }
+.filter-warning-banner {
+  background: var(--amber-soft);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--amber);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
-.home-tool {
-  background: var(--surface);
-  border-radius: 16px;
-  padding: 14px 6px 12px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.15s;
-  border: none;
-  box-shadow: var(--shadow-card);
+
+/* ===== PSYCHROMETRIC ===== */
+.psych-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
 }
-.home-tool:active { transform: scale(0.95); }
-.home-tool-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+.psych-input-row label {
+  font-size: 12px;
+  color: var(--text-2);
+  min-width: 100px;
+}
+.psych-mode-btns {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.psych-mode-btn {
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: inherit;
+}
+.psych-mode-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.psych-result-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.psych-result-row:last-child { border-bottom: none; }
+.psych-result-row span:first-child { color: var(--text-2); }
+.psych-result-row span:nth-child(2) { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--text); }
+.psych-result-row span:last-child { color: var(--text-3); font-size: 10px; }
+
+/* ===== SYSTEM RUNS ===== */
+.sys-add-btn, .sys-add-step-btn, .add-fitting-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px dashed var(--border-2);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+}
+.sys-add-btn:hover, .sys-add-step-btn:hover, .add-fitting-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Run tabs */
+.sys-run-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+.sys-run-tab {
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-3);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.sys-run-tab.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Run area */
+.run-step-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.run-step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.run-step-dot.straight { background: var(--green); }
+.run-step-dot.fitting { background: var(--amber); }
+.run-step-dot.branch { background: var(--red); }
+
+.run-step-name { flex: 1; color: var(--text-2); }
+.run-step-eq {
+  font-family: 'DM Mono', monospace;
+  font-weight: 600;
+  color: var(--text);
+}
+.run-step-actions { display: flex; gap: 4px; }
+.run-step-del {
+  padding: 4px 8px;
+  font-size: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Run summary grid */
+.run-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.run-summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px;
+  text-align: center;
+}
+.run-summary-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.run-summary-unit {
+  font-size: 9px;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.run-summary-label {
+  font-size: 9px;
+  color: var(--text-3);
+}
+
+/* Quick add buttons */
+.quick-add-btns {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+.quick-add-btn {
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+}
+.quick-add-btn:active { background: var(--surface-2); }
+.quick-add-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Straight input row */
+.straight-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+}
+.straight-input-row input {
+  width: 60px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  text-align: center;
+}
+
+/* Fitting search */
+.fitting-search-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  margin-bottom: 8px;
+}
+.fitting-search-input:focus { border-color: var(--accent); }
+
+.fitting-results {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.fitting-result-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.fitting-result-card:active { background: var(--surface-2); }
+.fitting-icon {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 6px;
+  flex-shrink: 0;
 }
-.home-tool-icon svg { width: 16px; height: 16px; }
-.home-tool-icon.eqlen { background: var(--amber-soft); color: var(--amber); }
-.home-tool-icon.frwork { background: var(--red-soft); color: var(--red); }
-.home-tool-icon.filter { background: var(--green-soft); color: var(--green); }
-.home-tool-icon.psychro { background: var(--accent-soft); color: var(--accent); }
-.home-tool-name {
-  font-size: 9px;
+.fitting-icon svg { width: 28px; height: 28px; }
+.fitting-result-info { flex: 1; min-width: 0; }
+.fitting-result-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.fitting-result-note { font-size: 10px; color: var(--text-3); }
+.fitting-result-eq {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-2);
-  letter-spacing: 0.02em;
+  color: var(--accent);
+  white-space: nowrap;
 }
 
-/* ===== BOTTOM NAVIGATION ===== */
+/* CFM Estimator inside system page */
+.cfm-est-room {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+/* Branch tree panel */
+.branch-tree-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  margin-top: 12px;
+}
+
+/* Reverse calc mode */
+.rev-bar-container {
+  display: flex;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.rev-bar-zone { height: 100%; }
+.rev-bar-low { background: var(--blue); }
+.rev-bar-ok { background: var(--green); }
+.rev-bar-high { background: var(--red); }
+
+/* ===== BOTTOM NAVIGATION — Refined ===== */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background: rgba(15,15,17,0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255,255,255,0.04);
+  height: 64px;
+  background: rgba(10,10,12,0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-around;
   padding-bottom: env(safe-area-inset-bottom, 0);
   z-index: 1000;
 }
+
 .bottom-nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
   color: var(--text-3);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   -webkit-tap-highlight-color: transparent;
   transition: color 0.15s;
@@ -945,16 +2005,19 @@ input[type="range"]::-moz-range-thumb {
   background: none;
   border: none;
   padding: 8px 20px;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   min-width: 56px;
   min-height: 56px;
   justify-content: center;
 }
+
 .bottom-nav-item.active { color: var(--accent); }
-.bottom-nav-item.active svg { filter: drop-shadow(0 0 8px rgba(129,140,248,0.4)); }
+.bottom-nav-item.active svg {
+  filter: drop-shadow(0 0 6px rgba(212,168,83,0.4));
+}
 .bottom-nav-item svg { width: 22px; height: 22px; stroke-width: 1.5; }
 
-/* ===== MORE PANEL ===== */
+/* ===== MORE PANEL — Bottom sheet ===== */
 .more-panel {
   position: fixed;
   inset: 0;
@@ -964,20 +2027,22 @@ input[type="range"]::-moz-range-thumb {
   transition: opacity 0.25s ease;
 }
 .more-panel.open { pointer-events: auto; opacity: 1; }
+
 .more-panel-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+
 .more-panel-sheet {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   background: var(--surface);
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
   padding: 12px 20px calc(20px + env(safe-area-inset-bottom, 0));
   max-height: 55vh;
   transform: translateY(100%);
@@ -986,1733 +2051,348 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
 }
 .more-panel.open .more-panel-sheet { transform: translateY(0); }
+
 .more-panel-handle {
   width: 40px;
   height: 4px;
   border-radius: 2px;
-  background: var(--surface-3);
-  margin: 0 auto 20px;
+  background: var(--surface-4);
+  margin: 0 auto 16px;
 }
+
 .more-panel-title {
-  font-size: var(--text-sm);
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-2);
-  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 16px;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
 }
+
 .more-panel-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
+
 .more-tool {
-  background: var(--surface-2);
-  border-radius: var(--radius);
-  padding: 20px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  border: none;
-  color: var(--text-2);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.12s;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  font-family: 'Inter', -apple-system, sans-serif;
-}
-.more-tool:active { transform: scale(0.95); }
-.more-tool svg { width: 24px; height: 24px; color: var(--accent); opacity: 0.8; }
-.more-tool span { font-size: 11px; font-weight: 600; }
-
-/* ===== ROOM CFM STYLES ===== */
-.tightness-panel {
+  gap: 6px;
+  padding: 14px 8px;
   background: var(--surface-2);
-  border-radius: 16px;
-  padding: 14px;
-  margin-top: 8px;
-}
-.tightness-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-.tightness-title svg { width: 16px; height: 16px; color: var(--accent); }
-.tightness-selector {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.tightness-selector::-webkit-scrollbar { display: none; }
-.tightness-desc {
-  font-size: 11px;
-  color: var(--text-2);
-  margin-top: 6px;
-  line-height: 1.5;
-}
-.room-cfm-header {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-3);
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  margin-bottom: 4px;
-}
-.room-summary-bar {
-  position: sticky;
-  bottom: 76px;
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: var(--radius);
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 12px;
-  border: 1px solid rgba(255,255,255,0.04);
-  z-index: 50;
-}
-.fab-add {
-  position: fixed;
-  bottom: 84px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--accent);
-  border: none;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 20px rgba(129,140,248,0.4);
-  cursor: pointer;
-  z-index: 60;
-  transition: transform 0.15s;
-}
-.fab-add:active { transform: scale(0.9); }
-.fab-add svg { width: 24px; height: 24px; stroke-width: 2.5; }
-
-/* ===== INFO NOTE ===== */
-.info-note {
-  display: flex;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  font-size: 11px;
-  color: var(--text-2);
-  line-height: 1.5;
-}
-.info-note svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--accent); margin-top: 1px; }
-
-/* ===== FILTER INLINE ===== */
-.filter-inline-panel {
-  background: var(--surface-2);
-  border-radius: 16px;
-  padding: 14px;
-  margin-top: 8px;
-}
-.filter-inline-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.filter-toggle-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.filter-toggle-label { font-size: 12px; font-weight: 600; color: var(--text-2); flex: 1; }
-.filter-select-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.filter-inline-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-.filter-inline-stat-val {
-  font-family: 'DM Mono', monospace;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
-}
-.filter-inline-value {
-  font-family: 'DM Mono', monospace;
-}
-.filter-impact-card {
-  background: var(--surface-3);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  margin-top: 8px;
-}
-.filter-impact-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-.filter-impact-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
-  font-size: 12px;
-}
-.filter-impact-label { color: var(--text-2); }
-.filter-impact-value { color: var(--text); font-family: 'DM Mono', monospace; font-weight: 500; }
-.filter-warning-banner {
-  display: flex;
-  gap: 8px;
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  background: var(--amber-soft);
-  font-size: 11px;
-  color: var(--amber);
-  margin-top: 8px;
-  line-height: 1.5;
-}
-.filter-warning-banner svg { flex-shrink: 0; margin-top: 2px; }
-
-/* ===== FILTER PAGE ===== */
-.filter-mfg-btns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.filter-mfg-btns .seg-btn {
-  flex: none;
-  padding: 8px 14px;
-  height: auto;
-}
-.filter-result-card {
-  background: var(--surface-2);
-  border-radius: 16px;
-  padding: 16px;
-}
-.filter-result-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.filter-result-item { text-align: center; }
-.filter-result-value {
-  font-family: 'DM Mono', monospace;
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--text);
-}
-.filter-result-unit {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-.filter-result-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-top: 2px;
-}
-.filter-note {
-  font-size: 11px;
-  color: var(--text-2);
-  padding: 8px 0;
-  line-height: 1.5;
-}
-
-/* ===== SECTION TOGGLE ===== */
-.section-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  padding: 4px 0;
-}
-.toggle-arrow {
-  font-size: 10px;
-  color: var(--text-3);
-  transition: transform 0.2s;
-}
-.section-body { overflow: hidden; }
-.section-toggle.collapsed + .section-body { display: none; }
-.collapsed .toggle-arrow { transform: rotate(-90deg); }
-
-/* ===== COLLAR CHIPS ===== */
-.collar-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-  min-height: 24px;
-}
-
-/* ===== PLENUM ===== */
-.plenum-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-}
-.plenum-svg-wrap {
-  animation: pageEnter 0.3s ease-out;
-  display: flex;
-  justify-content: center;
-  padding: 6px 0;
-}
-.plenum-svg-wrap svg { max-width: 200px; max-height: 120px; width: 100%; }
-
-/* ===== WIZARD ===== */
-.wiz-step { display: none; }
-.wiz-step.active { display: block; }
-
-.wiz-step-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  margin-bottom: 8px;
-}
-.wiz-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
   cursor: pointer;
   transition: all 0.15s;
-}
-.wiz-pill.active {
-  background: var(--accent);
-}
-.wiz-pill.done {
-  background: var(--green-soft);
-}
-.wiz-pill-num {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-3);
-}
-.wiz-pill.active .wiz-pill-num { color: #fff; }
-.wiz-pill.done .wiz-pill-num { color: var(--green); }
-.wiz-pill-lbl {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-3);
-}
-.wiz-pill.active .wiz-pill-lbl { color: #fff; }
-.wiz-pill.done .wiz-pill-lbl { color: var(--green); }
-.wiz-pill-sep { color: var(--text-3); display: flex; align-items: center; }
-
-.wiz-progress-track {
-  height: 3px;
-  background: var(--surface-2);
-  border-radius: 2px;
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-.wiz-progress-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 2px;
-  transition: width 0.3s ease;
-  width: 25%;
-}
-
-.wiz-prompt { margin-bottom: 12px; }
-.wiz-prompt-q {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.wiz-prompt-q svg { color: var(--accent); flex-shrink: 0; }
-.wiz-prompt-help { font-size: 12px; color: var(--text-3); line-height: 1.4; }
-
-.wiz-info-banner {
-  display: flex;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--accent-soft);
-  margin-bottom: 14px;
-  font-size: 12px;
-  color: var(--text-2);
-  line-height: 1.5;
-}
-.wiz-info-banner svg { flex-shrink: 0; color: var(--accent); margin-top: 2px; }
-
-.wiz-card-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.wiz-card-title svg { color: var(--accent); flex-shrink: 0; }
-
-.wiz-shape-toggle {
-  display: flex;
-  background: var(--bg);
-  border-radius: 14px;
-  padding: 3px;
-  gap: 2px;
-}
-.wiz-shape-btn {
-  flex: 1;
-  padding: 8px 12px;
-  border-radius: 12px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-3);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.wiz-shape-btn.active {
-  background: var(--accent);
-  color: #fff;
-}
-
-.wiz-fitting-svg { display: flex; justify-content: center; }
-.wiz-fitting-svg svg { max-width: 300px; width: 100%; }
-.wiz-add-branch-btn {
-  background: transparent;
-  border: 1.5px dashed rgba(255,255,255,0.08);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-  width: 100%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all .15s;
-}
-.wiz-add-branch-btn:active { border-color: var(--accent); color: var(--accent); }
-
-.run-summary-value {
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-}
-
-/* ===== EQ LENGTH TABLES ===== */
-.eq-category {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--accent);
-  margin: 16px 0 8px;
-  padding-left: 2px;
-}
-.eq-table-container {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 4px;
-  border-radius: var(--radius-sm);
-}
-.eq-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-  white-space: nowrap;
-}
-.eq-table thead th {
-  background: var(--surface-2);
-  padding: 8px 10px;
-  text-align: left;
-  font-weight: 600;
+  font-family: inherit;
   color: var(--text-2);
   font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  position: sticky;
-  top: 0;
-}
-.eq-table tbody td {
-  padding: 7px 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  color: var(--text-2);
-}
-.eq-table tbody td:first-child {
-  color: var(--text);
-  font-weight: 500;
-}
-.eq-table tbody td:not(:first-child) {
-  font-family: 'DM Mono', monospace;
-  text-align: center;
-  color: var(--text-2);
-}
-.eq-table tbody tr:hover td { background: rgba(129,140,248,0.04); }
-
-/* ===== FR WORKSHEET ===== */
-.fr-step {
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.fr-step:last-child { border-bottom: none; }
-.fr-step-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.fr-step-num {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-.fr-step-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text);
-}
-.fr-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.fr-field { }
-.fr-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-2);
-  margin-bottom: 4px;
-  display: block;
-}
-.fr-input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.fr-input {
-  background: var(--bg);
-  border: 1.5px solid rgba(255,255,255,0.05);
-  border-radius: var(--radius-xs);
-  padding: 8px 12px;
-  font-family: 'DM Mono', monospace;
-  font-size: 14px;
-  color: var(--text);
-  outline: none;
-  width: 100%;
-  transition: border-color 0.2s;
-}
-.fr-input:focus { border-color: var(--accent); }
-.fr-select { -webkit-appearance: none; appearance: none; }
-.fr-unit {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--text-3);
-  white-space: nowrap;
-}
-.fr-input-sm { }
-.fr-input-sm .fr-input { padding: 6px 10px; font-size: 13px; }
-.fr-losses-grid { display: flex; flex-direction: column; gap: 4px; }
-.fr-loss-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 4px 0;
-}
-.fr-loss-label {
-  font-size: 12px;
-  color: var(--text-2);
-  flex: 1;
-}
-.fr-total-row {
-  border-top: 1px solid rgba(255,255,255,0.06);
-  padding-top: 8px;
-  margin-top: 4px;
-}
-.fr-cpl-input { width: 70px !important; text-align: right; }
-.fr-formula {
-  padding: 8px 12px;
-  background: var(--surface-2);
-  border-radius: var(--radius-xs);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-  margin-bottom: 10px;
-}
-.fr-calc-display {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-family: 'DM Mono', monospace;
-  font-size: 16px;
-  color: var(--text-2);
-  padding: 10px 12px;
-  background: var(--surface-2);
-  border-radius: var(--radius-xs);
-}
-.fr-op { color: var(--text-3); }
-.fr-result { font-family: 'DM Mono', monospace; font-weight: 500; color: var(--text); }
-.fr-result-big {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--accent);
-}
-.fr-unit-big {
-  font-size: 12px;
-  color: var(--text-3);
   font-weight: 600;
 }
-.fr-result-card {
-  border-radius: var(--radius-sm);
-  padding: 16px;
-  margin-top: 12px;
-}
-.fr-result-ok { background: var(--green-soft); }
-.fr-result-warn { background: var(--amber-soft); }
-.fr-result-bad { background: var(--red-soft); }
-.fr-result-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.fr-result-msg { font-size: 12px; line-height: 1.5; color: var(--text-2); }
-.fr-chart-wrap {
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: var(--bg);
-}
-.fr-factor-display {
-  padding: 8px 12px;
-  background: var(--surface-2);
-  border-radius: var(--radius-xs);
-  font-family: 'DM Mono', monospace;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text);
-}
+.more-tool:active { background: var(--surface-3); }
+.more-tool svg { width: 22px; height: 22px; color: var(--accent); }
 
-/* ===== PSYCHROMETRIC ===== */
-.psych-mode-sel {
-  display: flex;
-  background: var(--bg);
-  border-radius: 16px;
-  padding: 4px;
-  gap: 3px;
-  margin-bottom: 14px;
-}
-.psych-mode-btn {
-  flex: 1;
-  height: 38px;
-  border-radius: 13px;
-  border: none;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-3);
-  background: transparent;
-  transition: all 0.15s;
-  cursor: pointer;
-  font-family: 'Inter', -apple-system, sans-serif;
-}
-.psych-mode-btn.active { background: var(--accent); color: #fff; }
-.psych-inputs { display: flex; flex-direction: column; gap: 8px; }
-.psych-input-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.psych-input-row label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-2);
-  flex: 1;
-}
-.psych-input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.psych-input-wrap .input-field {
-  width: 90px;
-  height: 40px;
-  text-align: center;
-  font-size: 14px;
-}
-.psych-input-unit {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-3);
-  width: 30px;
-}
-.psych-results { display: flex; flex-direction: column; }
-.psych-result-row {
-  display: grid;
-  grid-template-columns: 1fr auto 40px;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  font-size: 12px;
-  align-items: center;
-}
-.psych-result-row:last-child { border-bottom: none; }
-.psych-result-row span:first-child { color: var(--text-2); }
-.psych-result-row span:nth-child(2) {
-  font-family: 'DM Mono', monospace;
-  font-weight: 500;
-  color: var(--text);
-  text-align: right;
-}
-.psych-result-row span:nth-child(3) {
-  font-size: 10px;
-  color: var(--text-3);
-}
-
-/* ===== SYSTEM PAGE EXTRAS ===== */
-.sys-ap-card { background: var(--surface-2); border-radius: 16px; padding: 14px; margin-bottom: 10px; }
-.sys-mat-card { background: var(--surface-2); border-radius: 16px; padding: 14px; margin-bottom: 10px; }
-
-/* ===== FOOTER ===== */
-footer {
-  text-align: center;
-  padding: 20px 16px 30px;
-  font-size: 11px;
-}
-footer a {
-  color: var(--text-3);
-  text-decoration: none;
-  transition: color 0.15s;
-}
-footer a:hover { color: var(--accent); }
-
-/* ===== MISC UTILITY ===== */
-.green { color: var(--green) !important; }
-.red { color: var(--red) !important; }
-.yellow { color: var(--amber) !important; }
-.done { opacity: 0.6; }
-.collapsed .section-body { display: none; }
-
-
-/* ===== DYNAMIC JS-GENERATED STYLES ===== */
-
-/* Room Cards */
+/* ===== ROOM CARDS — Expandable ===== */
 .room-card {
-  background: var(--surface-2);
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 8px;
-  transition: all 0.15s;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-bottom: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
 .room-card-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 .room-card-remove {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  background: none;
   border: none;
-  background: var(--red-soft);
-  color: var(--red);
-  font-size: 16px;
+  color: var(--text-3);
+  font-size: 18px;
   cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 6px;
   flex-shrink: 0;
-  transition: all 0.15s;
 }
-.room-card-remove:active { transform: scale(0.9); }
+.room-card-remove:hover { background: var(--red-soft); color: var(--red); }
 .room-card-name {
   flex: 1;
-  background: var(--bg);
-  border: 1.5px solid rgba(255,255,255,0.05);
-  border-radius: 10px;
-  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text);
   outline: none;
-  font-family: 'Inter', -apple-system, sans-serif;
-  transition: border-color 0.2s;
+  min-width: 0;
+  padding: 2px 0;
 }
-.room-card-name:focus { border-color: var(--accent); }
+.room-card-name:focus {
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
 .room-card-cfm {
   font-family: 'DM Mono', monospace;
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--accent);
   white-space: nowrap;
-  min-width: 60px;
-  text-align: right;
+  flex-shrink: 0;
 }
 .room-card-cfm-unit {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-3);
   font-weight: 600;
 }
-.room-card-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+/* Collapsed by default — body hidden */
+.room-card .room-card-body {
+  display: none;
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--border);
 }
-.room-input-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.room-card.expanded .room-card-body {
+  display: block;
 }
-.room-input-label {
+.room-card .room-card-info {
   font-size: 11px;
   color: var(--text-3);
-  white-space: nowrap;
-  min-width: 65px;
+  padding: 4px 14px 10px;
+  line-height: 1.4;
 }
-.room-input-field {
+.room-card.expanded .room-card-info {
+  display: none;
+}
+/* Room input styling within cards */
+.room-card .room-input-group {
+  margin-bottom: 8px;
+}
+.room-card .room-input-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: block;
+  margin-bottom: 3px;
+}
+.room-card .room-input-field,
+.room-card .room-type-select {
   background: var(--bg);
-  border: 1.5px solid rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 13px;
+  padding: 8px 10px;
+  color: var(--text);
   font-family: 'DM Mono', monospace;
-  color: var(--text);
-  outline: none;
-  width: 60px;
-  transition: border-color 0.2s;
-}
-.room-input-field:focus { border-color: var(--accent); }
-.room-type-select {
-  background: var(--bg);
-  border: 1.5px solid rgba(255,255,255,0.05);
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 13px;
   outline: none;
   width: 100%;
-  font-family: 'Inter', -apple-system, sans-serif;
+}
+.room-card .room-input-field:focus,
+.room-card .room-type-select:focus {
+  border-color: var(--accent);
+}
+.room-card select.room-type-select {
+  font-family: inherit;
   -webkit-appearance: none;
   appearance: none;
 }
-.room-type-select:focus { border-color: var(--accent); }
-.room-card-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255,255,255,0.04);
-  font-size: 11px;
-  color: var(--text-3);
-  line-height: 1.4;
-}
 
-/* Tightness Buttons */
-.tightness-btn {
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: var(--surface-3);
-  border: 2px solid transparent;
-  color: var(--text-2);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: center;
-  white-space: nowrap;
-  flex-shrink: 0;
+/* ===== FR WORKSHEET old classes ===== */
+.fr-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  margin-bottom: 10px;
 }
-.tightness-btn.active {
-  border-color: var(--accent);
+.fr-step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.fr-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   background: var(--accent-soft);
   color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
-.tightness-btn-label {
+.fr-step-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.fr-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.fr-field:last-child { border-bottom: none; }
+.fr-label {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.fr-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.fr-unit {
   font-size: 11px;
-  font-weight: 600;
-  display: block;
-}
-.tightness-btn-ach {
-  font-size: 9px;
   color: var(--text-3);
-  display: block;
-  margin-top: 2px;
+}
+.fr-unit-big {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.fr-formula {
+  font-size: 12px;
+  color: var(--text-2);
+  padding: 8px 0;
+  line-height: 1.6;
+}
+.fr-calc-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-2);
+  padding: 6px 0;
+  font-family: 'DM Mono', monospace;
+}
+.fr-op {
+  color: var(--text-3);
+  font-size: 16px;
+}
+.fr-loss-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.fr-loss-label { color: var(--text-2); }
+.fr-losses-grid {
+  margin-bottom: 8px;
+}
+.fr-chart-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px;
+  margin-top: 10px;
+}
+.fr-factor-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 12px;
+}
+.fr-result-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
-/* Collar Chips */
-.collar-chip {
+/* ===== OLD SYSTEM PAGE classes ===== */
+.app-header {
+  display: none;
+}
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-bottom: 2px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  width: 100%;
+}
+.section-toggle svg { width: 18px; height: 18px; color: var(--accent); }
+.section-toggle.collapsed svg:last-child { transform: rotate(-90deg); }
+.sys-add-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
-  border-radius: 8px;
-  background: var(--surface-3);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-2);
-}
-.collar-chip-x {
-  cursor: pointer;
-  color: var(--red);
-  font-weight: 700;
-  margin-left: 2px;
-}
-
-/* Wizard Trunk Cards */
-.wiz-trunk-card {
-  background: var(--surface-2);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 10px;
-  box-shadow: var(--shadow-card);
-}
-.wiz-trunk-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.wiz-trunk-label {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text);
-}
-.wiz-trunk-remove {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: none;
-  background: var(--red-soft);
-  color: var(--red);
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.wiz-input-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.wiz-input-group { }
-.wiz-input-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-3);
-  margin-bottom: 4px;
-  display: block;
-}
-.wiz-trunk-group {
-  margin-bottom: 10px;
-}
-.wiz-trunk-group-hdr {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-2);
-  margin-bottom: 6px;
-}
-.wiz-trunk-group-lbl {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-3);
-}
-.wiz-trunk-branches { margin-top: 10px; }
-.wiz-trunk-result-hdr {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--accent);
-  margin-bottom: 6px;
-}
-.wiz-trunk-result-lbl {
-  font-size: 11px;
-  color: var(--text-3);
-}
-.wiz-trunk-result-maxtel {
-  font-family: 'DM Mono', monospace;
-  color: var(--text);
-}
-
-/* Wizard Results Grid */
-.wiz-results-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.wiz-result-cell {
-  text-align: center;
-  background: var(--surface-2);
-  border-radius: 12px;
-  padding: 12px 8px;
-}
-.wiz-result-val {
-  font-family: 'DM Mono', monospace;
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--text);
-}
-.wiz-result-lbl {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-top: 2px;
-}
-
-/* Wizard Branch Items */
-.wiz-branch-item {
-  background: var(--surface-2);
-  border-radius: 14px;
-  padding: 14px;
-  margin-bottom: 8px;
-  border: 2px solid transparent;
-  transition: all 0.15s;
-}
-.wiz-branch-item.editing {
-  border-color: var(--accent);
-}
-.wiz-branch-num {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-}
-.wiz-branch-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-.wiz-branch-info {
-  font-size: 11px;
-  color: var(--text-3);
-}
-.wiz-branch-badge {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-}
-.wiz-branch-detail {
-  margin-top: 10px;
-}
-.wiz-branch-form { margin-top: 8px; }
-.wiz-btn-rm {
-  background: var(--red-soft);
-  color: var(--red);
-  border: none;
-  border-radius: 8px;
   padding: 8px 14px;
   font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.wiz-btn-save {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.wiz-save-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-.wiz-compression-box {
-  background: var(--surface-3);
-  border-radius: 10px;
-  padding: 10px;
-  margin-top: 6px;
-}
-.wiz-compression-val {
-  font-family: 'DM Mono', monospace;
-  color: var(--accent);
-}
-
-/* Wizard Gauge */
-.wiz-gauge-wrap { margin-bottom: 10px; }
-.wiz-gauge-track {
-  height: 12px;
-  background: var(--surface-3);
-  border-radius: 6px;
-  overflow: hidden;
-  position: relative;
-}
-.wiz-gauge-fill {
-  height: 100%;
-  border-radius: 6px;
-  transition: width 0.3s, background 0.3s;
-}
-.wiz-gauge-label {
-  font-size: 12px;
-  font-weight: 600;
-  margin-top: 4px;
-}
-.wiz-gauge-markers {
-  display: flex;
-  justify-content: space-between;
-  font-size: 9px;
-  color: var(--text-3);
-  margin-top: 2px;
-}
-
-/* Wizard TEL Bar */
-.wiz-tel-bar-wrap { margin-bottom: 6px; }
-.wiz-tel-bar {
-  height: 6px;
-  background: var(--surface-3);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-/* Wizard Critical Path */
-.wiz-path-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 4px;
-  padding: 8px 0;
-}
-.wiz-path-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-.wiz-path-step-line {
-  width: 2px;
-  background: var(--surface-3);
-  margin-left: 4px;
-}
-.wiz-path-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-.wiz-path-info {
-  font-size: 11px;
-  color: var(--text-3);
-}
-.wiz-path-eq {
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  color: var(--accent);
-}
-.wiz-crit-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-/* Wizard Run Items */
-.wiz-run-item {
-  background: var(--surface-2);
-  border-radius: 12px;
-  padding: 10px 14px;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.wiz-run-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-.wiz-run-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  flex: 1;
-}
-.wiz-run-tel {
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
+  border-radius: var(--r-pill);
+  border: 1px dashed var(--border-2);
+  background: var(--surface);
   color: var(--text-2);
-}
-.wiz-run-fr {
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-/* Duct Tree */
-.duct-tree { font-size: 12px; }
-.duct-tree-plenum {
-  padding: 6px 10px;
-  background: var(--accent-soft);
-  border-radius: 8px;
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 4px;
-}
-.duct-tree-trunk {
-  padding: 4px 10px;
-  border-left: 2px solid var(--accent);
-  margin-left: 10px;
-}
-.duct-tree-trunk-hdr {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  color: var(--text);
-  cursor: pointer;
-}
-.duct-tree-trunk-cfm {
-  font-family: 'DM Mono', monospace;
-  color: var(--accent);
-}
-.duct-tree-chevron {
-  font-size: 10px;
-  color: var(--text-3);
-  transition: transform 0.15s;
-}
-.duct-tree-branch {
-  padding: 2px 0 2px 16px;
-  font-size: 11px;
-  color: var(--text-2);
-}
-.duct-tree-size {
-  font-family: 'DM Mono', monospace;
-  color: var(--text);
-}
-.duct-tree-cfm {
-  font-family: 'DM Mono', monospace;
-  color: var(--text-2);
-}
-.duct-tree-fitting {
-  font-size: 10px;
-  color: var(--text-3);
-  padding-left: 16px;
-}
-.duct-tree-room {
-  color: var(--green);
-  font-weight: 500;
-}
-.duct-tree-empty {
-  font-size: 12px;
-  color: var(--text-3);
-  padding: 8px;
-}
-.duct-tree-collapsed-note {
-  font-size: 10px;
-  color: var(--text-3);
-}
-
-/* Fitting Results */
-.fitting-results { margin-top: 8px; }
-.fitting-result-card {
-  background: var(--surface-2);
-  border-radius: 12px;
-  padding: 10px 14px;
-  margin-bottom: 6px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.fitting-result-card:active { transform: scale(0.98); }
-.fitting-result-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-.fitting-result-eq {
-  font-family: 'DM Mono', monospace;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--accent);
-}
-.fitting-result-note {
-  font-size: 10px;
-  color: var(--text-3);
-}
-.fitting-result-info {
-  font-size: 10px;
-  color: var(--text-3);
-  display: none;
-  margin-top: 4px;
-  padding: 6px 8px;
-  background: var(--surface-3);
-  border-radius: 6px;
-}
-.fitting-search-input {
-  background: var(--bg);
-  border: 1.5px solid rgba(255,255,255,0.05);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  font-size: 14px;
-  color: var(--text);
-  width: 100%;
-  outline: none;
-  font-family: 'Inter', -apple-system, sans-serif;
-  transition: border-color 0.2s;
-}
-.fitting-search-input:focus { border-color: var(--accent); }
-.fitting-cat-header {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--accent);
-  margin: 12px 0 6px;
-  padding-left: 2px;
-}
-.fitting-icon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-.fitting-info-btn {
-  background: none;
-  border: none;
-  color: var(--text-3);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px;
-}
-.fitting-detail-expand {
-  display: none;
-  margin-top: 4px;
-  padding: 6px 8px;
-  background: var(--surface-3);
-  border-radius: 6px;
-  font-size: 10px;
-  color: var(--text-3);
-}
-
-/* System Page: Runs & Branches */
-.sys-run-tab {
-  padding: 8px 14px;
-  border-radius: 10px;
-  background: var(--surface-2);
-  border: 2px solid transparent;
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.sys-run-tab.active {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.sys-run-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-}
-.sys-run-row-num {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-  width: 24px;
-}
-.sys-run-row-name { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
-.sys-run-row-cfm { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-2); }
-.sys-run-row-info { font-size: 10px; color: var(--text-3); }
-.sys-run-row-stats { font-size: 10px; color: var(--text-3); }
-.sys-run-header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  margin-bottom: 4px;
-}
-.sys-run-title { font-size: 13px; font-weight: 700; color: var(--text); }
-.sys-add-btn, .sys-branch-btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.sys-remove-btn {
-  background: var(--red-soft);
-  color: var(--red);
-  border: none;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.sys-config-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.sys-critical-badge {
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-/* Budget Breakdown */
-.wiz-diag-card {
-  background: var(--surface-2);
-  border-radius: 12px;
+/* Option cards */
+.opt-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
   padding: 12px;
-  margin-bottom: 6px;
-}
-
-/* Quick Add Grid */
-.quick-add-section { margin-bottom: 10px; }
-.quick-add-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-.quick-add-btn {
-  background: var(--surface-2);
-  border: none;
-  border-radius: 12px;
-  padding: 12px 8px;
   text-align: center;
   cursor: pointer;
   transition: all 0.15s;
-  color: var(--text-2);
 }
-.quick-add-btn:active { transform: scale(0.96); }
-.quick-add-icon { margin-bottom: 4px; }
-.quick-add-label { font-size: 10px; font-weight: 600; }
-
-/* Straight Input Row */
-.straight-input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+.opt-card:active { transform: scale(0.97); }
+.opt-card.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
-/* Path Steps */
-.path-step {
-  display: flex;
-  gap: 8px;
-  padding: 6px 0;
-}
-.path-step-connector {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 16px;
-}
-.path-step-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.path-step-line {
-  width: 2px;
-  flex: 1;
-  background: var(--surface-3);
-}
-.path-step-body { flex: 1; }
-.path-step-name { font-size: 12px; font-weight: 600; color: var(--text); }
-.path-step-eq { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); }
-.path-step-info { font-size: 10px; color: var(--text-3); }
-.path-step-detail { font-size: 10px; color: var(--text-3); margin-top: 2px; }
-.path-step-note { font-size: 10px; color: var(--text-3); font-style: italic; }
-.path-step-remove {
-  background: none;
-  border: none;
-  color: var(--red);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px;
-}
+/* System filter inline */
+.filter-inline-stat { text-align: center; padding: 8px; background: var(--surface-2); border-radius: 8px; }
+.filter-inline-stat-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; }
+.filter-inline-stat-label { font-size: 9px; color: var(--text-3); }
 
-/* Run Summary */
-.run-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-.run-summary-card {
-  text-align: center;
-  padding: 8px;
-}
-.run-summary-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-.run-summary-unit {
-  font-size: 10px;
-  color: var(--text-3);
-}
-
-/* Branch Tree / Children */
-.branch-child-card {
-  background: var(--surface-3);
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 4px;
-}
-.branch-child-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-}
-.branch-child-info {
-  font-size: 10px;
-  color: var(--text-3);
-}
-.branch-children-section {
-  margin-top: 8px;
-  padding-left: 12px;
-}
-.branch-ctx-bar {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-.branch-indent {
-  border-left: 2px solid var(--surface-3);
-  margin-left: 6px;
-  padding-left: 10px;
-}
-
-/* Tree Nodes */
-.tree-node { margin-left: 12px; }
-.tree-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 0;
-  font-size: 12px;
-}
-.tree-item-icon { width: 14px; height: 14px; flex-shrink: 0; }
-.tree-item-label { color: var(--text); }
-.tree-item-size { font-family: 'DM Mono', monospace; color: var(--text-2); }
-.tree-trunk { font-weight: 600; color: var(--text); }
-.tree-children { margin-left: 16px; }
-
-/* CFM Estimator */
-.cfm-est-room-v2 {
-  background: var(--surface-2);
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 6px;
-}
-.cfm-est-room-inputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 6px;
-}
-.cfm-est-name-input, .cfm-est-sqft-input, .cfm-est-ht-input {
-  background: var(--bg);
-  border: 1.5px solid rgba(255,255,255,0.05);
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 12px;
-  color: var(--text);
-  outline: none;
-  width: 100%;
-}
-.cfm-est-remove {
-  background: none;
-  border: none;
-  color: var(--red);
-  cursor: pointer;
-  font-size: 14px;
-}
-.cfm-est-cfm {
-  font-family: 'DM Mono', monospace;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--accent);
-}
-.cfm-est-cfm-unit {
-  font-size: 10px;
-  color: var(--text-3);
-}
-.cfm-est-dims, .cfm-est-vol {
-  font-size: 10px;
-  color: var(--text-3);
-}
-.cfm-est-unit {
-  font-size: 10px;
-  color: var(--text-3);
-}
-.cfm-est-x {
-  color: var(--text-3);
-}
-
-/* Add Step */
-.add-step-area {
-  margin-top: 8px;
-}
-.add-step-header {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-.add-step-type-row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.add-step-type-btn {
-  padding: 8px 14px;
-  border-radius: 10px;
-  background: var(--surface-2);
-  border: none;
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.add-step-type-btn:active { background: var(--accent-soft); color: var(--accent); }
-.add-divider-line {
-  height: 1px;
-  background: rgba(255,255,255,0.04);
-  margin: 8px 0;
-}
-
-/* Fitting Wizard */
-.wiz-fit-btns {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
-.wiz-fit-btn {
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: var(--surface-3);
-  border: none;
-  color: var(--text-2);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.wiz-fit-btn.active { background: var(--accent); color: #fff; }
-.wiz-fit-list { }
-.wiz-fit-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  cursor: pointer;
-}
-.wiz-fit-item-name { font-size: 12px; color: var(--text); flex: 1; }
-.wiz-fit-item-eq { font-family: 'DM Mono', monospace; color: var(--accent); font-size: 12px; }
-.wiz-fit-item-rm {
-  background: var(--red-soft);
-  color: var(--red);
-  border: none;
-  border-radius: 6px;
-  padding: 2px 6px;
-  font-size: 10px;
-  cursor: pointer;
-}
-
-/* Plenum Flow */
-.plenum-flow {
-  display: flex;
-  justify-content: center;
-  padding: 8px 0;
-}
-
-/* Supply / Return color classes used by JS */
-.supply { color: var(--supply) !important; }
-.return { color: var(--return) !important; }
-
+/* Old app-header (hidden, replaced by topbar) */
+header.app-header { display: none !important; }
 </style>
 </head>
 <body>
 
-<!-- ===== APP HEADER ===== -->
-<header class="header" id="appHeaderHome">
-  <div class="header-brand">
-    <div class="header-logo">
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="36" height="36" rx="10" fill="#818cf8" fill-opacity="0.12"/>
-        <circle cx="18" cy="18" r="8" stroke="#818cf8" stroke-width="1.5" fill="none"/>
-        <circle cx="18" cy="18" r="3.5" fill="#818cf8" fill-opacity="0.5"/>
-        <path d="M10 18h5M21 18h5M18 10v5M18 21v5" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div>
-      <div class="header-title">DuctCalc Pro</div>
-      <div class="header-subtitle">HVAC DUCT DESIGN</div>
-    </div>
-  </div>
+<!-- ===== TOP BAR ===== -->
+<header class="topbar" id="appHeaderHome">
+  <svg class="topbar-logo" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="28" height="28" rx="7" fill="rgba(212,168,83,0.12)"/>
+    <circle cx="14" cy="14" r="6" stroke="#d4a853" stroke-width="1.5" fill="none"/>
+    <circle cx="14" cy="14" r="2.5" fill="#d4a853"/>
+    <path d="M8 14h3M17 14h3M14 8v3M14 17v3" stroke="#d4a853" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <span class="topbar-title">DuctCalc Pro</span>
+  <span class="topbar-badge">V6</span>
 </header>
 
 <!-- Hidden nav-tabs for JS compatibility -->
@@ -2726,115 +2406,109 @@ footer a:hover { color: var(--accent); }
   <button class="nav-tab" data-page="psychro"></button>
 </div>
 
-<!-- Hidden elements for JS getElementById refs that don't exist in static HTML -->
-<div style="display:none">
-  <div id="branchTreeBody"></div>
-  <div id="branchTreePanel"></div>
-  <div id="cfmEstRooms"></div>
-  <div id="cfmEstTot"></div>
-  <span id="compressionValue"></span>
-  <span id="hdrCFM"></span>
-  <span id="hdrFriction"></span>
-  <span id="hdrVelocity"></span>
-  <div id="sysFilterDisclaimer"></div>
-  <div id="sysRunArea"></div>
-  <div id="sysRunTabs"></div>
-  <div id="tightnessACH"></div>
-  <div id="tightnessDesc"></div>
-  <div id="tightnessSelect"></div>
-</div>
-
-
-<!-- ===== HOME SCREEN ===== -->
+<!-- ========================================
+     HOME PAGE — Dashboard Design
+     ======================================== -->
 <div id="page-home" class="page active">
-  <div class="home-hero">
-    <svg class="home-logo-mark" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="80" height="80" rx="24" fill="#818cf8" fill-opacity="0.06"/>
-      <circle cx="40" cy="40" r="18" stroke="#818cf8" stroke-width="2" fill="none" opacity="0.3"/>
-      <circle cx="40" cy="40" r="10" stroke="#818cf8" stroke-width="2.5" fill="none"/>
-      <circle cx="40" cy="40" r="4" fill="#818cf8"/>
-      <path d="M22 40h8M50 40h8M40 22v8M40 50v8" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
-      <path d="M28 28l5.5 5.5M46.5 46.5L52 52M28 52l5.5-5.5M46.5 33.5L52 28" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-    </svg>
-    <div class="home-title">DuctCalc Pro</div>
-    <div class="home-subtitle">Professional HVAC Duct Design</div>
+<div class="app-container">
+
+  <!-- Status summary -->
+  <div class="dash-status">
+    <div class="dash-status-label">Current Project</div>
+    <div class="dash-status-value">No active project — <span class="highlight">start designing</span></div>
   </div>
 
-  <div class="home-cards">
-    <div class="home-card" data-home-nav="roomcfm">
-      <div class="home-card-icon design">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  <!-- Quick Actions -->
+  <div class="dash-section-label">Quick Actions</div>
+  <div class="dash-actions">
+    <div class="dash-action" data-home-nav="roomcfm">
+      <div class="dash-action-icon design">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       </div>
-      <div class="home-card-title">Design a System</div>
-      <div class="home-card-desc">Room-by-room CFM, wizard, full duct layout</div>
+      <div class="dash-action-text">
+        <div class="dash-action-title">Design a System</div>
+        <div class="dash-action-desc">Room-by-room CFM, full duct layout wizard</div>
+      </div>
+      <div class="dash-action-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
     </div>
-    <div class="home-card" data-home-nav="calculator">
-      <div class="home-card-icon calc">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
+    <div class="dash-action" data-home-nav="calculator">
+      <div class="dash-action-icon calc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
       </div>
-      <div class="home-card-title">Quick Calculator</div>
-      <div class="home-card-desc">Duct size, velocity, friction rate</div>
+      <div class="dash-action-text">
+        <div class="dash-action-title">Quick Calculator</div>
+        <div class="dash-action-desc">Duct size, velocity, friction rate lookup</div>
+      </div>
+      <div class="dash-action-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
     </div>
   </div>
 
-  <div class="home-tools-label">Tools</div>
-  <div class="home-tools-row">
-    <div class="home-tool" data-home-nav="eqlen">
-      <div class="home-tool-icon eqlen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
-      <div class="home-tool-name">EQ Length</div>
+  <!-- Tools Grid -->
+  <div class="dash-section-label">Tools</div>
+  <div class="dash-tools">
+    <div class="dash-tool" data-home-nav="eqlen">
+      <div class="dash-tool-icon eqlen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+      <div class="dash-tool-name">EQ Length Tables</div>
+      <div class="dash-tool-desc">Fitting equivalent lengths per Manual D</div>
     </div>
-    <div class="home-tool" data-home-nav="frworksheet">
-      <div class="home-tool-icon frwork"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-      <div class="home-tool-name">FR Sheet</div>
+    <div class="dash-tool" data-home-nav="frworksheet">
+      <div class="dash-tool-icon frwork"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="dash-tool-name">FR Worksheet</div>
+      <div class="dash-tool-desc">Friction rate calculation sheet</div>
     </div>
-    <div class="home-tool" data-home-nav="filters">
-      <div class="home-tool-icon filter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></div>
-      <div class="home-tool-name">Filters</div>
+    <div class="dash-tool" data-home-nav="filters">
+      <div class="dash-tool-icon filter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></div>
+      <div class="dash-tool-name">Filter Database</div>
+      <div class="dash-tool-desc">Pressure drop by manufacturer &amp; model</div>
     </div>
-    <div class="home-tool" data-home-nav="psychro">
-      <div class="home-tool-icon psychro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg></div>
-      <div class="home-tool-name">Psychro</div>
+    <div class="dash-tool" data-home-nav="psychro">
+      <div class="dash-tool-icon psychro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg></div>
+      <div class="dash-tool-name">Psychrometric</div>
+      <div class="dash-tool-desc">Air properties calculator &amp; chart</div>
     </div>
   </div>
+
+  <!-- Recent Projects -->
+  <div class="dash-section-label">Recent Projects</div>
+  <div class="dash-recent">
+    <div class="dash-recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></div>
+    <div class="dash-recent-title">No projects yet</div>
+    <div class="dash-recent-desc">Your completed system designs will appear here</div>
+  </div>
+
+  <div class="dash-footer">
+    <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
+  </div>
+
+</div>
 </div>
 
-<!-- ===== ROOM CFM PAGE ===== -->
+<!-- ========================================
+     ROOM CFM PAGE — Expandable List
+     ======================================== -->
 <div id="page-roomcfm" class="page">
 <div class="app-container">
 
-  <div class="panel">
-    <div class="panel-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      Room-by-Room CFM Calculator
-    </div>
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">
-      Enter each room's dimensions and type. CFM is calculated based on room type, size, and house tightness per ACCA Manual J guidelines.
-    </div>
+  <div class="room-header-bar">
+    <div class="room-header-title">Rooms</div>
+    <button class="room-header-btn" id="roomAddBtn">+ Add Room</button>
+  </div>
 
-    <!-- House Tightness -->
-    <div class="tightness-panel">
-      <div class="tightness-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0M12 8v4M12 16h.01"/></svg>
-        House Tightness
-      </div>
-      <div class="tightness-selector" id="roomTightnessSelect"></div>
-      <div class="tightness-desc" id="roomTightnessDesc"></div>
+  <!-- House Tightness -->
+  <div class="tightness-panel">
+    <div class="tightness-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0M12 8v4M12 16h.01"/></svg>
+      House Tightness
     </div>
+    <div class="tightness-selector" id="roomTightnessSelect"></div>
+    <div class="tightness-desc" id="roomTightnessDesc"></div>
   </div>
 
   <!-- Room List -->
-  <div class="panel" style="padding:10px">
-    <div class="room-cfm-header">
-      <span style="width:28px"></span>
-      <span style="flex:1">Room</span>
-      <span style="width:70px;text-align:center">CFM</span>
-    </div>
-    <div id="roomCfmList"></div>
-    <button class="sys-add-step-btn" id="roomAddBtn" style="margin-top:8px">+ Add Room</button>
-  </div>
+  <div id="roomCfmList"></div>
 
   <!-- Totals -->
-  <div class="panel">
+  <div class="panel" style="margin-top:12px">
     <div class="panel-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       System Summary
@@ -2851,7 +2525,7 @@ footer a:hover { color: var(--accent); }
         <div class="result-label">Est. System Size</div>
       </div>
     </div>
-    <div class="results-grid" style="margin-top:8px">
+    <div class="results-grid">
       <div class="result-card">
         <div class="result-value" id="roomTotalSqft">0</div>
         <div class="result-unit">ft²</div>
@@ -2867,222 +2541,167 @@ footer a:hover { color: var(--accent); }
 
   <div class="info-note" style="margin-top:8px">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-    <span>CFM per room based on ACCA guidelines: Bedrooms ~0.7-0.8 CFM/ft², Living/Great ~1.0 CFM/ft², Kitchen ~1.2 CFM/ft² (higher ACH for heat/odors), Bathrooms ~50-80 CFM. Adjusted by house tightness.</span>
+    <span>CFM per room based on ACCA guidelines: Bedrooms ~0.7-0.8 CFM/ft², Living/Great ~1.0 CFM/ft², Kitchen ~1.2 CFM/ft². Adjusted by house tightness.</span>
   </div>
 
 </div>
 </div>
 
-<!-- ===== CALCULATOR PAGE ===== -->
+
+<!-- ========================================
+     CALCULATOR PAGE — Dial Design
+     ======================================== -->
 <div id="page-calculator" class="page">
 <div class="app-container">
 
-  <!-- MODE TOGGLE -->
+  <!-- Mode Toggle -->
   <div class="mode-toggle">
-    <button class="mode-btn active" data-calc-mode="forward">Forward</button>
-    <button class="mode-btn" data-calc-mode="reverse">Reverse</button>
+    <button class="mode-toggle-btn active" id="modeForwardBtn" onclick="document.getElementById('forwardMode').style.display='';document.getElementById('reverseMode').style.display='none';document.getElementById('forwardResults').style.display='';this.classList.add('active');document.getElementById('modeReverseBtn').classList.remove('active');">Forward</button>
+    <button class="mode-toggle-btn" id="modeReverseBtn" onclick="document.getElementById('forwardMode').style.display='none';document.getElementById('reverseMode').style.display='';document.getElementById('forwardResults').style.display='none';this.classList.add('active');document.getElementById('modeForwardBtn').classList.remove('active');">Reverse</button>
   </div>
 
-  <!-- FORWARD MODE: Enter CFM -> Get duct sizes -->
   <input type="hidden" id="cfmInput" value="400">
   <div id="forwardMode">
-    <!-- DUCT CONFIG: Shape / Path / Material on TOP -->
+
+    <!-- Config row -->
     <div class="config-row">
-      <div class="config-group">
-        <label class="config-label">Shape</label>
-        <div class="seg-control" id="shapeControl">
-          <button class="seg-btn active" data-shape="round">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="8"/></svg>
-            Round
-          </button>
-          <button class="seg-btn" data-shape="rect">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><rect x="4" y="6" width="16" height="12" rx="1"/></svg>
-            Rect
-          </button>
-        </div>
+      <div class="seg-control" id="shapeControl">
+        <button class="seg-btn active" data-shape="round">Round</button>
+        <button class="seg-btn" data-shape="rect">Rect</button>
       </div>
-      <div class="config-group">
-        <label class="config-label">Path</label>
-        <div class="seg-control" id="airPathControl">
-          <button class="seg-btn active" data-airpath="supply">Supply</button>
-          <button class="seg-btn" data-airpath="return">Return</button>
-        </div>
+      <div class="seg-control" id="airPathControl">
+        <button class="seg-btn active" data-airpath="supply">Supply</button>
+        <button class="seg-btn" data-airpath="return">Return</button>
+      </div>
+      <div class="seg-control" id="materialControl">
+        <button class="seg-btn active" data-material="metal">Metal</button>
+        <button class="seg-btn" data-material="flex">Flex</button>
       </div>
     </div>
 
     <div class="config-row">
-      <div class="config-group" style="flex:1">
-        <label class="config-label">Material</label>
-        <div class="seg-control" id="materialControl">
-          <button class="seg-btn active" data-material="metal">Metal</button>
-          <button class="seg-btn" data-material="flex">Flex</button>
-        </div>
-      </div>
       <div class="config-group" id="insulatedGroup">
-        <label class="config-label">Lined</label>
-        <label class="toggle-switch" style="margin-top:4px">
-          <input type="checkbox" id="insulatedToggle">
-          <span class="toggle-slider"></span>
-        </label>
+        <input type="checkbox" id="insulatedToggle">
+        <label for="insulatedToggle">Insulated / Lined</label>
       </div>
-    </div>
-    <div class="config-row">
-      <div class="config-group" style="flex:1">
-        <label class="config-label">Segment</label>
-        <div class="seg-control" id="segmentControl">
-          <button class="seg-btn active" data-segment="trunk">Trunk</button>
-          <button class="seg-btn" data-segment="branch">Branch</button>
-          <button class="seg-btn" data-segment="runout">Runout</button>
-        </div>
+      <div class="seg-control" id="segmentControl">
+        <button class="seg-btn active" data-segment="trunk">Trunk</button>
+        <button class="seg-btn" data-segment="branch">Branch</button>
+        <button class="seg-btn" data-segment="runout">Runout</button>
       </div>
     </div>
 
-    <!-- FLEX COMPRESSION (shown when flex selected) — directly under material -->
+    <!-- Compression Section -->
     <div id="compressionSection" style="display:none">
-      <div class="compression-panel">
-        <div class="compression-panel-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 6l4 6-4 6M20 6l-4 6 4 6"/></svg>
-          Flex Compression
+      <div class="compression-section">
+        <div class="slider-header">
+          <span class="slider-label">Flex Compression</span>
+          <div style="display:flex;align-items:center;gap:4px">
+            <input type="range" class="compression-slider" id="compressionSlider" min="4" max="30" value="4" step="1" style="width:100px">
+            <input type="number" class="slider-value-input" id="compressionInput" value="4" min="4" max="30" step="1" style="width:52px;text-align:center">
+            <span style="font-size:10px;color:var(--text-3)">%</span>
+          </div>
         </div>
         <div class="compression-presets">
-          <button class="compression-preset-btn active" data-compression="4">4%</button>
-          <button class="compression-preset-btn" data-compression="5">5%</button>
-          <button class="compression-preset-btn" data-compression="10">10%</button>
-          <button class="compression-preset-btn" data-compression="15">15%</button>
-          <button class="compression-preset-btn" data-compression="20">20%</button>
-          <button class="compression-preset-btn" data-compression="25">25%</button>
-          <button class="compression-preset-btn" data-compression="30">30%</button>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <input type="range" class="compression-slider" id="compressionSlider" min="4" max="30" value="4" step="1" style="flex:1">
-          <input type="number" class="slider-value-input" id="compressionInput" value="4" min="4" max="30" step="1" style="width:52px;text-align:center">
-          <span style="font-size:11px;color:#888">%</span>
+          <button data-compression="4" class="active">4% min</button>
+          <button data-compression="10">10%</button>
+          <button data-compression="15">15%</button>
+          <button data-compression="20">20%</button>
+          <button data-compression="30">30%</button>
         </div>
         <div class="compression-impact low" id="compressionImpact">4% compressed — minimum realistic install</div>
       </div>
     </div>
 
-    <!-- CFM SLIDER -->
-    <div class="slider-panel">
-      <div class="slider-header">
-        <span class="slider-label">Airflow</span>
-        <div class="slider-value-wrap">
-          <input type="number" class="slider-value-input" id="cfmSliderVal" value="400" min="50" max="5000" step="25">
-          <span class="slider-value-unit">CFM</span>
-        </div>
-      </div>
-      <input type="range" class="cfm-slider" id="cfmSlider" min="50" max="2000" value="400" step="25">
-      <div class="slider-range-labels">
-        <span>50</span><span>500</span><span>1000</span><span>1500</span><span>2000</span>
+    <!-- DIAL — CFM -->
+    <div class="dial-container">
+      <svg class="dial-ring" viewBox="0 0 200 200">
+        <circle class="dial-ring-bg" cx="100" cy="100" r="88"/>
+        <circle class="dial-ring-fill" id="dialRingFill" cx="100" cy="100" r="88"
+                stroke-dasharray="553" stroke-dashoffset="456"
+                transform="rotate(-90 100 100)"/>
+      </svg>
+      <div class="dial-value">
+        <input type="number" class="dial-number slider-value-input" id="cfmSliderVal" value="400" min="50" max="5000" step="25" style="width:100px;background:transparent;border:none;text-align:center;font-size:36px;color:var(--text);font-weight:700">
+        <span class="dial-unit">CFM</span>
       </div>
     </div>
+    <div class="dial-slider-wrap">
+      <input type="range" class="cfm-slider" id="cfmSlider" min="50" max="2000" value="400" step="25">
+    </div>
 
-    <!-- DUCT SIZE SELECTION (sliders + editable inputs) -->
+    <!-- Size controls -->
     <div class="slider-panel" id="roundSizeGroup">
       <div class="slider-header">
-        <span class="slider-label">Duct Size (Round)</span>
-        <div class="slider-value-wrap">
+        <span class="slider-label">Duct Diameter</span>
+        <div style="display:flex;align-items:center;gap:4px">
           <input type="number" class="slider-value-input" id="roundSizeVal" value="10" min="4" max="24" step="1">
-          <span class="slider-value-unit">in</span>
+          <span style="font-size:10px;color:var(--text-3)">in</span>
         </div>
       </div>
       <input type="range" class="cfm-slider" id="roundSizeSlider" min="0" max="13" value="6" step="1">
-      <div class="slider-range-labels">
-        <span>4"</span><span>8"</span><span>12"</span><span>18"</span><span>24"</span>
-      </div>
     </div>
+
     <div id="rectWGroup" style="display:none">
       <div class="slider-panel">
         <div class="slider-header">
           <span class="slider-label">Width</span>
-          <div class="slider-value-wrap">
+          <div style="display:flex;align-items:center;gap:4px">
             <input type="number" class="slider-value-input" id="rectWVal" value="10" min="4" max="30" step="1">
-            <span class="slider-value-unit">in</span>
+            <span style="font-size:10px;color:var(--text-3)">in</span>
           </div>
         </div>
         <input type="range" class="cfm-slider" id="rectWSlider" min="0" max="11" value="2" step="1">
-        <div class="slider-range-labels">
-          <span>4"</span><span>10"</span><span>16"</span><span>24"</span><span>30"</span>
-        </div>
       </div>
       <div class="slider-panel">
         <div class="slider-header">
           <span class="slider-label">Height</span>
-          <div class="slider-value-wrap">
+          <div style="display:flex;align-items:center;gap:4px">
             <input type="number" class="slider-value-input" id="rectHVal" value="8" min="4" max="20" step="1">
-            <span class="slider-value-unit">in</span>
+            <span style="font-size:10px;color:var(--text-3)">in</span>
           </div>
         </div>
         <input type="range" class="cfm-slider" id="rectHSlider" min="0" max="9" value="2" step="1">
-        <div class="slider-range-labels">
-          <span>4"</span><span>8"</span><span>12"</span><span>16"</span><span>20"</span>
-        </div>
       </div>
     </div>
 
-    <!-- Friction Rate slider + editable input -->
+    <!-- Friction Rate slider -->
     <div class="slider-panel">
       <div class="slider-header">
-        <span class="slider-label">Available Friction Rate</span>
-        <div class="slider-value-wrap">
+        <span class="slider-label">Friction Rate</span>
+        <div style="display:flex;align-items:center;gap:4px">
           <input type="number" class="slider-value-input" id="frictionInput" value="0.05" min="0.01" max="0.08" step="0.005" style="width:70px">
-          <span class="slider-value-unit">IWC/100ft</span>
+          <span style="font-size:10px;color:var(--text-3)">IWC/100ft</span>
         </div>
       </div>
       <input type="range" class="cfm-slider" id="frictionSlider" min="10" max="80" value="50" step="1">
-      <div class="slider-range-labels">
-        <span>0.01</span><span>0.03</span><span style="color:var(--green);font-weight:600">0.05</span><span>0.06</span><span>0.08</span>
-      </div>
     </div>
-    <!-- FILTER AT RETURN (shown when return path selected) -->
+
+    <!-- Calc filter section -->
     <div id="calcFilterSection" style="display:none">
-      <div class="filter-inline-panel">
-        <div class="filter-toggle-row">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-          <span class="filter-toggle-label">Filter on this Return</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="calcFilterToggle">
-            <span class="toggle-slider"></span>
-          </label>
+      <div class="panel">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <input type="checkbox" id="calcFilterToggle">
+          <label for="calcFilterToggle" style="font-size:12px;font-weight:600;color:var(--text-2)">Include Filter PD</label>
         </div>
         <div id="calcFilterConfig" style="display:none">
-          <div class="filter-select-row">
-            <div>
-              <label class="config-label">Manufacturer</label>
-              <select class="input-field" id="calcFilterMfg" style="width:100%">
-                <option value="aprilaire">Aprilaire</option>
-                <option value="honeywell">Honeywell</option>
-                <option value="lennox">Lennox</option>
-                <option value="carrier">Carrier</option>
-                <option value="generic" selected>Generic</option>
-              </select>
-            </div>
-            <div>
-              <label class="config-label">Model / MERV</label>
-              <select class="input-field" id="calcFilterModel" style="width:100%"></select>
-            </div>
+          <div class="input-group"><label class="input-label">Manufacturer</label>
+            <select class="input-field" id="calcFilterMfg" style="width:100%">
+              <option value="">Select...</option>
+            </select>
           </div>
-          <div class="filter-select-row" style="margin-top:6px">
-            <div>
-              <label class="config-label">Filter Grille Size</label>
-              <select class="input-field" id="calcFilterGrille" style="width:100%">
-                <option value="12x24">12x24</option>
-                <option value="14x20">14x20</option>
-                <option value="14x25">14x25</option>
-                <option value="16x20">16x20</option>
-                <option value="16x25" selected>16x25</option>
-                <option value="20x20">20x20</option>
-                <option value="20x25">20x25</option>
-                <option value="20x30">20x30</option>
-                <option value="24x24">24x24</option>
-                <option value="24x30">24x30</option>
-                <option value="25x25">25x25</option>
-              </select>
-            </div>
-            <div>
-              <label class="config-label">System CFM</label>
-              <input type="number" class="input-field" id="calcFilterCFM" value="1200" min="200" max="5000" step="50" style="width:100%">
-            </div>
+          <div class="input-group"><label class="input-label">Model</label>
+            <select class="input-field" id="calcFilterModel" style="width:100%"></select>
+          </div>
+          <div class="input-group"><label class="input-label">Grille Config</label>
+            <select class="input-field" id="calcFilterGrille" style="width:100%">
+              <option value="open">Open (no grille)</option>
+              <option value="return_grille">Return Grille</option>
+              <option value="stamped">Stamped Face</option>
+            </select>
+          </div>
+          <div class="input-group"><label class="input-label">System CFM</label>
+            <input type="number" class="input-field" id="calcFilterCFM" value="1200" min="200" max="5000" step="50" style="width:100%">
           </div>
           <div id="calcFilterResults" class="filter-inline-grid" style="margin-top:8px"></div>
           <div id="calcFilterWarn" style="display:none"></div>
@@ -3091,134 +2710,103 @@ footer a:hover { color: var(--accent); }
     </div>
   </div>
 
-  <!-- REVERSE MODE: Select duct size -> see capacity -->
+  <!-- Reverse Mode -->
   <div id="reverseMode" style="display:none">
-    <div class="size-panel">
-      <div class="config-row">
-        <div class="config-group" style="flex:1">
-          <label class="config-label">Shape</label>
-          <div class="seg-control" id="revShapeControl">
-            <button class="seg-btn active" data-rev-shape="round">Round</button>
-            <button class="seg-btn" data-rev-shape="rect">Rect</button>
-          </div>
-        </div>
-        <div class="config-group" style="flex:1">
-          <label class="config-label">Path</label>
-          <div class="seg-control" id="revPathControl">
-            <button class="seg-btn active" data-rev-path="supply">Supply</button>
-            <button class="seg-btn" data-rev-path="return">Return</button>
-          </div>
-        </div>
+    <div class="config-row">
+      <div class="seg-control" id="revShapeControl">
+        <button class="seg-btn active" data-shape="round">Round</button>
+        <button class="seg-btn" data-shape="rect">Rect</button>
       </div>
-      <div class="config-row">
-        <div class="config-group" style="flex:1">
-          <label class="config-label">Material</label>
-          <div class="seg-control" id="revMaterialControl">
-            <button class="seg-btn active" data-rev-material="metal">Metal</button>
-            <button class="seg-btn" data-rev-material="flex">Flex</button>
-          </div>
-        </div>
-        <div class="config-group" id="revLinedGroup">
-          <label class="config-label">Lined</label>
-          <label class="toggle-switch" style="margin-top:4px">
-            <input type="checkbox" id="revInsulatedToggle">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
+      <div class="seg-control" id="revPathControl">
+        <button class="seg-btn active" data-airpath="supply">Supply</button>
+        <button class="seg-btn" data-airpath="return">Return</button>
       </div>
-      <!-- Round size -->
-      <div id="revRoundGroup">
-        <label class="config-label" style="margin-top:8px">Duct Size</label>
-        <select class="input-field" id="revDuctSize" style="width:100%">
-          <option value="4">4"</option><option value="5">5"</option>
-          <option value="6">6"</option><option value="7">7"</option>
-          <option value="8" selected>8"</option><option value="9">9"</option>
-          <option value="10">10"</option><option value="12">12"</option>
-          <option value="14">14"</option><option value="16">16"</option>
-          <option value="18">18"</option><option value="20">20"</option>
-        </select>
+      <div class="seg-control" id="revMaterialControl">
+        <button class="seg-btn active" data-material="metal">Metal</button>
+        <button class="seg-btn" data-material="flex">Flex</button>
       </div>
-      <!-- Rect size -->
-      <div id="revRectGroup" style="display:none">
-        <label class="config-label" style="margin-top:8px">Width × Height</label>
-        <div style="display:flex;gap:8px">
-          <select class="input-field" id="revRectW" style="flex:1">
-            <option value="6">6"</option><option value="8">8"</option>
-            <option value="10" selected>10"</option><option value="12">12"</option>
-            <option value="14">14"</option><option value="16">16"</option>
-            <option value="18">18"</option><option value="20">20"</option>
-            <option value="24">24"</option><option value="30">30"</option>
-          </select>
-          <span style="color:var(--text-dim);align-self:center">×</span>
-          <select class="input-field" id="revRectH" style="flex:1">
-            <option value="6">6"</option><option value="8" selected>8"</option>
-            <option value="10">10"</option><option value="12">12"</option>
-            <option value="14">14"</option><option value="16">16"</option>
-            <option value="18">18"</option><option value="20">20"</option>
-          </select>
-        </div>
-      </div>
-      <!-- Flex compression -->
-      <div id="revCompressionSection" style="display:none;margin-top:8px">
-        <div class="compression-panel">
-          <div class="compression-panel-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 6l4 6-4 6M20 6l-4 6 4 6"/></svg>
-            Flex Compression
-          </div>
-          <div class="compression-presets" id="revCompPresets">
-            <button class="compression-preset-btn active" data-rev-comp="4">4%</button>
-            <button class="compression-preset-btn" data-rev-comp="5">5%</button>
-            <button class="compression-preset-btn" data-rev-comp="10">10%</button>
-            <button class="compression-preset-btn" data-rev-comp="15">15%</button>
-            <button class="compression-preset-btn" data-rev-comp="20">20%</button>
-            <button class="compression-preset-btn" data-rev-comp="25">25%</button>
-            <button class="compression-preset-btn" data-rev-comp="30">30%</button>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <input type="range" class="compression-slider" id="revCompSlider" min="4" max="30" value="4" step="1" style="flex:1">
-            <input type="number" class="slider-value-input" id="revCompInput" value="4" min="4" max="30" step="1" style="width:52px;text-align:center">
-            <span style="font-size:11px;color:#888">%</span>
-          </div>
-          <div class="compression-impact low" id="revCompImpact">4% compressed — minimum realistic install</div>
-        </div>
+    </div>
+    <div class="config-row">
+      <div class="config-group" id="revLinedGroup">
+        <input type="checkbox" id="revInsulatedToggle">
+        <label for="revInsulatedToggle">Insulated / Lined</label>
       </div>
     </div>
 
-    <!-- Reverse results -->
+    <div id="revRoundGroup">
+      <div class="input-group"><label class="input-label">Duct Size (round)</label>
+        <select class="input-field" id="revDuctSize" style="width:100%">
+          <option value="4">4"</option><option value="5">5"</option><option value="6">6"</option>
+          <option value="7">7"</option><option value="8">8"</option><option value="9">9"</option>
+          <option value="10" selected>10"</option><option value="12">12"</option><option value="14">14"</option>
+          <option value="16">16"</option><option value="18">18"</option><option value="20">20"</option>
+          <option value="24">24"</option>
+        </select>
+      </div>
+    </div>
+    <div id="revRectGroup" style="display:none">
+      <div style="display:flex;gap:8px">
+        <div class="input-group" style="flex:1"><label class="input-label">Width</label>
+          <select class="input-field" id="revRectW" style="flex:1">
+            <option value="6">6"</option><option value="8">8"</option><option value="10" selected>10"</option>
+            <option value="12">12"</option><option value="14">14"</option><option value="16">16"</option>
+            <option value="18">18"</option><option value="20">20"</option><option value="24">24"</option>
+            <option value="28">28"</option><option value="30">30"</option>
+          </select>
+        </div>
+        <div class="input-group" style="flex:1"><label class="input-label">Height</label>
+          <select class="input-field" id="revRectH" style="flex:1">
+            <option value="4">4"</option><option value="6">6"</option><option value="8" selected>8"</option>
+            <option value="10">10"</option><option value="12">12"</option><option value="14">14"</option>
+            <option value="16">16"</option><option value="18">18"</option><option value="20">20"</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="revCompressionSection" style="display:none;margin-top:8px">
+      <div class="compression-section">
+        <div class="slider-header">
+          <span class="slider-label">Compression</span>
+        </div>
+        <div class="compression-presets" id="revCompPresets">
+          <button data-compression="4" class="active">4%</button>
+          <button data-compression="10">10%</button>
+          <button data-compression="15">15%</button>
+          <button data-compression="20">20%</button>
+          <button data-compression="30">30%</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+          <input type="range" class="compression-slider" id="revCompSlider" min="4" max="30" value="4" step="1" style="flex:1">
+          <input type="number" class="slider-value-input" id="revCompInput" value="4" min="4" max="30" step="1" style="width:52px;text-align:center">
+        </div>
+        <div class="compression-impact low" id="revCompImpact">4% compressed — minimum realistic install</div>
+      </div>
+    </div>
+
     <div class="panel" id="revResults" style="margin-top:10px">
-      <div class="panel-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        CFM Capacity
+      <div class="panel-title">CFM Range for Selected Duct</div>
+      <div class="rev-bar-container">
+        <div class="rev-bar-zone rev-bar-low" id="revBarLow"></div>
+        <div class="rev-bar-zone rev-bar-ok" id="revBarOk"></div>
+        <div class="rev-bar-zone rev-bar-high" id="revBarHigh"></div>
       </div>
-      <div class="rev-capacity-bar">
-        <div class="rev-bar-track">
-          <div class="rev-bar-zone rev-bar-low" id="revBarLow"></div>
-          <div class="rev-bar-zone rev-bar-ok" id="revBarOk"></div>
-          <div class="rev-bar-zone rev-bar-high" id="revBarHigh"></div>
-        </div>
-        <div class="rev-bar-labels">
-          <span id="revMinCfm">--</span>
-          <span id="revIdealCfm" style="color:var(--green);font-weight:700">--</span>
-          <span id="revMaxCfm">--</span>
-        </div>
-        <div class="rev-bar-captions">
-          <span>Minimum</span>
-          <span style="color:var(--green)">Recommended</span>
-          <span>Maximum</span>
-        </div>
+      <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:12px;margin-bottom:12px">
+        <span id="revMinCfm">--</span>
+        <span id="revIdealCfm" style="color:var(--green);font-weight:700">--</span>
+        <span id="revMaxCfm">--</span>
       </div>
-      <div class="results-grid" style="margin-top:10px">
+      <div class="results-grid">
         <div class="result-card">
           <div class="result-value" id="revVelocityMin">--</div>
           <div class="result-unit">FPM</div>
           <div class="result-label">Min Velocity</div>
         </div>
-        <div class="result-card success">
-          <div class="result-value" id="revVelocityIdeal">--</div>
+        <div class="result-card">
+          <div class="result-value green" id="revVelocityIdeal">--</div>
           <div class="result-unit">FPM</div>
           <div class="result-label">Ideal Velocity</div>
         </div>
-        <div class="result-card">
+        <div class="result-card" style="grid-column:span 2">
           <div class="result-value" id="revVelocityMax">--</div>
           <div class="result-unit">FPM</div>
           <div class="result-label">Max Velocity</div>
@@ -3227,80 +2815,66 @@ footer a:hover { color: var(--accent); }
     </div>
   </div>
 
-  <!-- RESULTS (forward mode) -->
+  <!-- Forward Results -->
   <div id="forwardResults">
-    <div class="panel">
-      <div class="panel-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        Results
+    <div class="results-grid">
+      <div class="result-card" id="velocityCard">
+        <div class="result-value" id="velocityResult">--</div>
+        <div class="result-unit">FPM</div>
+        <div class="result-label">Velocity</div>
       </div>
-      <div class="results-grid">
-        <div class="result-card" id="velocityCard">
-          <div class="result-value" id="velocityResult">--</div>
-          <div class="result-unit">FPM</div>
-          <div class="result-label">Velocity</div>
-        </div>
-        <div class="result-card" id="frictionCard">
-          <div class="result-value" id="frictionResult">--</div>
-          <div class="result-unit">IWC/100ft</div>
-          <div class="result-label">Friction Rate</div>
-        </div>
-        <div class="result-card" id="maxCfmCard">
-          <div class="result-value" id="maxCfmResult">--</div>
-          <div class="result-unit">CFM</div>
-          <div class="result-label">Max CFM @ 0.08</div>
-        </div>
-        <div class="result-card" id="suggestedCard">
-          <div class="result-value" id="suggestedResult">--</div>
-          <div class="result-unit" id="suggestedUnit">round</div>
-          <div class="result-label">Suggested Size</div>
-        </div>
+      <div class="result-card" id="frictionCard">
+        <div class="result-value" id="frictionResult">--</div>
+        <div class="result-unit">IWC/100ft</div>
+        <div class="result-label">Friction Loss</div>
       </div>
-
-      <div class="results-grid" style="margin-top:8px">
-        <div class="result-card" id="maxRunCard">
-          <div class="result-value" id="maxRunResult">--</div>
-          <div class="result-unit">feet</div>
-          <div class="result-label">Max TEL @ FR</div>
-        </div>
-        <div class="result-card">
-          <div class="result-value" id="areaDisplay">--</div>
-          <div class="result-unit">ft²</div>
-          <div class="result-label">Cross Section</div>
-        </div>
+      <div class="result-card" id="maxCfmCard">
+        <div class="result-value" id="maxCfmResult">--</div>
+        <div class="result-unit">CFM</div>
+        <div class="result-label">Max CFM</div>
       </div>
-
-      <div id="statusBar" class="status-bar ok">
-        <span class="status-dot"></span>
-        <span id="statusText">Enter values above</span>
+      <div class="result-card" id="suggestedCard">
+        <div class="result-value" id="suggestedResult">--</div>
+        <div class="result-unit" id="suggestedUnit">round</div>
+        <div class="result-label">Suggested Size</div>
+      </div>
+    </div>
+    <div class="results-grid">
+      <div class="result-card" id="maxRunCard">
+        <div class="result-value" id="maxRunResult">--</div>
+        <div class="result-unit">ft</div>
+        <div class="result-label">Max Run</div>
+      </div>
+      <div class="result-card">
+        <div class="result-value" id="areaDisplay">--</div>
+        <div class="result-unit">in²</div>
+        <div class="result-label">Duct Area</div>
       </div>
     </div>
 
+    <div id="statusBar" class="status-bar ok">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span id="statusText">Enter values above</span>
+    </div>
   </div>
 
-  <div class="info-note" style="margin-top:10px">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-    <span>ACCA Manual D Table 3-1 velocities. Rigid supply trunk: <strong>900 FPM</strong> max. Rigid return trunk: <strong>700 FPM</strong> max. Flex: <strong>700 FPM</strong> max. FR max <strong>0.08 IWC/100ft</strong>.</span>
-  </div>
   <div class="filter-warning-banner" id="calcFilterDisclaimer" style="display:none">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    <span><strong>Filter face velocity must not exceed 500 FPM</strong> per ASHRAE/ACCA guidelines. Velocities above 500 FPM at the filter grille cause excessive pressure drop, noise, and reduced filter life. All MERV ratings are tested per ASHRAE 52.2 at standard face velocities (typically 492 FPM). Actual installed face velocity depends on filter grille size and system CFM.</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span>Filter pressure drop reduces available static pressure</span>
   </div>
 
 </div>
 </div>
 
-<!-- ===== EQUIVALENT LENGTH PAGE ===== -->
+<!-- ========================================
+     EQ LENGTH PAGE
+     ======================================== -->
 <div id="page-eqlen" class="page">
 <div class="app-container">
-
+  <div style="padding:16px 0 8px"><span style="font-size:18px;font-weight:800;letter-spacing:-0.03em">EQ Length Tables</span></div>
   <div class="panel">
-    <div class="panel-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-      Equivalent Lengths of Fittings &amp; Boots
-    </div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.5">
-      Values based on Manual D Appendix 3 tables at reference conditions (0.08 IWC friction rate, 900 FPM supply / 700 FPM return). Actual equivalent lengths vary with velocity and friction rate. All values in equivalent feet of straight duct.
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:12px;line-height:1.5">
+      Values based on Manual D Appendix 3 tables at reference conditions (0.08 IWC friction rate, 900 FPM supply / 700 FPM return). All values in equivalent feet of straight duct.
     </div>
 
     <div class="eq-category">Elbows &amp; Turns</div>
@@ -3385,13 +2959,16 @@ footer a:hover { color: var(--accent); }
 
     <div class="info-note" style="margin-top:16px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-      <span>These are reference values from Manual D Appendix 3. Actual equivalent lengths vary with velocity and friction rate. At velocities lower than the reference (900 FPM supply, 700 FPM return), actual equivalent lengths are typically shorter. See Manual D Appendix 4 for correction factors.</span>
+      <span>These are reference values from Manual D Appendix 3. Actual equivalent lengths vary with velocity and friction rate.</span>
     </div>
   </div>
 </div>
 </div>
 
-<!-- ===== SYSTEM PAGE ===== -->
+
+<!-- ========================================
+     SYSTEM PAGE
+     ======================================== -->
 <div id="page-system" class="page">
 <div class="app-container">
 
@@ -4009,12 +3586,25 @@ footer a:hover { color: var(--accent); }
   </button>
 </div>
 
+<style>
+/* ===== V4 WIZARD OVERRIDES ===== */
+/* These are kept as a second style block to match original structure.
+   All V4 tokens from block 1 apply. Only truly different overrides here. */
+
+.plenum-svg-wrap { animation: svgFadeSlide 0.3s ease-out; display: flex; justify-content: center; padding: 6px 0; }
+.plenum-svg-wrap svg { max-width: 200px; max-height: 120px; width: 100%; }
+</style>
 
 
 </div>
 </div>
 
 <!-- ===== FRICTION RATE WORKSHEET PAGE ===== -->
+
+
+<!-- ========================================
+     FR WORKSHEET PAGE
+     ======================================== -->
 <div id="page-frworksheet" class="page">
 <div class="app-container">
 
@@ -4306,6 +3896,11 @@ footer a:hover { color: var(--accent); }
 </div>
 
 <!-- ===== FILTER PRESSURE DROP CALCULATOR ===== -->
+
+
+<!-- ========================================
+     FILTERS PAGE
+     ======================================== -->
 <div id="page-filters" class="page">
 <div class="app-container">
 
@@ -4397,6 +3992,11 @@ footer a:hover { color: var(--accent); }
 </div>
 
 <!-- ===== PSYCHROMETRICS PAGE ===== -->
+
+
+<!-- ========================================
+     PSYCHROMETRIC PAGE
+     ======================================== -->
 <div id="page-psychro" class="page">
 <div class="app-container">
 
@@ -4503,12 +4103,16 @@ footer a:hover { color: var(--accent); }
 </div>
 </div>
 
-
 <footer>
   <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">
     Created with Perplexity Computer
   </a>
 </footer>
+
+
+
+
+
 
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav" id="bottomNav">
@@ -4534,28 +4138,29 @@ footer a:hover { color: var(--accent); }
     <div class="more-panel-title">Tools</div>
     <div class="more-panel-grid">
       <button class="more-tool" data-page="calculator">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
         <span>Calculator</span>
       </button>
       <button class="more-tool" data-page="eqlen">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
         <span>EQ Length</span>
       </button>
       <button class="more-tool" data-page="frworksheet">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         <span>FR Worksheet</span>
       </button>
       <button class="more-tool" data-page="filters">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
         <span>Filters</span>
       </button>
       <button class="more-tool" data-page="psychro">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
         <span>Psychrometric</span>
       </button>
     </div>
   </div>
 </div>
+
 
 
 <script>
@@ -10443,6 +10048,47 @@ calcFrictionRate();
 </script>
 
 <script>
+// ===== Dial Ring Sync =====
+(function() {
+  var cfmSlider = document.getElementById('cfmSlider');
+  var cfmSliderVal = document.getElementById('cfmSliderVal');
+  var dialRingFill = document.getElementById('dialRingFill');
+  var circumference = 2 * Math.PI * 88; // r=88
+
+  function updateDialRing() {
+    var min = parseFloat(cfmSlider.min);
+    var max = parseFloat(cfmSlider.max);
+    var val = parseFloat(cfmSlider.value);
+    var pct = (val - min) / (max - min);
+    var offset = circumference * (1 - pct);
+    if (dialRingFill) {
+      dialRingFill.setAttribute('stroke-dasharray', circumference);
+      dialRingFill.setAttribute('stroke-dashoffset', offset);
+    }
+  }
+
+  // Sync cfmSlider -> dial ring
+  if (cfmSlider) {
+    cfmSlider.addEventListener('input', updateDialRing);
+    // Also listen for programmatic changes
+    var origCfmSliderSet = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+    // Initial update
+    updateDialRing();
+  }
+
+  // Also sync when cfmSliderVal changes (from typing)
+  if (cfmSliderVal) {
+    cfmSliderVal.addEventListener('input', function() {
+      setTimeout(updateDialRing, 50);
+    });
+  }
+
+  // Observe slider value changes
+  setInterval(updateDialRing, 200);
+})();
+</script>
+
+<script>
 
 // ===== DuctCalc Pro — Navigation Handler =====
 (function() {
@@ -10596,6 +10242,28 @@ calcFrictionRate();
   });
 })();
 
+</script>
+
+<script>
+// ===== Room card expand/collapse =====
+(function() {
+  document.addEventListener('click', function(e) {
+    // If clicking on the room-card-header (but not the remove button or name input)
+    var header = e.target.closest('.room-card-header');
+    if (!header) return;
+    if (e.target.closest('.room-card-remove')) return;
+    if (e.target.classList.contains('room-card-name')) return;
+    var card = header.closest('.room-card');
+    if (card) card.classList.toggle('expanded');
+  });
+  // Also handle the CFM area as a toggle
+  document.addEventListener('click', function(e) {
+    var cfm = e.target.closest('.room-card-cfm');
+    if (!cfm) return;
+    var card = cfm.closest('.room-card');
+    if (card) card.classList.toggle('expanded');
+  });
+})();
 </script>
 
 </body>
