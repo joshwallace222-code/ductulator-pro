@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
 <!--
    ______                            __
@@ -20,67 +20,57 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>DuctCalc Pro — HVAC Duct Design Tool</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
 /* ============================================================
-   DuctCalc Pro V7 — Light Theme with Gold Accent & Gauges
-   Clean white/light gray, gold accent, dark nav anchors
+   DuctCalc Pro V6 — ServiceTitan-Inspired Rebuild
+   Champagne/gold accent, instrument panel aesthetic
+   COMPLETELY NEW LAYOUT — dashboard home, dial calculator,
+   expandable rooms, full-screen wizard steps, report card results
    ============================================================ */
 
 :root {
-  /* Light backgrounds */
-  --bg: #f5f5f7;
-  --surface: #ffffff;
-  --surface-2: #f0f0f2;
-  --surface-3: #e8e8ec;
-  --surface-4: #dddde2;
-  --surface-5: #d0d0d6;
+  --bg: #0a0a0c;
+  --surface: #151517;
+  --surface-2: #1c1c20;
+  --surface-3: #252528;
+  --surface-4: #2e2e32;
+  --surface-5: #38383d;
 
-  /* Text — dark on light */
-  --text: #1a1a1e;
-  --text-2: #6b6b76;
-  --text-3: #9898a4;
+  --text: #f0f0f2;
+  --text-2: #9898a0;
+  --text-3: #58585f;
 
-  /* Gold accent */
-  --accent: #c8952c;
-  --accent-soft: rgba(200,149,44,0.08);
-  --accent-medium: rgba(200,149,44,0.15);
-  --accent-strong: #e8b84c;
-  --accent-glow: 0 0 16px rgba(200,149,44,0.12);
+  --accent: #d4a853;
+  --accent-soft: rgba(212,168,83,0.08);
+  --accent-medium: rgba(212,168,83,0.15);
+  --accent-strong: #e6bc6a;
+  --accent-glow: 0 0 16px rgba(212,168,83,0.12);
 
-  /* Semantic */
-  --green: #16a34a;
-  --green-soft: rgba(22,163,74,0.08);
-  --amber: #d97706;
-  --amber-soft: rgba(217,119,6,0.08);
-  --red: #dc2626;
-  --red-soft: rgba(220,38,38,0.08);
-  --blue: #2563eb;
-  --blue-soft: rgba(37,99,235,0.08);
+  --green: #2dd4a8;
+  --green-soft: rgba(45,212,168,0.1);
+  --amber: #f0b429;
+  --amber-soft: rgba(240,180,41,0.1);
+  --red: #ef5350;
+  --red-soft: rgba(239,83,80,0.1);
+  --blue: #5c9cf5;
+  --blue-soft: rgba(92,156,245,0.1);
 
-  /* Shadows */
-  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
-  --border: rgba(0,0,0,0.06);
-  --border-2: rgba(0,0,0,0.1);
+  --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --border: rgba(255,255,255,0.06);
+  --border-2: rgba(255,255,255,0.1);
 
-  /* Radii */
   --r-sm: 10px;
   --r-md: 14px;
   --r-lg: 20px;
   --r-xl: 28px;
   --r-pill: 100px;
 
-  /* Nav — dark */
-  --nav-bg: #1a1a1e;
-  --nav-text: #888;
-  --nav-active: #c8952c;
-
-  /* Legacy aliases for JS inline styles */
+  /* Legacy aliases — JS uses these in inline styles */
   --bg-0: var(--bg);
   --bg-1: var(--surface);
   --bg-2: var(--surface-2);
@@ -89,29 +79,32 @@
   --bg-primary: var(--bg);
   --bg-card: var(--surface);
   --bg-elevated: var(--surface-3);
-  --bg-input: var(--surface-2);
+  --bg-input: var(--bg);
   --surface-0: var(--bg);
   --surface-1: var(--surface);
+  --surface-2: #1c1c20;
+  --surface-3: #252528;
+  --surface-4: #2e2e32;
   --border-subtle: var(--border);
   --border-default: var(--border);
   --border-strong: var(--border-2);
   --border-focus: var(--accent);
   --border-light: var(--border-2);
-  --glass: rgba(245,245,247,0.92);
+  --glass: rgba(10,10,12,0.92);
   --glass-border: var(--border);
   --text-primary: var(--text);
   --text-0: var(--text);
-  --text-1: #3a3a42;
-  --text-2: #6b6b76;
-  --text-3: #9898a4;
+  --text-1: #d4d4d8;
+  --text-2: #9898a0;
+  --text-3: #58585f;
   --text-secondary: var(--text-2);
   --text-muted: var(--text-3);
   --text-dim: var(--text-3);
   --accent-subtle: var(--accent-soft);
   --accent-dim: var(--accent-soft);
-  --accent-hover: #b8872a;
+  --accent-hover: #c49a48;
   --accent-light: var(--accent-strong);
-  --accent-glow-legacy: rgba(200,149,44,0.15);
+  --accent-glow-legacy: rgba(212,168,83,0.15);
   --green-subtle: var(--green-soft);
   --amber-subtle: var(--amber-soft);
   --red-subtle: var(--red-soft);
@@ -143,7 +136,7 @@
   --shadow-md: var(--shadow-lg);
   --shadow-card: var(--shadow);
   --shadow-elevated: var(--shadow-lg);
-  --shadow-button: 0 4px 12px rgba(200,149,44,0.25);
+  --shadow-button: 0 2px 8px rgba(212,168,83,0.3);
   --radius-sm: var(--r-sm);
   --radius-md: var(--r-md);
   --radius-lg: var(--r-lg);
@@ -190,7 +183,7 @@ body {
 
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
 
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
@@ -205,27 +198,23 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
-@keyframes gaugeAnim {
-  from { stroke-dashoffset: var(--gauge-circumference, 283); }
-}
 
-/* ===== TOP BAR — Dark header on light content ===== */
+/* ===== TOP BAR — Thin, minimal ===== */
 .topbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--nav-bg);
+  background: rgba(10,10,12,0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: none;
-  height: 52px;
+  border-bottom: 1px solid var(--border);
+  height: 48px;
   display: flex;
   align-items: center;
   padding: 0 16px;
   gap: 10px;
   cursor: pointer;
   pointer-events: auto;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
 }
 
 .topbar-logo {
@@ -238,7 +227,7 @@ body {
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--text);
 }
 
 .topbar-badge {
@@ -247,7 +236,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--accent);
-  background: rgba(200,149,44,0.15);
+  background: var(--accent-soft);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -267,28 +256,27 @@ body {
   padding: 0 16px 24px;
 }
 
-/* ===== HOME PAGE — Dashboard ===== */
+/* ===== HOME PAGE — Dashboard Layout ===== */
 #page-home .app-container {
   padding-top: 20px;
 }
 
-/* Status card */
+/* Status summary card */
 .dash-status {
-  background: var(--surface);
-  border: none;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+  border: 1px solid var(--border);
   border-radius: var(--r-lg);
   padding: 20px;
   margin-bottom: 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow);
 }
 .dash-status::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-strong) 100%);
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
 }
 .dash-status-label {
   font-size: 10px;
@@ -307,7 +295,7 @@ body {
   color: var(--accent);
 }
 
-/* Quick actions */
+/* Quick actions — large pill buttons */
 .dash-section-label {
   font-size: 10px;
   font-weight: 700;
@@ -330,13 +318,12 @@ body {
   align-items: center;
   gap: 14px;
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-lg);
   padding: 16px 18px;
   cursor: pointer;
   transition: all 0.15s ease;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: var(--shadow);
 }
 .dash-action:active {
   transform: scale(0.98);
@@ -386,13 +373,12 @@ body {
 
 .dash-tool {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 16px 14px;
   cursor: pointer;
   transition: all 0.15s ease;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: var(--shadow);
 }
 .dash-tool:active { transform: scale(0.97); background: var(--surface-2); }
 
@@ -423,10 +409,10 @@ body {
   line-height: 1.3;
 }
 
-/* Recent projects */
+/* Recent projects placeholder */
 .dash-recent {
   background: var(--surface);
-  border: 2px dashed var(--surface-3);
+  border: 1px dashed rgba(255,255,255,0.08);
   border-radius: var(--r-md);
   padding: 24px;
   text-align: center;
@@ -435,7 +421,7 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: var(--surface-2);
+  background: var(--surface-3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -465,7 +451,7 @@ body {
   text-decoration: none;
 }
 
-/* ===== ROOM CFM PAGE ===== */
+/* ===== ROOM CFM PAGE — Expandable List ===== */
 .room-header-bar {
   display: flex;
   align-items: center;
@@ -476,11 +462,10 @@ body {
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text);
 }
 .room-header-btn {
   background: var(--accent);
-  color: #fff;
+  color: #000;
   border: none;
   border-radius: var(--r-pill);
   padding: 8px 16px;
@@ -488,18 +473,16 @@ body {
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-  box-shadow: var(--shadow-button);
 }
 .room-header-btn:active { opacity: 0.8; }
 
-/* Tightness */
+/* Tightness panel */
 .tightness-panel {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   margin-bottom: 12px;
-  box-shadow: var(--shadow);
 }
 .tightness-title {
   display: flex;
@@ -521,32 +504,28 @@ body {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 2px solid #ddd;
-  background: #fff;
-  color: #555;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   margin-right: 6px;
   margin-bottom: 4px;
-  transition: all 0.2s;
-  min-width: 70px;
+  transition: all 0.15s;
 }
-.tightness-btn:active { transform: scale(0.95); }
 .tightness-btn.active {
   border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(200,149,44,0.3);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
-.tightness-btn.active .tightness-btn-ach { color: rgba(255,255,255,0.8); }
-.tightness-btn-label { font-size: 12px; font-weight: 700; }
-.tightness-btn-ach { font-size: 9px; color: #888; font-family: 'DM Mono', monospace; }
+.tightness-btn-label { font-size: 11px; font-weight: 600; }
+.tightness-btn-ach { font-size: 9px; color: var(--text-3); font-family: 'DM Mono', monospace; }
 
-/* Room list */
+/* Room list — expandable rows */
 #roomCfmList {
   display: flex;
   flex-direction: column;
@@ -555,12 +534,11 @@ body {
 
 .room-cfm-card {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   overflow: hidden;
   transition: all 0.2s ease;
   margin-bottom: 2px;
-  box-shadow: var(--shadow);
 }
 .room-cfm-header {
   display: flex;
@@ -602,7 +580,7 @@ body {
 .room-cfm-card.expanded .room-cfm-body { display: block; }
 .room-cfm-card.expanded .room-cfm-expand { transform: rotate(180deg); }
 
-/* Room inputs */
+/* Room inputs inside expanded body */
 .room-input-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -621,8 +599,8 @@ body {
   letter-spacing: 0.06em;
 }
 .room-input-field {
-  background: var(--surface-2);
-  border: 1.5px solid var(--surface-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
   color: var(--text);
@@ -631,11 +609,11 @@ body {
   outline: none;
   width: 100%;
 }
-.room-input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.room-input-field:focus { border-color: var(--accent); }
 
 .room-type-select {
-  background: var(--surface-2);
-  border: 1.5px solid var(--surface-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
   color: var(--text);
@@ -661,16 +639,16 @@ body {
   font-family: inherit;
 }
 
-/* Room summary bar */
+/* Room summary bar — sticky bottom */
 .room-summary-bar {
   position: fixed;
   bottom: 72px;
   left: 0;
   right: 0;
-  background: rgba(255,255,255,0.95);
+  background: rgba(21,21,23,0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--surface-3);
+  border-top: 1px solid var(--border);
   padding: 10px 16px;
   display: none;
   z-index: 50;
@@ -702,7 +680,7 @@ body {
   letter-spacing: 0.08em;
 }
 
-/* ===== CALCULATOR PAGE — Dial ===== */
+/* ===== CALCULATOR PAGE — Dial Design ===== */
 .calc-header {
   display: flex;
   align-items: center;
@@ -713,42 +691,38 @@ body {
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text);
 }
 
-/* Mode toggle */
+/* Mode toggle — pill shape */
 .mode-toggle {
   display: flex;
-  background: #e8e8ec;
-  border-radius: 16px;
-  padding: 4px;
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  padding: 3px;
   margin-bottom: 16px;
-  border: none;
-  gap: 3px;
+  border: 1px solid var(--border);
 }
-.mode-toggle-btn, .mode-btn {
+.mode-toggle-btn {
   flex: 1;
-  padding: 12px 0;
+  padding: 10px 0;
   text-align: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #666;
-  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: none;
   border: none;
-  border-radius: 13px;
+  border-radius: var(--r-pill);
   cursor: pointer;
   transition: all 0.2s;
   font-family: inherit;
-  min-height: 44px;
 }
-.mode-toggle-btn:active, .mode-btn:active { transform: scale(0.96); }
-.mode-toggle-btn.active, .mode-btn.active {
+.mode-toggle-btn.active {
   background: var(--accent);
-  color: #fff;
-  box-shadow: 0 3px 12px rgba(200,149,44,0.3);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(212,168,83,0.3);
 }
 
-/* Dial container */
+/* Dial container — the BIG visual change */
 .dial-container {
   position: relative;
   width: 200px;
@@ -775,7 +749,7 @@ body {
   stroke-width: 8;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.15s ease;
-  filter: drop-shadow(0 0 8px rgba(200,149,44,0.3));
+  filter: drop-shadow(0 0 6px rgba(212,168,83,0.3));
 }
 .dial-value {
   position: relative;
@@ -800,13 +774,13 @@ body {
   margin-top: 4px;
 }
 
-/* Slider under dial */
+/* The slider under the dial */
 .dial-slider-wrap {
   padding: 0 8px;
   margin-bottom: 16px;
 }
 
-/* Config pills */
+/* Config pills — inline controls */
 .config-row {
   display: flex;
   flex-wrap: wrap;
@@ -824,44 +798,40 @@ body {
   padding-left: 2px;
 }
 
-/* Segmented controls */
+/* Segmented controls — smaller, pill-shaped */
 .seg-control {
   display: inline-flex;
-  background: #e8e8ec;
-  border-radius: 14px;
-  padding: 3px;
-  border: none;
-  gap: 2px;
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  padding: 2px;
+  border: 1px solid var(--border);
+  gap: 1px;
 }
 .seg-btn {
-  padding: 8px 16px;
-  font-size: 13px;
+  padding: 6px 14px;
+  font-size: 11px;
   font-weight: 600;
-  color: #444;
-  background: transparent;
+  color: var(--text-3);
+  background: none;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--r-pill);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   font-family: inherit;
   white-space: nowrap;
-  min-height: 38px;
 }
-.seg-btn:active { transform: scale(0.95); }
 .seg-btn.active {
-  background: #1a1a1e;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  background: var(--surface-3);
+  color: var(--text);
 }
 
 /* Slider panels */
 .slider-panel {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   margin-bottom: 10px;
-  box-shadow: var(--shadow);
 }
 .slider-header {
   display: flex;
@@ -877,8 +847,8 @@ body {
   letter-spacing: 0.06em;
 }
 .slider-value-input {
-  background: var(--surface-2);
-  border: 1.5px solid var(--surface-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 5px 8px;
   color: var(--accent);
@@ -889,7 +859,7 @@ body {
   text-align: center;
   width: 64px;
 }
-.slider-value-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.slider-value-input:focus { border-color: var(--accent); }
 
 /* Range sliders */
 input[type="range"],
@@ -899,7 +869,7 @@ input[type="range"],
   appearance: none;
   width: 100%;
   height: 6px;
-  background: linear-gradient(to right, var(--green), var(--amber), var(--red));
+  background: var(--surface-3);
   border-radius: 3px;
   outline: none;
   cursor: pointer;
@@ -909,22 +879,21 @@ input[type="range"]::-webkit-slider-thumb,
 .compression-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   cursor: pointer;
 }
 
-/* Compression */
+/* Compression section */
 .compression-section {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   margin-bottom: 10px;
-  box-shadow: var(--shadow);
 }
 .compression-presets {
   display: flex;
@@ -932,24 +901,20 @@ input[type="range"]::-webkit-slider-thumb,
   margin-bottom: 8px;
 }
 .compression-presets button {
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 20px;
-  border: 2px solid #ddd;
-  background: #fff;
-  color: #555;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-3);
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.15s;
-  min-height: 34px;
 }
-.compression-presets button:active { transform: scale(0.93); }
 .compression-presets button.active {
   border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(200,149,44,0.25);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .compression-impact {
   font-size: 10px;
@@ -961,7 +926,7 @@ input[type="range"]::-webkit-slider-thumb,
 .compression-impact.medium { background: var(--amber-soft); color: var(--amber); }
 .compression-impact.high { background: var(--red-soft); color: var(--red); }
 
-/* Config group */
+/* Config group / insulated toggle */
 .config-group {
   display: flex;
   align-items: center;
@@ -969,7 +934,7 @@ input[type="range"]::-webkit-slider-thumb,
 }
 .config-group label { font-size: 12px; font-weight: 600; color: var(--text-2); }
 
-/* Results grid */
+/* Results cards — grid */
 .results-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -978,11 +943,10 @@ input[type="range"]::-webkit-slider-thumb,
 }
 .result-card {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   text-align: center;
-  box-shadow: var(--shadow);
 }
 .result-value {
   font-family: 'DM Mono', monospace;
@@ -1050,11 +1014,10 @@ input[type="range"]::-webkit-slider-thumb,
 /* ===== PANEL — Generic card ===== */
 .panel {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 16px;
   margin-bottom: 12px;
-  box-shadow: var(--shadow);
 }
 .panel-title {
   display: flex;
@@ -1070,16 +1033,14 @@ input[type="range"]::-webkit-slider-thumb,
 /* Input fields */
 .input-label {
   font-size: 11px;
-  font-weight: 700;
-  color: #444;
-  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 4px;
   display: block;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .input-field {
-  background: var(--surface-2);
-  border: 1.5px solid var(--surface-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
   color: var(--text);
@@ -1088,11 +1049,11 @@ input[type="range"]::-webkit-slider-thumb,
   outline: none;
   width: 100%;
 }
-.input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.input-field:focus { border-color: var(--accent); }
 .input-group { margin-bottom: 8px; }
 select.input-field { -webkit-appearance: none; }
 
-/* Checkbox */
+/* Checkbox / toggle */
 input[type="checkbox"] {
   accent-color: var(--accent);
   width: 16px;
@@ -1127,7 +1088,7 @@ input[type="checkbox"] {
   -webkit-overflow-scrolling: touch;
   margin-bottom: 8px;
   border-radius: var(--r-sm);
-  border: 1px solid var(--surface-3);
+  border: 1px solid var(--border);
 }
 .eq-table {
   width: 100%;
@@ -1148,15 +1109,15 @@ input[type="checkbox"] {
 }
 .eq-table td {
   padding: 7px 6px;
-  border-top: 1px solid var(--surface-3);
+  border-top: 1px solid var(--border);
   color: var(--text);
   white-space: nowrap;
 }
 .eq-table td:first-child { color: var(--text-2); white-space: normal; }
 .eq-table td:not(:first-child) { font-family: 'DM Mono', monospace; text-align: center; }
-.eq-table tr:hover td { background: rgba(0,0,0,0.02); }
+.eq-table tr:hover td { background: rgba(255,255,255,0.02); }
 
-/* ===== SYSTEM PAGE ===== */
+/* ===== SYSTEM PAGE (Wizard + Runs) ===== */
 .sys-page-header {
   display: flex;
   align-items: center;
@@ -1167,7 +1128,6 @@ input[type="checkbox"] {
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text);
 }
 
 /* Section collapsible */
@@ -1179,17 +1139,15 @@ input[type="checkbox"] {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   margin-bottom: 2px;
-  box-shadow: var(--shadow);
 }
 .section-header svg { width: 18px; height: 18px; color: var(--accent); }
 .section-header-title {
   flex: 1;
   font-size: 14px;
   font-weight: 700;
-  color: var(--text);
 }
 .section-header-toggle {
   color: var(--text-3);
@@ -1200,12 +1158,11 @@ input[type="checkbox"] {
 
 .section-body {
   background: var(--surface);
-  border: none;
-  border-top: 1px solid var(--surface-3);
+  border: 1px solid var(--border);
+  border-top: none;
   border-radius: 0 0 var(--r-md) var(--r-md);
   padding: 14px;
   margin-bottom: 12px;
-  box-shadow: var(--shadow);
 }
 .section-body.collapsed { display: none; }
 
@@ -1229,7 +1186,7 @@ input[type="checkbox"] {
   gap: 4px;
   padding: 4px 8px;
   border-radius: var(--r-pill);
-  background: var(--surface-2);
+  background: var(--surface-3);
   font-size: 10px;
   font-weight: 600;
   color: var(--text-2);
@@ -1247,7 +1204,7 @@ input[type="checkbox"] {
 }
 .plenum-svg-wrap svg { max-width: 100%; height: auto; }
 
-/* ===== WIZARD STEPS ===== */
+/* ===== WIZARD STEPS — Full-screen style ===== */
 .wiz-progress-track {
   height: 3px;
   background: var(--surface-3);
@@ -1267,7 +1224,7 @@ input[type="checkbox"] {
   gap: 2px;
   padding: 8px 16px;
   background: var(--surface);
-  border-bottom: 1px solid var(--surface-3);
+  border-bottom: 1px solid var(--border);
 }
 .wiz-pill {
   display: flex;
@@ -1303,7 +1260,7 @@ input[type="checkbox"] {
 }
 .wiz-pill.active .wiz-pill-num {
   background: var(--accent);
-  color: #fff;
+  color: #000;
 }
 .wiz-pill.done .wiz-pill-num {
   background: var(--green-soft);
@@ -1327,7 +1284,6 @@ input[type="checkbox"] {
   font-weight: 800;
   letter-spacing: -0.03em;
   margin-bottom: 4px;
-  color: var(--text);
 }
 .wiz-step-desc {
   font-size: 12px;
@@ -1336,7 +1292,7 @@ input[type="checkbox"] {
   line-height: 1.5;
 }
 
-/* Option grid */
+/* Option grid — wizard choices */
 .opt-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1345,14 +1301,13 @@ input[type="checkbox"] {
 }
 .opt-card {
   background: var(--surface);
-  border: 2px solid var(--surface-3);
+  border: 1.5px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   text-align: center;
   cursor: pointer;
   transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: var(--shadow);
 }
 .opt-card:active { transform: scale(0.97); }
 .opt-card.active {
@@ -1372,37 +1327,31 @@ input[type="checkbox"] {
 }
 .opt-card svg { width: 28px; height: 28px; color: var(--accent); margin: 0 auto; display: block; }
 .opt-card.active svg { color: var(--accent-strong); }
-.opt-card.active .opt-label { color: var(--accent); }
 
 /* Wizard primary button */
 .wiz-btn-primary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  display: block;
   width: 100%;
-  padding: 16px;
-  background: linear-gradient(135deg, #d4a040 0%, #c08a28 100%);
-  color: #fff;
+  padding: 14px;
+  background: var(--accent);
+  color: #000;
   border: none;
-  border-radius: 16px;
-  font-size: 15px;
+  border-radius: var(--r-md);
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
   margin-top: 12px;
-  transition: transform 0.12s, box-shadow 0.12s;
-  box-shadow: 0 4px 16px rgba(200,149,44,0.3);
-  min-height: 52px;
+  transition: opacity 0.15s;
 }
-.wiz-btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(200,149,44,0.2); }
+.wiz-btn-primary:active { opacity: 0.8; }
 
 .wiz-btn-add {
   display: block;
   width: 100%;
   padding: 12px;
   background: var(--surface);
-  border: 2px dashed var(--surface-3);
+  border: 1px dashed var(--border-2);
   border-radius: var(--r-md);
   color: var(--text-2);
   font-size: 13px;
@@ -1412,7 +1361,7 @@ input[type="checkbox"] {
   margin-top: 8px;
 }
 
-/* Wizard fitting SVG */
+/* Wizard fitting SVG container */
 .wiz-fitting-svg {
   text-align: center;
 }
@@ -1421,47 +1370,32 @@ input[type="checkbox"] {
 /* Wizard shape toggle */
 .wiz-shape-toggle {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
+  gap: 4px;
 }
-.wiz-shape-toggle button,
-.wiz-shape-toggle div,
-.wiz-shape-toggle .wiz-shape-btn {
-  padding: 10px 18px;
-  font-size: 13px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: 2px solid #ddd;
-  background: #fff;
-  color: #444;
+.wiz-shape-toggle button {
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-3);
   cursor: pointer;
   font-family: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.15s;
-  min-height: 42px;
 }
-.wiz-shape-toggle button:active,
-.wiz-shape-toggle div:active { transform: scale(0.95); }
-.wiz-shape-toggle button.active,
-.wiz-shape-toggle div.active,
-.wiz-shape-toggle .wiz-shape-btn.active {
+.wiz-shape-toggle button.active {
   border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(200,149,44,0.25);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* Wizard trunk cards */
 .wiz-trunk-card {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   margin-bottom: 8px;
-  box-shadow: var(--shadow);
 }
 .wiz-trunk-header {
   display: flex;
@@ -1472,7 +1406,6 @@ input[type="checkbox"] {
 .wiz-trunk-title {
   font-size: 13px;
   font-weight: 700;
-  color: var(--text);
 }
 .wiz-trunk-badge {
   font-size: 9px;
@@ -1511,7 +1444,7 @@ input[type="checkbox"] {
   font-size: 11px;
   font-weight: 600;
   border-radius: var(--r-pill);
-  border: 1.5px solid var(--surface-3);
+  border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text-2);
   cursor: pointer;
@@ -1520,18 +1453,17 @@ input[type="checkbox"] {
 }
 .wiz-fit-btn svg { width: 14px; height: 14px; }
 
-/* Wizard duct tree */
+/* Wizard duct tree / summary */
 .wiz-tree-svg { text-align: center; }
 .wiz-tree-svg svg { max-width: 100%; }
 
-/* Summary cards */
+/* Summary cards in results */
 .wiz-summary-card {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 12px;
   margin-bottom: 6px;
-  box-shadow: var(--shadow);
 }
 
 /* Friction gauge */
@@ -1540,7 +1472,7 @@ input[type="checkbox"] {
   text-align: center;
 }
 
-/* Budget bar */
+/* Budget breakdown */
 .wiz-budget-bar {
   height: 12px;
   border-radius: 6px;
@@ -1549,14 +1481,13 @@ input[type="checkbox"] {
   margin: 8px 0;
 }
 
-/* ===== FR WORKSHEET ===== */
+/* ===== FRICTION RATE WORKSHEET ===== */
 .fr-section {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   margin-bottom: 10px;
-  box-shadow: var(--shadow);
 }
 .fr-section-title {
   font-size: 12px;
@@ -1574,7 +1505,7 @@ input[type="checkbox"] {
   align-items: center;
   justify-content: space-between;
   padding: 6px 0;
-  border-bottom: 1px solid var(--surface-3);
+  border-bottom: 1px solid var(--border);
 }
 .fr-row:last-child { border-bottom: none; }
 .fr-row-label {
@@ -1582,8 +1513,8 @@ input[type="checkbox"] {
   color: var(--text-2);
 }
 .fr-input {
-  background: var(--surface-2);
-  border: 1.5px solid var(--surface-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 8px;
   color: var(--text);
@@ -1593,7 +1524,7 @@ input[type="checkbox"] {
   text-align: right;
   width: 80px;
 }
-.fr-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fr-input:focus { border-color: var(--accent); }
 .fr-select {
   -webkit-appearance: none;
   appearance: none;
@@ -1652,11 +1583,10 @@ input[type="checkbox"] {
 /* FR chart */
 .fr-chart-wrap {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 12px;
   margin-top: 10px;
-  box-shadow: var(--shadow);
 }
 
 /* ===== FILTER PAGE ===== */
@@ -1671,7 +1601,7 @@ input[type="checkbox"] {
   font-size: 11px;
   font-weight: 600;
   border-radius: var(--r-pill);
-  border: 1.5px solid var(--surface-3);
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-2);
   cursor: pointer;
@@ -1684,11 +1614,10 @@ input[type="checkbox"] {
 }
 .filter-result-card {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   margin-top: 10px;
-  box-shadow: var(--shadow);
 }
 .filter-result-value {
   font-family: 'DM Mono', monospace;
@@ -1711,7 +1640,7 @@ input[type="checkbox"] {
   width: 100%;
   padding: 10px;
   background: var(--accent);
-  color: #fff;
+  color: #000;
   border: none;
   border-radius: var(--r-md);
   font-size: 13px;
@@ -1719,7 +1648,6 @@ input[type="checkbox"] {
   cursor: pointer;
   font-family: inherit;
   margin-top: 8px;
-  box-shadow: var(--shadow-button);
 }
 
 /* Filter inline */
@@ -1729,12 +1657,12 @@ input[type="checkbox"] {
   gap: 6px;
 }
 .filter-inline-stat { text-align: center; padding: 8px; background: var(--surface-2); border-radius: 8px; }
-.filter-inline-stat-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text); }
+.filter-inline-stat-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; }
 .filter-inline-stat-label { font-size: 9px; color: var(--text-3); }
 .filter-inline-value { font-family: 'DM Mono', monospace; font-weight: 700; }
 .filter-impact-card {
   background: var(--surface);
-  border: 1px solid var(--surface-3);
+  border: 1px solid var(--border);
   border-radius: var(--r-sm);
   padding: 10px;
   margin-top: 8px;
@@ -1782,7 +1710,7 @@ input[type="checkbox"] {
   font-size: 10px;
   font-weight: 600;
   border-radius: var(--r-pill);
-  border: 1.5px solid var(--surface-3);
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-3);
   cursor: pointer;
@@ -1797,7 +1725,7 @@ input[type="checkbox"] {
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
-  border-bottom: 1px solid var(--surface-3);
+  border-bottom: 1px solid var(--border);
   font-size: 12px;
 }
 .psych-result-row:last-child { border-bottom: none; }
@@ -1809,23 +1737,20 @@ input[type="checkbox"] {
 .sys-add-btn, .sys-add-step-btn, .add-fitting-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  font-size: 13px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: 2px solid var(--accent);
-  background: linear-gradient(135deg, rgba(200,149,44,0.06) 0%, rgba(200,149,44,0.12) 100%);
-  color: var(--accent);
+  gap: 4px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px dashed var(--border-2);
+  background: var(--surface);
+  color: var(--text-2);
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.15s;
-  min-height: 44px;
 }
-.sys-add-btn:active, .sys-add-step-btn:active, .add-fitting-btn:active {
-  transform: scale(0.96);
-  background: var(--accent);
-  color: #fff;
+.sys-add-btn:hover, .sys-add-step-btn:hover, .add-fitting-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Run tabs */
@@ -1841,7 +1766,7 @@ input[type="checkbox"] {
   font-size: 11px;
   font-weight: 600;
   border-radius: var(--r-pill);
-  border: 1.5px solid var(--surface-3);
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-3);
   cursor: pointer;
@@ -1860,7 +1785,7 @@ input[type="checkbox"] {
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  border-bottom: 1px solid var(--surface-3);
+  border-bottom: 1px solid var(--border);
   font-size: 12px;
 }
 .run-step-dot {
@@ -1884,7 +1809,7 @@ input[type="checkbox"] {
   padding: 4px 8px;
   font-size: 10px;
   border-radius: 6px;
-  border: 1px solid var(--surface-3);
+  border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text-3);
   cursor: pointer;
@@ -1899,11 +1824,10 @@ input[type="checkbox"] {
 }
 .run-summary-card {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-sm);
   padding: 10px;
   text-align: center;
-  box-shadow: var(--shadow);
 }
 .run-summary-value {
   font-family: 'DM Mono', monospace;
@@ -1932,7 +1856,7 @@ input[type="checkbox"] {
   font-size: 11px;
   font-weight: 600;
   border-radius: var(--r-pill);
-  border: 1.5px solid var(--surface-3);
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-2);
   cursor: pointer;
@@ -1954,8 +1878,8 @@ input[type="checkbox"] {
 }
 .straight-input-row input {
   width: 60px;
-  background: var(--surface-2);
-  border: 1.5px solid var(--surface-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 8px;
   color: var(--text);
@@ -1968,8 +1892,8 @@ input[type="checkbox"] {
 /* Fitting search */
 .fitting-search-input {
   width: 100%;
-  background: var(--surface-2);
-  border: 1.5px solid var(--surface-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 10px 12px;
   color: var(--text);
@@ -1978,7 +1902,7 @@ input[type="checkbox"] {
   outline: none;
   margin-bottom: 8px;
 }
-.fitting-search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fitting-search-input:focus { border-color: var(--accent); }
 
 .fitting-results {
   max-height: 300px;
@@ -1989,7 +1913,7 @@ input[type="checkbox"] {
   align-items: center;
   gap: 10px;
   padding: 10px;
-  border-bottom: 1px solid var(--surface-3);
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.1s;
 }
@@ -2014,24 +1938,23 @@ input[type="checkbox"] {
   white-space: nowrap;
 }
 
-/* CFM Estimator */
+/* CFM Estimator inside system page */
 .cfm-est-room {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 0;
-  border-bottom: 1px solid var(--surface-3);
+  border-bottom: 1px solid var(--border);
   font-size: 12px;
 }
 
 /* Branch tree panel */
 .branch-tree-panel {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   margin-top: 12px;
-  box-shadow: var(--shadow);
 }
 
 /* Reverse calc mode */
@@ -2047,23 +1970,22 @@ input[type="checkbox"] {
 .rev-bar-ok { background: var(--green); }
 .rev-bar-high { background: var(--red); }
 
-/* ===== BOTTOM NAVIGATION — DARK anchor ===== */
+/* ===== BOTTOM NAVIGATION — Refined ===== */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   height: 64px;
-  background: var(--nav-bg);
+  background: rgba(10,10,12,0.94);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-top: none;
+  border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-around;
   padding-bottom: env(safe-area-inset-bottom, 0);
   z-index: 1000;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
 }
 
 .bottom-nav-item {
@@ -2071,7 +1993,7 @@ input[type="checkbox"] {
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  color: var(--nav-text);
+  color: var(--text-3);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -2089,13 +2011,13 @@ input[type="checkbox"] {
   justify-content: center;
 }
 
-.bottom-nav-item.active { color: var(--nav-active); }
+.bottom-nav-item.active { color: var(--accent); }
 .bottom-nav-item.active svg {
-  filter: drop-shadow(0 0 6px rgba(200,149,44,0.4));
+  filter: drop-shadow(0 0 6px rgba(212,168,83,0.4));
 }
 .bottom-nav-item svg { width: 22px; height: 22px; stroke-width: 1.5; }
 
-/* ===== MORE PANEL ===== */
+/* ===== MORE PANEL — Bottom sheet ===== */
 .more-panel {
   position: fixed;
   inset: 0;
@@ -2109,7 +2031,7 @@ input[type="checkbox"] {
 .more-panel-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -2126,7 +2048,7 @@ input[type="checkbox"] {
   transform: translateY(100%);
   transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
   overflow-y: auto;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
 }
 .more-panel.open .more-panel-sheet { transform: translateY(0); }
 
@@ -2134,7 +2056,7 @@ input[type="checkbox"] {
   width: 40px;
   height: 4px;
   border-radius: 2px;
-  background: var(--surface-3);
+  background: var(--surface-4);
   margin: 0 auto 16px;
 }
 
@@ -2160,7 +2082,7 @@ input[type="checkbox"] {
   gap: 6px;
   padding: 14px 8px;
   background: var(--surface-2);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   cursor: pointer;
   transition: all 0.15s;
@@ -2172,15 +2094,14 @@ input[type="checkbox"] {
 .more-tool:active { background: var(--surface-3); }
 .more-tool svg { width: 22px; height: 22px; color: var(--accent); }
 
-/* ===== ROOM CARDS — ALWAYS EXPANDED (V7 Fix) ===== */
+/* ===== ROOM CARDS — Expandable ===== */
 .room-card {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   overflow: hidden;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow);
 }
 .room-card-header {
   display: flex;
@@ -2208,26 +2129,26 @@ input[type="checkbox"] {
 .room-card-remove:hover { background: var(--red-soft); color: var(--red); }
 .room-card-name {
   flex: 1;
-  background: var(--surface-2);
-  border: 1px solid var(--surface-3);
+  background: transparent;
+  border: none;
   color: var(--text);
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
   outline: none;
   min-width: 0;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 2px 0;
 }
 .room-card-name:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 2px 6px;
 }
 .room-card-cfm {
   font-family: 'DM Mono', monospace;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--green);
+  color: var(--accent);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -2236,71 +2157,55 @@ input[type="checkbox"] {
   color: var(--text-3);
   font-weight: 600;
 }
-
-/* V7: Room card body ALWAYS visible (not collapsed) */
+/* Collapsed by default — body hidden */
 .room-card .room-card-body {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 8px;
+  display: none;
   padding: 0 14px 14px;
-  border-top: 1px solid var(--surface-3);
-  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
 .room-card.expanded .room-card-body {
-  display: grid !important;
+  display: block;
 }
-
 .room-card .room-card-info {
   font-size: 11px;
-  color: var(--text-2);
-  padding: 6px 14px 10px;
+  color: var(--text-3);
+  padding: 4px 14px 10px;
   line-height: 1.4;
-  display: flex;
-  justify-content: space-between;
-  background: var(--surface-2);
-  border-radius: 0 0 var(--r-md) var(--r-md);
 }
 .room-card.expanded .room-card-info {
-  display: flex;
+  display: none;
 }
-
 /* Room input styling within cards */
 .room-card .room-input-group {
-  margin-bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  margin-bottom: 8px;
 }
 .room-card .room-input-label {
   font-size: 10px;
   font-weight: 600;
   color: var(--text-3);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 .room-card .room-input-field,
 .room-card .room-type-select {
-  background: var(--surface-2);
-  border: 1.5px solid var(--surface-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
   color: var(--text);
   font-family: 'DM Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
   width: 100%;
-  height: 40px;
 }
 .room-card .room-input-field:focus,
 .room-card .room-type-select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .room-card select.room-type-select {
   font-family: inherit;
-  font-size: 12px;
   -webkit-appearance: none;
   appearance: none;
 }
@@ -2308,11 +2213,10 @@ input[type="checkbox"] {
 /* ===== FR WORKSHEET old classes ===== */
 .fr-step {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px;
   margin-bottom: 10px;
-  box-shadow: var(--shadow);
 }
 .fr-step-header {
   display: flex;
@@ -2343,7 +2247,7 @@ input[type="checkbox"] {
   align-items: center;
   justify-content: space-between;
   padding: 6px 0;
-  border-bottom: 1px solid var(--surface-3);
+  border-bottom: 1px solid var(--border);
 }
 .fr-field:last-child { border-bottom: none; }
 .fr-label {
@@ -2387,12 +2291,19 @@ input[type="checkbox"] {
   align-items: center;
   justify-content: space-between;
   padding: 5px 0;
-  border-bottom: 1px solid var(--surface-3);
+  border-bottom: 1px solid var(--border);
   font-size: 12px;
 }
 .fr-loss-label { color: var(--text-2); }
 .fr-losses-grid {
   margin-bottom: 8px;
+}
+.fr-chart-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px;
+  margin-top: 10px;
 }
 .fr-factor-display {
   display: flex;
@@ -2419,7 +2330,7 @@ input[type="checkbox"] {
   padding: 12px 14px;
   cursor: pointer;
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   margin-bottom: 2px;
   font-family: inherit;
@@ -2427,140 +2338,47 @@ input[type="checkbox"] {
   font-weight: 700;
   color: var(--text);
   width: 100%;
-  box-shadow: var(--shadow);
 }
 .section-toggle svg { width: 18px; height: 18px; color: var(--accent); }
 .section-toggle.collapsed svg:last-child { transform: rotate(-90deg); }
-
-/* Option cards — big, tappable, clear active state */
-.opt-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+.sys-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 1px dashed var(--border-2);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
 }
-.opt-btn {
-  background: #fff;
-  border: 2px solid #e0e0e4;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border-radius: 18px;
-  padding: 18px 14px;
+
+/* Option cards */
+.opt-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 100px;
+  transition: all 0.15s;
 }
-.opt-btn:active { transform: scale(0.96); }
-.opt-btn.active {
+.opt-card:active { transform: scale(0.97); }
+.opt-card.active {
   border-color: var(--accent);
-  background: linear-gradient(135deg, rgba(200,149,44,0.08) 0%, rgba(200,149,44,0.15) 100%);
-  box-shadow: 0 4px 16px rgba(200,149,44,0.2);
+  background: var(--accent-soft);
 }
-.opt-icon { color: #888; margin-bottom: 2px; }
-.opt-btn.active .opt-icon { color: var(--accent); }
-.opt-label { font-size: 14px; font-weight: 700; color: #1a1a1e; }
-.opt-note { font-size: 11px; color: #888; margin-top: 2px; }
-.opt-btn.active .opt-label { color: var(--accent); }
-.opt-btn.active .opt-label { color: var(--accent); }
 
 /* System filter inline */
 .filter-inline-stat { text-align: center; padding: 8px; background: var(--surface-2); border-radius: 8px; }
 .filter-inline-stat-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; }
 .filter-inline-stat-label { font-size: 9px; color: var(--text-3); }
 
-/* Diagnostic cards */
-.wiz-diag-card {
-  background: var(--surface) !important;
-  border-left: 3px solid var(--amber);
-  box-shadow: var(--shadow);
-  border-radius: var(--r-sm);
-  padding: 10px;
-  margin-bottom: 6px;
-}
-
-/* Duct tree */
-.duct-tree { color: var(--text); }
-.duct-tree-plenum { background: var(--surface-2); color: var(--text); border-radius: 8px; padding: 8px; }
-.duct-tree-trunk { border-left-color: var(--surface-3); }
-.duct-tree-fitting { background: var(--surface-3); color: var(--text-2); border-radius: 4px; padding: 2px 6px; }
-.duct-tree-room { color: var(--text); }
-
 /* Old app-header (hidden, replaced by topbar) */
 header.app-header { display: none !important; }
-
-/* ===== V7 GAUGE COMPONENT ===== */
-.v7-gauge-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.v7-gauge-card {
-  background: var(--surface);
-  border-radius: var(--r-md);
-  padding: 12px 8px;
-  text-align: center;
-  box-shadow: var(--shadow);
-}
-.v7-gauge-svg {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 6px;
-}
-.v7-gauge-bg {
-  fill: none;
-  stroke: var(--surface-3);
-  stroke-width: 6;
-  stroke-linecap: round;
-}
-.v7-gauge-fill {
-  fill: none;
-  stroke-width: 6;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.6s ease;
-}
-.v7-gauge-fill.gold { stroke: var(--accent); }
-.v7-gauge-fill.green { stroke: var(--green); }
-.v7-gauge-fill.amber { stroke: var(--amber); }
-.v7-gauge-fill.red { stroke: var(--red); }
-.v7-gauge-value {
-  font-family: 'DM Mono', monospace;
-  font-size: 16px;
-  font-weight: 700;
-  fill: var(--text);
-}
-.v7-gauge-label {
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-/* ===== V7 CHART CONTAINER ===== */
-.v7-chart-card {
-  background: var(--surface);
-  border-radius: var(--r-md);
-  padding: 14px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow);
-}
-.v7-chart-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-2);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 10px;
-}
-.v7-chart-canvas {
-  width: 100% !important;
-  max-height: 180px;
-}
 </style>
 </head>
 <body>
@@ -2568,13 +2386,13 @@ header.app-header { display: none !important; }
 <!-- ===== TOP BAR ===== -->
 <header class="topbar" id="appHeaderHome">
   <svg class="topbar-logo" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="28" height="28" rx="7" fill="rgba(200,149,44,0.15)"/>
-    <circle cx="14" cy="14" r="6" stroke="#c8952c" stroke-width="1.5" fill="none"/>
-    <circle cx="14" cy="14" r="2.5" fill="#c8952c"/>
-    <path d="M8 14h3M17 14h3M14 8v3M14 17v3" stroke="#c8952c" stroke-width="1.5" stroke-linecap="round"/>
+    <rect width="28" height="28" rx="7" fill="rgba(212,168,83,0.12)"/>
+    <circle cx="14" cy="14" r="6" stroke="#d4a853" stroke-width="1.5" fill="none"/>
+    <circle cx="14" cy="14" r="2.5" fill="#d4a853"/>
+    <path d="M8 14h3M17 14h3M14 8v3M14 17v3" stroke="#d4a853" stroke-width="1.5" stroke-linecap="round"/>
   </svg>
   <span class="topbar-title">DuctCalc Pro</span>
-  <span class="topbar-badge">V7</span>
+  <span class="topbar-badge">V6</span>
 </header>
 
 <!-- Hidden nav-tabs for JS compatibility -->
@@ -2598,37 +2416,6 @@ header.app-header { display: none !important; }
   <div class="dash-status">
     <div class="dash-status-label">Current Project</div>
     <div class="dash-status-value">No active project — <span class="highlight">start designing</span></div>
-  </div>
-
-  <!-- V7: Quick Gauges -->
-  <div class="v7-gauge-row" id="v7HomeGauges">
-    <div class="v7-gauge-card">
-      <svg class="v7-gauge-svg" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="40" class="v7-gauge-bg" transform="rotate(-90 50 50)" stroke-dasharray="188.5" stroke-dashoffset="0"/>
-        <circle cx="50" cy="50" r="40" class="v7-gauge-fill gold" transform="rotate(-90 50 50)" stroke-dasharray="188.5" stroke-dashoffset="188.5" id="gaugeCfmArc"/>
-        <text x="50" y="48" text-anchor="middle" class="v7-gauge-value" id="gaugeCfmVal">0</text>
-        <text x="50" y="62" text-anchor="middle" fill="#9898a4" font-size="8" font-weight="600">CFM</text>
-      </svg>
-      <div class="v7-gauge-label">Total Airflow</div>
-    </div>
-    <div class="v7-gauge-card">
-      <svg class="v7-gauge-svg" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="40" class="v7-gauge-bg" transform="rotate(-90 50 50)" stroke-dasharray="188.5" stroke-dashoffset="0"/>
-        <circle cx="50" cy="50" r="40" class="v7-gauge-fill green" transform="rotate(-90 50 50)" stroke-dasharray="188.5" stroke-dashoffset="188.5" id="gaugeVelArc"/>
-        <text x="50" y="48" text-anchor="middle" class="v7-gauge-value" id="gaugeVelVal">0</text>
-        <text x="50" y="62" text-anchor="middle" fill="#9898a4" font-size="8" font-weight="600">FPM</text>
-      </svg>
-      <div class="v7-gauge-label">Velocity</div>
-    </div>
-    <div class="v7-gauge-card">
-      <svg class="v7-gauge-svg" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="40" class="v7-gauge-bg" transform="rotate(-90 50 50)" stroke-dasharray="188.5" stroke-dashoffset="0"/>
-        <circle cx="50" cy="50" r="40" class="v7-gauge-fill amber" transform="rotate(-90 50 50)" stroke-dasharray="188.5" stroke-dashoffset="188.5" id="gaugeFricArc"/>
-        <text x="50" y="48" text-anchor="middle" class="v7-gauge-value" id="gaugeFricVal">0</text>
-        <text x="50" y="62" text-anchor="middle" fill="#9898a4" font-size="8" font-weight="600">FR</text>
-      </svg>
-      <div class="v7-gauge-label">Friction</div>
-    </div>
   </div>
 
   <!-- Quick Actions -->
@@ -2752,17 +2539,9 @@ header.app-header { display: none !important; }
     </div>
   </div>
 
-
-  <!-- V7: Airflow Distribution Chart -->
-  <div class="v7-chart-card" id="v7RoomChartCard" style="margin-top:12px">
-    <div class="v7-chart-title">Airflow Distribution</div>
-    <canvas id="v7RoomChart" class="v7-chart-canvas" height="160"></canvas>
-  </div>
-
   <div class="info-note" style="margin-top:8px">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-    <span style="font-weight:600;color:#c8952c">\u26A0 ESTIMATE ONLY</span>
-    <span>This calculator provides approximate CFM values based on room size and type. It is NOT a substitute for an ACCA Manual J load calculation. Actual heating and cooling loads depend on insulation, window area, orientation, climate zone, infiltration rates, and other factors that require a full Manual J analysis. Use this tool for preliminary duct sizing guidance only. A certified Manual J calculation should be performed for final equipment selection and system design.</span>
+    <span>CFM per room based on ACCA guidelines: Bedrooms ~0.7-0.8 CFM/ft², Living/Great ~1.0 CFM/ft², Kitchen ~1.2 CFM/ft². Adjusted by house tightness.</span>
   </div>
 
 </div>
@@ -3217,7 +2996,7 @@ header.app-header { display: none !important; }
             <option value="R6" selected>R-6 (1.5" board) — code minimum</option>
             <option value="R8">R-8 (2" board)</option>
           </select>
-          <div style="font-size:10px;color:var(--accent,#c8952c);margin-bottom:6px">Ductboard plenums have built-in insulation. R-6 is code minimum for unconditioned spaces.</div>
+          <div style="font-size:10px;color:#ff9800;margin-bottom:6px">Ductboard plenums have built-in insulation. R-6 is code minimum for unconditioned spaces.</div>
         </div>
       </div>
       <!-- Plenum Type -->
@@ -3232,7 +3011,7 @@ header.app-header { display: none !important; }
           <option value="90_square">90° Turn — Square Throat, No Vanes (120ft EQ ⚠)</option>
           <option value="bullhead">Bullhead Tee (Worst — 120ft EQ ⚠)</option>
         </select>
-        <div style="font-size:10px;color:var(--text-3,#999);margin-top:3px" id="plTypeNote">Tapered transition is the most efficient. Saves up to 0.11 IWC vs bullhead tee.</div>
+        <div style="font-size:10px;color:#888;margin-top:3px" id="plTypeNote">Tapered transition is the most efficient. Saves up to 0.11 IWC vs bullhead tee.</div>
         <div id="supPlenumSVG" class="plenum-svg-wrap"></div>
       </div>
       <!-- Plenum Dimensions -->
@@ -3270,7 +3049,7 @@ header.app-header { display: none !important; }
             <option value="16">16"</option><option value="18">18"</option><option value="20">20"</option>
             <option value="22">22"</option><option value="24">24"</option>
           </select>
-          <button class="add-fitting-btn" id="addCollarBtn" style="padding:10px 18px;font-size:14px;min-width:110px;border-width:2px;box-shadow:0 2px 8px rgba(200,149,44,0.18)">+ Add Collar</button>
+          <button class="add-fitting-btn" id="addCollarBtn" style="padding:8px 12px">+ Collar</button>
         </div>
         <div class="collar-chips" id="collarChips"><span style="font-size:10px;color:var(--text-dim)">No collars</span></div>
       </div>
@@ -3301,7 +3080,7 @@ header.app-header { display: none !important; }
             <option value="R6" selected>R-6 (1.5" board) — code minimum</option>
             <option value="R8">R-8 (2" board)</option>
           </select>
-          <div style="font-size:10px;color:var(--accent,#c8952c);margin-bottom:6px">Ductboard plenums have built-in insulation. R-6 is code minimum for unconditioned spaces.</div>
+          <div style="font-size:10px;color:#ff9800;margin-bottom:6px">Ductboard plenums have built-in insulation. R-6 is code minimum for unconditioned spaces.</div>
         </div>
       </div>
       <!-- Return Plenum Type -->
@@ -3316,7 +3095,7 @@ header.app-header { display: none !important; }
           <option value="90_vanes">90° Turn with Turning Vanes (20ft EQ)</option>
           <option value="platform_mac">Dust Free Platform MAC — 90° Bottom Return (15ft EQ)</option>
         </select>
-        <div style="font-size:10px;color:var(--text-3,#999);margin-top:3px">Right-angle return drops are common. Adding an internal radius saves ~35ft of equivalent length.</div>
+        <div style="font-size:10px;color:#888;margin-top:3px">Right-angle return drops are common. Adding an internal radius saves ~35ft of equivalent length.</div>
         <div id="retPlenumSVG" class="plenum-svg-wrap"></div>
       </div>
       <!-- Return Plenum Dimensions -->
@@ -3356,7 +3135,7 @@ header.app-header { display: none !important; }
             <option value="16">16"</option><option value="18">18"</option><option value="20">20"</option>
             <option value="22">22"</option><option value="24">24"</option>
           </select>
-          <button class="add-fitting-btn" id="addRetCollarBtn" style="padding:10px 18px;font-size:14px;min-width:110px;border-width:2px;box-shadow:0 2px 8px rgba(200,149,44,0.18)">+ Add Collar</button>
+          <button class="add-fitting-btn" id="addRetCollarBtn" style="padding:8px 12px">+ Collar</button>
         </div>
         <div class="collar-chips" id="retCollarChips"><span style="font-size:10px;color:var(--text-dim)">No collars</span></div>
       </div>
@@ -3727,7 +3506,7 @@ header.app-header { display: none !important; }
 <!-- ===== STEP 4: RESULTS ===== -->
 <div class="wiz-step" id="wizStep4">
 
-  <div class="panel" style="border-left:3px solid var(--surface-4,#dddde2)">
+  <div class="panel" style="border-left:3px solid var(--surface-3,#2c2c34);background:var(--bg-card,#222)">
     <div class="wiz-card-title">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="6" y1="20" x2="12" y2="14"/><line x1="18" y1="20" x2="12" y2="14"/></svg>
       Duct Map
@@ -3735,7 +3514,7 @@ header.app-header { display: none !important; }
     <div id="wizDuctTree"></div>
   </div>
 
-  <div class="panel" style="border-left:3px solid var(--accent,#c8952c)">
+  <div class="panel" style="border-left:3px solid var(--red,#d32f2f);background:var(--bg-card,#222)">
     <div class="wiz-card-title">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       System Summary
@@ -3743,7 +3522,7 @@ header.app-header { display: none !important; }
     <div id="wizSummaryCards"></div>
   </div>
 
-  <div class="panel" style="border-left:3px solid var(--accent,#c8952c)">
+  <div class="panel" style="border-left:3px solid var(--red,#d32f2f);background:var(--bg-card,#222)">
     <div class="wiz-card-title">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       Friction Rate
@@ -3751,7 +3530,7 @@ header.app-header { display: none !important; }
     <div id="wizFrictionGauge"></div>
   </div>
 
-  <div class="panel" style="border-left:3px solid var(--amber,#d97706)">
+  <div class="panel" style="border-left:3px solid var(--orange,#ff9800);background:var(--bg-card,#222)">
     <div class="wiz-card-title">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       Critical Path
@@ -3759,7 +3538,7 @@ header.app-header { display: none !important; }
     <div id="wizCritPath"></div>
   </div>
 
-  <div class="panel" style="border-left:3px solid var(--accent,#c8952c)">
+  <div class="panel" style="border-left:3px solid var(--red,#d32f2f);background:var(--bg-card,#222)">
     <div class="wiz-card-title">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       All Runs by Trunk
@@ -3768,12 +3547,12 @@ header.app-header { display: none !important; }
   </div>
 
   <!-- Static Pressure Budget -->
-  <div class="panel" style="border-left:3px solid var(--green,#16a34a)">
+  <div class="panel" style="border-left:3px solid #4caf50;background:var(--bg-card,#222)">
     <div class="wiz-card-title">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Static Pressure Budget
     </div>
-    <div style="font-size:11px;color:var(--text-3,#999);margin-bottom:8px">Total system must stay under equipment rated external static pressure. Most residential units: 0.5 IWC.</div>
+    <div style="font-size:11px;color:#888;margin-bottom:8px">Total system must stay under equipment rated external static pressure. Most residential units: 0.5 IWC.</div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <div style="flex:1"><label class="input-label">Equipment ESP (IWC)</label><input type="number" class="input-field" id="wizESP" value="0.50" min="0.1" max="1.5" step="0.05" style="font-family:'SF Mono',monospace;font-size:14px"></div>
       <div style="flex:1"><label class="input-label">Coil PD (IWC)</label><input type="number" class="input-field" id="wizCoilPD" value="0.07" min="0" max="0.5" step="0.01" style="font-family:'SF Mono',monospace;font-size:14px"></div>
@@ -3789,7 +3568,7 @@ header.app-header { display: none !important; }
       </div>
       <div style="flex:0.6"></div>
     </div>
-    <div style="font-size:10px;color:var(--text-3,#999);margin-bottom:8px">Safety margin accounts for field installation variations — bends not matching design, flex not fully stretched, last-minute routing changes. 10-15% recommended.</div>
+    <div style="font-size:10px;color:#888;margin-bottom:8px">Safety margin accounts for field installation variations — bends not matching design, flex not fully stretched, last-minute routing changes. 10-15% recommended.</div>
     <div id="wizBudgetBreakdown"></div>
   </div>
 
@@ -3808,10 +3587,12 @@ header.app-header { display: none !important; }
 </div>
 
 <style>
-/* ===== V4 WIZARD OVERRIDES — V7 Light ===== */
+/* ===== V4 WIZARD OVERRIDES ===== */
+/* These are kept as a second style block to match original structure.
+   All V4 tokens from block 1 apply. Only truly different overrides here. */
+
 .plenum-svg-wrap { animation: svgFadeSlide 0.3s ease-out; display: flex; justify-content: center; padding: 6px 0; }
 .plenum-svg-wrap svg { max-width: 200px; max-height: 120px; width: 100%; }
-@keyframes svgFadeSlide { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 </style>
 
 
@@ -5568,7 +5349,7 @@ document.getElementById('page-system').addEventListener('click', function(ev) {
   if (ap) { SS.runs[SS.activeRun].airPath=ap.dataset.sap; renderRunArea(); calcSystem(); updateSysFilterDisclaimer(); return; }
   // Material
   const mat = t.closest('[data-smat]');
-  if (mat) { const r=SS.runs[SS.activeRun]; r.material=mat.dataset.smat; if(r.material==='metal')r.compression=0; else if(r.material==='flex'&&r.compression<10)r.compression=10; renderRunArea(); calcSystem(); return; }
+  if (mat) { const r=SS.runs[SS.activeRun]; r.material=mat.dataset.smat; if(r.material==='metal')r.compression=0; else if(r.material==='flex'&&r.compression<4)r.compression=4; renderRunArea(); calcSystem(); return; }
   // Compression
   const sc = t.closest('[data-sc]');
   if (sc) { SS.runs[SS.activeRun].compression=parseInt(sc.dataset.sc); renderRunArea(); calcSystem(); return; }
@@ -7185,18 +6966,18 @@ function wizRenderTrunks() {
         var tComp = t.compression || 0;
         var tFF = tComp ? wizFlexFactor(tComp) : 1;
         var tFFText = tComp ? 'Friction \u00D7' + tFF.toFixed(2) : '<span style="color:#d32f2f">Set trunk compression</span>';
-        html += '<div style="background:var(--surface-2,#f0f0f2);border:1px solid ' + (tComp ? 'var(--border-2,#ddd)' : '#d32f2f') + ';border-radius:8px;padding:8px;margin-bottom:8px">';
+        html += '<div style="background:#1a1a1a;border:1px solid ' + (tComp ? '#444' : '#d32f2f') + ';border-radius:8px;padding:8px;margin-bottom:8px">';
         html += '<div class="wiz-input-label" style="margin-bottom:4px">Trunk Compression</div>';
         html += '<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px">';
         WIZ_COMPRESS.forEach(function(c){
           var isA = tComp == c;
-          html += '<div class="compression-preset-btn' + (isA ? ' active' : '') + '" data-wiz-trunk-comp-preset="' + i + '" data-wiz-tcomp-val="' + c + '" style="cursor:pointer;padding:4px 8px;border-radius:5px;font-size:11px;font-weight:600;border:1.5px solid ' + (isA ? 'var(--accent,#c8952c)' : 'var(--surface-4,#ddd)') + ';background:' + (isA ? 'var(--accent,#c8952c)' : 'var(--surface,#fff)') + ';color:' + (isA ? '#fff' : 'var(--text-2,#6b6b76)') + '">' + c + '%</div>';
+          html += '<div class="compression-preset-btn' + (isA ? ' active' : '') + '" data-wiz-trunk-comp-preset="' + i + '" data-wiz-tcomp-val="' + c + '" style="cursor:pointer;padding:4px 8px;border-radius:5px;font-size:11px;font-weight:600;border:1px solid ' + (isA ? '#d32f2f' : '#555') + ';background:' + (isA ? '#d32f2f' : '#2a2a2a') + ';color:' + (isA ? '#fff' : '#ccc') + '">' + c + '%</div>';
         });
         html += '</div>';
         html += '<div style="display:flex;align-items:center;gap:6px">';
         html += '<input type="range" style="flex:1" min="4" max="30" step="1" value="' + (tComp || 4) + '" data-wiz-trunk-compress="' + i + '">';
         html += '<input type="number" class="slider-value-input" style="width:48px;text-align:center" min="4" max="30" step="1" value="' + (tComp || '') + '" placeholder="%" data-wiz-trunk-comp-input="' + i + '">';
-        html += '<span style="font-size:10px;color:var(--text-3,#999)">%</span>';
+        html += '<span style="font-size:10px;color:#888">%</span>';
         html += '</div>';
         html += '<div style="font-size:11px;margin-top:4px;color:' + (tComp ? '#ff9800' : '#d32f2f') + '">' + tFFText + '</div>';
         html += '</div>';
@@ -7205,7 +6986,7 @@ function wizRenderTrunks() {
       // Ductboard properties (always rectangular, built-in R-value)
       if (tMat === 'ductboard') {
         t.compression = 0; // no compression for rigid ductboard
-        html += '<div style="background:var(--surface-2,#f0f0f2);border:1px solid var(--border-2,#ddd);border-radius:8px;padding:8px;margin-bottom:8px">';
+        html += '<div style="background:#1a1a1a;border:1px solid #444;border-radius:8px;padding:8px;margin-bottom:8px">';
         html += '<div class="wiz-input-label" style="margin-bottom:4px">Ductboard R-Value (built-in insulation)</div>';
         html += '<select class="input-field" data-wiz-trunk-dbr="' + i + '" style="width:100%">';
         var dbR = t.ductboardR || 'R6';
@@ -7213,17 +6994,17 @@ function wizRenderTrunks() {
         html += '<option value="R6"' + (dbR === 'R6' ? ' selected' : '') + '>R-6 (1.5\u2033 board) \u2014 code minimum</option>';
         html += '<option value="R8"' + (dbR === 'R8' ? ' selected' : '') + '>R-8 (2\u2033 board)</option>';
         html += '</select>';
-        html += '<div style="font-size:10px;color:var(--text-3,#999);margin-top:4px">Ductboard: rigid fiberglass panels. 1.2\u00D7 friction vs metal. No separate insulation needed.</div>';
+        html += '<div style="font-size:10px;color:#888;margin-top:4px">Ductboard: rigid fiberglass panels. 1.2\u00D7 friction vs metal. No separate insulation needed.</div>';
         html += '</div>';
       }
 
       // Shape toggle (no Rect option for flex — flex is always round; ductboard is always rect)
       if (tMat === 'flex') {
         t.shape = 'round'; // force round for flex
-        html += '<div style="font-size:10px;color:var(--text-3,#999);margin-bottom:6px;font-style:italic">Flex duct is always round</div>';
+        html += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-style:italic">Flex duct is always round</div>';
       } else if (tMat === 'ductboard') {
         t.shape = 'rect'; // ductboard is always rectangular
-        html += '<div style="font-size:10px;color:var(--text-3,#999);margin-bottom:6px;font-style:italic">Ductboard is always rectangular (flat panels)</div>';
+        html += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-style:italic">Ductboard is always rectangular (flat panels)</div>';
       } else {
         html += '<div class="wiz-shape-toggle">';
         html += '<div class="wiz-shape-btn' + (t.shape !== 'rect' ? ' active' : '') + '" data-wiz-trunk-shape="' + i + '" data-shape="round">' + wizSvg('round') + ' Round</div>';
@@ -7244,7 +7025,7 @@ function wizRenderTrunks() {
         html += '</select></div>';
         html += '</div>';
         var deq = wizRectEqDia(t.width, t.height);
-        html += '<div style="font-size:10px;color:var(--text-3,#999);margin-bottom:8px">Equiv. dia: <span style="color:var(--accent,#c8952c);font-family:\'SF Mono\',monospace">' + deq.toFixed(1) + '"</span></div>';
+        html += '<div style="font-size:10px;color:#888;margin-bottom:8px">Equiv. dia: <span style="color:#ff9800;font-family:\'SF Mono\',monospace">' + deq.toFixed(1) + '"</span></div>';
       } else {
         html += '<div class="wiz-input-row">';
         html += '<div class="wiz-input-group"><div class="wiz-input-label">Size</div>';
@@ -7269,8 +7050,6 @@ function wizRenderTrunks() {
       html += '<input type="number" class="input-field" value="' + (t.elbows90 || 0) + '" min="0" max="20" data-wiz-trunk-e90="' + i + '"></div>';
       html += '<div class="wiz-input-group"><div class="wiz-input-label">45\u00B0 Elbows</div>';
       html += '<input type="number" class="input-field" value="' + (t.elbows45 || 0) + '" min="0" max="20" data-wiz-trunk-e45="' + i + '"></div>';
-      html += '<div class="wiz-input-group"><div class="wiz-input-label">Dist. Boxes</div>';
-      html += '<input type="number" class="input-field" value="' + (t.distBoxes || 0) + '" min="0" max="10" data-wiz-trunk-dbox="' + i + '"></div>';
       html += '</div>';
 
       // Label
@@ -7300,8 +7079,6 @@ function wizSaveTrunks() {
     if (len) t.length = len.value;
     if (e90) t.elbows90 = parseInt(e90.value) || 0;
     if (e45) t.elbows45 = parseInt(e45.value) || 0;
-    var dbox = document.querySelector('[data-wiz-trunk-dbox="' + i + '"]');
-    if (dbox) t.distBoxes = parseInt(dbox.value) || 0;
     if (w) t.width = w.value;
     if (h) t.height = h.value;
     var dbr = document.querySelector('[data-wiz-trunk-dbr="' + i + '"]');
@@ -7520,7 +7297,7 @@ function wizRenderBranches() {
 
       html += '<div class="wiz-trunk-group">';
       html += '<div class="wiz-trunk-group-hdr">' + wizSvg('trunk');
-      var apTag = trunk && trunk.airPath === 'return' ? '<span style="color:var(--blue,#2563eb);font-size:10px;font-weight:700;margin-left:6px;padding:1px 5px;border:1px solid var(--blue,#2563eb);border-radius:3px">RTN</span>' : '<span style="color:var(--red,#dc2626);font-size:10px;font-weight:700;margin-left:6px;padding:1px 5px;border:1px solid var(--red,#dc2626);border-radius:3px">SUP</span>';
+      var apTag = trunk && trunk.airPath === 'return' ? '<span style="color:#ff9800;font-size:10px;font-weight:700;margin-left:6px;padding:1px 5px;border:1px solid #ff9800;border-radius:3px">RTN</span>' : '<span style="color:#d32f2f;font-size:10px;font-weight:700;margin-left:6px;padding:1px 5px;border:1px solid #d32f2f;border-radius:3px">SUP</span>';
       html += '<span class="wiz-trunk-group-lbl">\u21B3 Off ' + tLabel + (tSize && !trunk.isRadial ? ' (' + tSize + ')' : '') + apTag + trunkCfmTag + '</span></div>';
       html += '<div class="wiz-trunk-branches" data-wiz-trunk-branches="' + br.trunkIdx + '">';
       lastTrunk = br.trunkIdx;
@@ -7618,42 +7395,42 @@ function wizRenderBranchForm(br, i) {
     var compVal = br.compression || '';
     var ff = compVal ? wizFlexFactor(compVal) : 1;
     var ffText = compVal ? 'Friction \u00D7' + ff.toFixed(2) : '<span style="color:#d32f2f">Set compression \u2014 measure the installed flex</span>';
-    h += '<div class="wiz-compression-box" style="background:var(--surface-2,#f0f0f2);border:1px solid ' + (compVal ? 'var(--border-2,#ddd)' : '#d32f2f') + ';border-radius:8px;padding:10px;margin:8px 0">';
+    h += '<div class="wiz-compression-box" style="background:#1a1a1a;border:1px solid ' + (compVal ? '#444' : '#d32f2f') + ';border-radius:8px;padding:10px;margin:8px 0">';
     h += '<div class="wiz-input-label" style="margin-bottom:6px">Flex Compression Ratio</div>';
     h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
     WIZ_COMPRESS.forEach(function(c){
       var isActive = compVal == c;
-      h += '<div class="compression-preset-btn' + (isActive ? ' active' : '') + '" data-wiz-comp-preset="' + i + '" data-wiz-comp-val="' + c + '" style="cursor:pointer;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:600;border:1.5px solid ' + (isActive ? 'var(--accent,#c8952c)' : 'var(--surface-4,#ddd)') + ';background:' + (isActive ? 'var(--accent,#c8952c)' : 'var(--surface,#fff)') + ';color:' + (isActive ? '#fff' : 'var(--text-2,#6b6b76)') + '">' + c + '%</div>';
+      h += '<div class="compression-preset-btn' + (isActive ? ' active' : '') + '" data-wiz-comp-preset="' + i + '" data-wiz-comp-val="' + c + '" style="cursor:pointer;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid ' + (isActive ? '#d32f2f' : '#555') + ';background:' + (isActive ? '#d32f2f' : '#2a2a2a') + ';color:' + (isActive ? '#fff' : '#ccc') + '">' + c + '%</div>';
     });
     h += '</div>';
     h += '<div style="display:flex;align-items:center;gap:8px">';
     h += '<input type="range" style="flex:1" min="4" max="30" step="1" value="' + (compVal || 4) + '" data-wiz-br-compress="' + i + '">';
     h += '<input type="number" class="slider-value-input" style="width:52px;text-align:center" min="4" max="30" step="1" value="' + (compVal || '') + '" placeholder="%" data-wiz-br-comp-input="' + i + '">';
-    h += '<span style="font-size:11px;color:var(--text-3,#999)">%</span>';
+    h += '<span style="font-size:11px;color:#888">%</span>';
     h += '</div>';
     h += '<div class="wiz-compression-val" style="margin-top:6px">' + ffText + '</div>';
     // Visual compression guide
-    h += '<div style="margin-top:8px;padding:8px;background:var(--surface,#fff);border-radius:6px;border:1px solid var(--border-2,#ddd)">';
-    h += '<div style="font-size:10px;font-weight:600;color:var(--accent,#c8952c);margin-bottom:6px">Visual Guide — What does it look like?</div>';
+    h += '<div style="margin-top:8px;padding:8px;background:#222;border-radius:6px;border:1px solid #333">';
+    h += '<div style="font-size:10px;font-weight:600;color:#ff9800;margin-bottom:6px">Visual Guide — What does it look like?</div>';
     h += '<div style="display:flex;gap:6px;align-items:flex-end">';
     // 4% - stretched tight
-    h += '<div style="flex:1;text-align:center"><svg viewBox="0 0 40 60" style="width:100%;max-width:40px"><rect x="5" y="2" width="30" height="56" rx="4" fill="none" stroke="#bbb" stroke-width="1"/>';
-    for(var gi=0;gi<10;gi++) h += '<line x1="8" y1="'+(6+gi*5.4)+'" x2="32" y2="'+(6+gi*5.4)+'" stroke="#aaa" stroke-width="0.5"/>';
-    h += '</svg><div style="font-size:9px;color:#16a34a;font-weight:600">4%</div><div style="font-size:8px;color:var(--text-3,#999)">Tight</div></div>';
+    h += '<div style="flex:1;text-align:center"><svg viewBox="0 0 40 60" style="width:100%;max-width:40px"><rect x="5" y="2" width="30" height="56" rx="4" fill="none" stroke="#666" stroke-width="1"/>';
+    for(var gi=0;gi<10;gi++) h += '<line x1="8" y1="'+(6+gi*5.4)+'" x2="32" y2="'+(6+gi*5.4)+'" stroke="#555" stroke-width="0.5"/>';
+    h += '</svg><div style="font-size:9px;color:#4caf50;font-weight:600">4%</div><div style="font-size:8px;color:#888">Tight</div></div>';
     // 10%
-    h += '<div style="flex:1;text-align:center"><svg viewBox="0 0 40 60" style="width:100%;max-width:40px"><rect x="5" y="2" width="30" height="56" rx="4" fill="none" stroke="#bbb" stroke-width="1"/>';
-    for(var gi2=0;gi2<14;gi2++) h += '<line x1="8" y1="'+(5+gi2*3.8)+'" x2="32" y2="'+(5+gi2*3.8)+'" stroke="#999" stroke-width="0.7"/>';
-    h += '</svg><div style="font-size:9px;color:var(--accent,#c8952c);font-weight:600">10%</div><div style="font-size:8px;color:var(--text-3,#999)">Visible</div></div>';
+    h += '<div style="flex:1;text-align:center"><svg viewBox="0 0 40 60" style="width:100%;max-width:40px"><rect x="5" y="2" width="30" height="56" rx="4" fill="none" stroke="#666" stroke-width="1"/>';
+    for(var gi2=0;gi2<14;gi2++) h += '<line x1="8" y1="'+(5+gi2*3.8)+'" x2="32" y2="'+(5+gi2*3.8)+'" stroke="#888" stroke-width="0.7"/>';
+    h += '</svg><div style="font-size:9px;color:#ff9800;font-weight:600">10%</div><div style="font-size:8px;color:#888">Visible</div></div>';
     // 20%
-    h += '<div style="flex:1;text-align:center"><svg viewBox="0 0 40 60" style="width:100%;max-width:40px"><rect x="5" y="2" width="30" height="56" rx="4" fill="none" stroke="#bbb" stroke-width="1"/>';
-    for(var gi3=0;gi3<22;gi3++) h += '<line x1="7" y1="'+(4+gi3*2.4)+'" x2="33" y2="'+(4+gi3*2.4)+'" stroke="#777" stroke-width="1"/>';
-    h += '</svg><div style="font-size:9px;color:#dc2626;font-weight:600">20%</div><div style="font-size:8px;color:var(--text-3,#999)">Bunched</div></div>';
+    h += '<div style="flex:1;text-align:center"><svg viewBox="0 0 40 60" style="width:100%;max-width:40px"><rect x="5" y="2" width="30" height="56" rx="4" fill="none" stroke="#666" stroke-width="1"/>';
+    for(var gi3=0;gi3<22;gi3++) h += '<line x1="7" y1="'+(4+gi3*2.4)+'" x2="33" y2="'+(4+gi3*2.4)+'" stroke="#aaa" stroke-width="1"/>';
+    h += '</svg><div style="font-size:9px;color:#d32f2f;font-weight:600">20%</div><div style="font-size:8px;color:#888">Bunched</div></div>';
     // 30%
-    h += '<div style="flex:1;text-align:center"><svg viewBox="0 0 40 60" style="width:100%;max-width:40px"><rect x="5" y="2" width="30" height="56" rx="4" fill="none" stroke="#bbb" stroke-width="1"/>';
-    for(var gi4=0;gi4<30;gi4++) h += '<line x1="6" y1="'+(3+gi4*1.8)+'" x2="34" y2="'+(3+gi4*1.8)+'" stroke="#555" stroke-width="1.2"/>';
-    h += '</svg><div style="font-size:9px;color:#dc2626;font-weight:600">30%</div><div style="font-size:8px;color:var(--text-3,#999)">Slinky</div></div>';
+    h += '<div style="flex:1;text-align:center"><svg viewBox="0 0 40 60" style="width:100%;max-width:40px"><rect x="5" y="2" width="30" height="56" rx="4" fill="none" stroke="#666" stroke-width="1"/>';
+    for(var gi4=0;gi4<30;gi4++) h += '<line x1="6" y1="'+(3+gi4*1.8)+'" x2="34" y2="'+(3+gi4*1.8)+'" stroke="#ccc" stroke-width="1.2"/>';
+    h += '</svg><div style="font-size:9px;color:#d32f2f;font-weight:600">30%</div><div style="font-size:8px;color:#888">Slinky</div></div>';
     h += '</div>';
-    h += '<div style="font-size:9px;color:var(--text-3,#999);margin-top:4px">Count wire spirals per foot: more spirals = more compression. If spirals are spread 3-4\u2033 apart = ~4%. Bunched tight <1\u2033 apart = 25%+.</div>';
+    h += '<div style="font-size:9px;color:#888;margin-top:4px">Count wire spirals per foot: more spirals = more compression. If spirals are spread 3-4\u2033 apart = ~4%. Bunched tight <1\u2033 apart = 25%+.</div>';
     h += '</div>';
     h += '</div>';
   }
@@ -7661,7 +7438,7 @@ function wizRenderBranchForm(br, i) {
   // Shape (no Rect for flex — flex is always round)
   if (br.material === 'flex') {
     br.shape = 'round';
-    h += '<div style="font-size:10px;color:var(--text-3,#999);margin-bottom:6px;font-style:italic">Flex duct is always round</div>';
+    h += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-style:italic">Flex duct is always round</div>';
   } else {
     h += '<div class="wiz-input-label" style="margin-bottom:4px">Duct Shape</div>';
     h += '<div class="wiz-shape-toggle">';
@@ -7683,7 +7460,7 @@ function wizRenderBranchForm(br, i) {
     h += '</select></div>';
     h += '</div>';
     var deq = wizRectEqDia(parseFloat(br.width) || 8, parseFloat(br.height) || 8);
-    h += '<div style="font-size:10px;color:var(--text-3,#999);margin-bottom:8px">Equiv. dia: <span style="color:var(--accent,#c8952c);font-family:\'SF Mono\',monospace">' + deq.toFixed(1) + '"</span></div>';
+    h += '<div style="font-size:10px;color:#888;margin-bottom:8px">Equiv. dia: <span style="color:#ff9800;font-family:\'SF Mono\',monospace">' + deq.toFixed(1) + '"</span></div>';
     h += '<div class="wiz-input-row">';
     h += '<div class="wiz-input-group"><div class="wiz-input-label">Length (ft)</div>';
     h += '<input type="number" class="input-field" value="' + br.length + '" min="1" max="200" data-wiz-br-len="' + i + '"></div>';
@@ -7711,7 +7488,7 @@ function wizRenderBranchForm(br, i) {
   h += '</select></div>';
   h += '</div>';
   if (br.takeoffType && WIZ_TAKEOFF_TYPES[br.takeoffType]) {
-    h += '<div style="font-size:10px;color:var(--text-3,#999);margin-bottom:6px;margin-top:-4px">' + WIZ_TAKEOFF_TYPES[br.takeoffType].note + '</div>';
+    h += '<div style="font-size:10px;color:#888;margin-bottom:6px;margin-top:-4px">' + WIZ_TAKEOFF_TYPES[br.takeoffType].note + '</div>';
   }
   // Takeoff SVG illustration
   var takeoffSvg = wizTakeoffSVG(br.takeoffType || 'straight90');
@@ -7752,7 +7529,7 @@ function wizRenderBranchForm(br, i) {
     h += '</label>';
     h += '</div>';
     if (br.hasFilterGrill) {
-      h += '<div style="background:var(--surface-2,#f0f0f2);border:1px solid var(--border-2,#ddd);border-radius:8px;padding:10px;margin-top:6px">';
+      h += '<div style="background:#1a1a1a;border:1px solid #444;border-radius:8px;padding:10px;margin-top:6px">';
       h += '<div class="wiz-input-row">';
       h += '<div class="wiz-input-group"><div class="wiz-input-label">Filter Depth</div>';
       h += '<select class="input-field" data-wiz-br-filterdepth="' + i + '">';
@@ -7784,7 +7561,7 @@ function wizRenderBranchForm(br, i) {
         var fgArea = (fgW * fgH) / 144;
         var fgVel = fgArea > 0 ? (parseFloat(br.cfm) || 0) / fgArea : 0;
         var velColor = fgVel > 300 ? '#d32f2f' : fgVel > 200 ? '#ff9800' : '#4caf50';
-        h += '<div style="font-size:10px;color:var(--text-3,#999);margin-top:6px">Face vel: <span style="color:' + velColor + ';font-family:\'SF Mono\',monospace">' + Math.round(fgVel) + ' FPM</span> | PD: <span style="color:var(--accent,#c8952c);font-family:\'SF Mono\',monospace">' + fgPD.toFixed(3) + ' IWC</span></div>';
+        h += '<div style="font-size:10px;color:#888;margin-top:6px">Face vel: <span style="color:' + velColor + ';font-family:\'SF Mono\',monospace">' + Math.round(fgVel) + ' FPM</span> | PD: <span style="color:#ff9800;font-family:\'SF Mono\',monospace">' + fgPD.toFixed(3) + ' IWC</span></div>';
         if (fgVel > 300) {
           h += '<div style="font-size:10px;color:#d32f2f;margin-top:2px">Face velocity high — consider larger grill</div>';
         }
@@ -7796,13 +7573,13 @@ function wizRenderBranchForm(br, i) {
   // Runouts — sub-runs off this branch
   if (!br.runouts) br.runouts = [];
   if (br.runouts.length > 0) {
-    h += '<div class="wiz-input-label" style="margin-top:8px;margin-bottom:4px;color:var(--accent,#c8952c)">Runouts off this branch</div>';
+    h += '<div class="wiz-input-label" style="margin-top:8px;margin-bottom:4px;color:#ff9800">Runouts off this branch</div>';
     br.runouts.forEach(function(ro, ri) {
       var roFF = (ro.material === 'flex' && ro.compression) ? wizFlexFactor(ro.compression) : 1;
-      h += '<div style="background:var(--surface-2,#f0f0f2);border:1px solid var(--border-2,#ddd);border-radius:6px;padding:8px;margin-bottom:6px">';
+      h += '<div style="background:#1a1a1a;border:1px solid #444;border-radius:6px;padding:8px;margin-bottom:6px">';
       h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
-      h += '<span style="font-size:11px;font-weight:600;color:var(--accent,#c8952c)">Runout ' + (ri+1) + (ro.room ? ' \u2014 ' + ro.room : '') + '</span>';
-      h += '<div data-wiz-rm-runout="' + i + '" data-ro-idx="' + ri + '" style="cursor:pointer;color:var(--text-3,#999);font-size:16px;padding:2px 6px">\u00D7</div>';
+      h += '<span style="font-size:11px;font-weight:600;color:#ff9800">Runout ' + (ri+1) + (ro.room ? ' \u2014 ' + ro.room : '') + '</span>';
+      h += '<div data-wiz-rm-runout="' + i + '" data-ro-idx="' + ri + '" style="cursor:pointer;color:#888;font-size:16px;padding:2px 6px">\u00D7</div>';
       h += '</div>';
       h += '<div class="wiz-input-row">';
       h += '<div class="wiz-input-group"><div class="wiz-input-label">Room</div><input type="text" class="input-field" value="' + (ro.room||'') + '" data-wiz-ro-room="' + i + '-' + ri + '"></div>';
@@ -7829,7 +7606,7 @@ function wizRenderBranchForm(br, i) {
       h += '</div>';
     });
   }
-  h += '<div data-wiz-add-runout="' + i + '" style="cursor:pointer;text-align:center;padding:8px;margin:6px 0;border:1.5px dashed var(--accent,#c8952c);border-radius:6px;font-size:11px;color:var(--accent,#c8952c);font-weight:600;background:var(--accent-soft,rgba(200,149,44,0.05))">+ Add Runout off this branch</div>';
+  h += '<div data-wiz-add-runout="' + i + '" style="cursor:pointer;text-align:center;padding:8px;margin:6px 0;border:1px dashed #555;border-radius:6px;font-size:11px;color:#ff9800;font-weight:600">+ Add Runout off this branch</div>';
 
   // Fittings
   h += '<div class="wiz-input-label" style="margin-top:4px;margin-bottom:6px">Fittings (tap to add)</div>';
@@ -7951,8 +7728,7 @@ function wizCalcRun(br) {
     var tEffLen = tLen * tFF;
     var t90eq = (trunk.elbows90 || 0) * (tDia <= 6 ? 10 : tDia <= 8 ? 15 : tDia <= 10 ? 20 : 25);
     var t45eq = (trunk.elbows45 || 0) * 5;
-    var tDboxEq = (trunk.distBoxes || 0) * 50; // Distribution box = 50ft EQ each
-    tel += tEffLen + t90eq + t45eq + tDboxEq;
+    tel += tEffLen + t90eq + t45eq;
     if (tIsFlex && tLen) {
       breakdown.push({ name: trunk.label + ' flex (' + tLen + ' ft \u00D7' + tFF.toFixed(2) + ')', eq: Math.round(tEffLen * 10) / 10, type: 'duct' });
     } else if (tIsDuctboard && tLen) {
@@ -7962,7 +7738,6 @@ function wizCalcRun(br) {
     }
     if (t90eq) breakdown.push({ name: trunk.elbows90 + '\u00D790\u00B0 elbow (trunk)', eq: t90eq, type: 'fitting' });
     if (t45eq) breakdown.push({ name: trunk.elbows45 + '\u00D745\u00B0 elbow (trunk)', eq: t45eq, type: 'fitting' });
-    if (tDboxEq) breakdown.push({ name: (trunk.distBoxes || 0) + '\u00D7 distribution box (trunk)', eq: tDboxEq, type: 'fitting' });
   }
 
   // Takeoff fitting (trunk → branch junction)
@@ -8160,7 +7935,7 @@ function wizRenderResults() {
 
     arH += '<div style="margin-bottom:16px">';
     arH += '<div class="wiz-trunk-result-hdr">' + wizSvg('trunk');
-    var rApTag = trunk.airPath === 'return' ? ' <span style="color:var(--blue,#2563eb);font-size:9px;font-weight:700;padding:1px 4px;border:1px solid var(--blue,#2563eb);border-radius:3px">RTN</span>' : ' <span style="color:var(--red,#dc2626);font-size:9px;font-weight:700;padding:1px 4px;border:1px solid var(--red,#dc2626);border-radius:3px">SUP</span>';
+    var rApTag = trunk.airPath === 'return' ? ' <span style="color:#ff9800;font-size:9px;font-weight:700;padding:1px 4px;border:1px solid #ff9800;border-radius:3px">RTN</span>' : ' <span style="color:#d32f2f;font-size:9px;font-weight:700;padding:1px 4px;border:1px solid #d32f2f;border-radius:3px">SUP</span>';
     arH += '<span class="wiz-trunk-result-lbl">' + trunk.label + rApTag + '</span>';
     arH += '<span class="wiz-trunk-result-maxtel">Max TEL: ' + Math.round(tMaxTEL) + ' ft</span>';
     arH += '</div>';
@@ -8174,18 +7949,18 @@ function wizRenderResults() {
       var shapeL = r.branch.shape === 'rect' ? r.branch.width + '\u00D7' + r.branch.height + '"' : r.branch.size + '\u2033';
       var matL = r.branch.material === 'flex' ? ' flex' : '';
 
-      arH += '<div class="wiz-run-item" style="' + (isCrit ? 'border-color:var(--accent,#c8952c)' : '') + '">';
+      arH += '<div class="wiz-run-item" style="' + (isCrit ? 'border-color:#ff9800' : '') + '">';
       arH += '<div class="wiz-run-header">';
-      arH += '<div class="wiz-branch-num" style="' + (isCrit ? 'background:var(--accent,#c8952c)' : '') + '">' + r.branch.num + '</div>';
+      arH += '<div class="wiz-branch-num" style="' + (isCrit ? 'background:#ff9800' : '') + '">' + r.branch.num + '</div>';
       // Capacity check
       var runMaxCFM = wizMaxCFM(r.branch.size, r.branch.material, r.branch.compression);
       var runCfmOk = !r.branch.cfm || runMaxCFM >= r.branch.cfm;
-      var cfmDisplay = r.branch.cfm ? '<span style="color:' + (runCfmOk ? 'var(--text-3,#999)' : '#dc2626') + ';font-weight:' + (runCfmOk ? '400' : '600') + '">(' + r.branch.cfm + (runCfmOk ? '' : '/' + runMaxCFM + ' max') + ' CFM)</span>' : '';
+      var cfmDisplay = r.branch.cfm ? '<span style="color:' + (runCfmOk ? '#888' : '#d32f2f') + ';font-weight:' + (runCfmOk ? '400' : '600') + '">(' + r.branch.cfm + (runCfmOk ? '' : '/' + runMaxCFM + ' max') + ' CFM)</span>' : '';
 
       arH += '<div class="wiz-run-name">' + r.branch.room + ' ' + cfmDisplay + '</div>';
       arH += '<div class="wiz-run-tel" style="color:' + barColor + '">' + Math.round(r.tel) + ' ft</div>';
       arH += '</div>';
-      arH += '<div style="font-size:10px;color:var(--text-3,#999);margin-bottom:4px">' + shapeL + matL + (r.branch.compression > 0 ? ' ' + r.branch.compression + '%' : '') + ' \u00B7 FR: <span class="wiz-run-fr ' + rFRCls + '">' + rFR.toFixed(3) + '</span> \u00B7 Capacity: <span style="color:' + (runCfmOk ? '#16a34a' : '#dc2626') + '">' + runMaxCFM + ' CFM</span></div>';
+      arH += '<div style="font-size:10px;color:#888;margin-bottom:4px">' + shapeL + matL + (r.branch.compression > 0 ? ' ' + r.branch.compression + '%' : '') + ' \u00B7 FR: <span class="wiz-run-fr ' + rFRCls + '">' + rFR.toFixed(3) + '</span> \u00B7 Capacity: <span style="color:' + (runCfmOk ? '#4caf50' : '#d32f2f') + '">' + runMaxCFM + ' CFM</span></div>';
       arH += '<div class="wiz-tel-bar-wrap"><div class="wiz-tel-bar" style="width:' + pct + '%;background:' + barColor + '"></div></div>';
       arH += '</div>';
     });
@@ -8221,27 +7996,27 @@ function wizRenderResults() {
     var budgetStatus = remaining >= 0.05 ? 'PASS \u2014 Good margin' : remaining >= -0.005 ? 'TIGHT \u2014 Very little margin' : 'OVER BUDGET \u2014 Reduce duct lengths or use larger sizes';
 
     var locLabel = WIZ.ductLocation ? WIZ.ductLocation.replace(/_/g, ' ') : 'conditioned';
-    var bH = '<div style="background:var(--surface-2,#f0f0f2);border-radius:8px;padding:10px;font-size:12px">';
-    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)"><span style="color:var(--text-3,#999);font-size:10px">Location: ' + locLabel + ' | Insulation: ' + rVal.label + (locAdj > 0 ? ' | CFM +' + Math.round(locAdj*100) + '%' : '') + '</span></div>';
-    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)"><span style="color:var(--text-2,#6b6b76)">Equipment ESP</span><span style="font-family:\'SF Mono\',monospace;color:#16a34a">' + equipESP.toFixed(2) + ' IWC</span></div>';
-    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)"><span style="color:var(--text-2,#6b6b76)">\u2212 Coil pressure drop</span><span style="font-family:\'SF Mono\',monospace;color:var(--accent,#c8952c)">-' + coilPD.toFixed(2) + '</span></div>';
+    var bH = '<div style="background:#1a1a1a;border-radius:8px;padding:10px;font-size:12px">';
+    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333"><span style="color:#888;font-size:10px">Location: ' + locLabel + ' | Insulation: ' + rVal.label + (locAdj > 0 ? ' | CFM +' + Math.round(locAdj*100) + '%' : '') + '</span></div>';
+    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333"><span style="color:#ccc">Equipment ESP</span><span style="font-family:\'SF Mono\',monospace;color:#4caf50">' + equipESP.toFixed(2) + ' IWC</span></div>';
+    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333"><span style="color:#ccc">\u2212 Coil pressure drop</span><span style="font-family:\'SF Mono\',monospace;color:#ff9800">-' + coilPD.toFixed(2) + '</span></div>';
     if (filterPD > 0) {
-      bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)"><span style="color:var(--text-2,#6b6b76)">\u2212 Filter pressure drop</span><span style="font-family:\'SF Mono\',monospace;color:var(--accent,#c8952c)">-' + filterPD.toFixed(2) + '</span></div>';
+      bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333"><span style="color:#ccc">\u2212 Filter pressure drop</span><span style="font-family:\'SF Mono\',monospace;color:#ff9800">-' + filterPD.toFixed(2) + '</span></div>';
       if (hasAnyFilterGrill) {
-        bH += '<div style="padding:2px 0 4px;font-size:10px;color:var(--accent,#c8952c);border-bottom:1px solid var(--border-2,#ddd)">Note: Filter grills on individual returns \u2014 system filter typically not needed</div>';
+        bH += '<div style="padding:2px 0 4px;font-size:10px;color:#ff9800;border-bottom:1px solid #333">Note: Filter grills on individual returns \u2014 system filter typically not needed</div>';
       }
     } else {
-      bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)"><span style="color:var(--text-3,#999)">\u2212 Filter (none selected)</span><span style="font-family:\'SF Mono\',monospace;color:var(--text-3,#999)">-0.00</span></div>';
+      bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333"><span style="color:#666">\u2212 Filter (none selected)</span><span style="font-family:\'SF Mono\',monospace;color:#666">-0.00</span></div>';
     }
     if (filterGrillPDTotal > 0) {
-      bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)"><span style="color:var(--text-2,#6b6b76)">\u2212 Filter grills (' + filterGrillCount + ' return' + (filterGrillCount > 1 ? 's' : '') + ')</span><span style="font-family:\'SF Mono\',monospace;color:var(--accent,#c8952c)">-' + filterGrillPDTotal.toFixed(3) + '</span></div>';
+      bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333"><span style="color:#ccc">\u2212 Filter grills (' + filterGrillCount + ' return' + (filterGrillCount > 1 ? 's' : '') + ')</span><span style="font-family:\'SF Mono\',monospace;color:#ff9800">-' + filterGrillPDTotal.toFixed(3) + '</span></div>';
     }
     if (safetyPct > 0) {
-      bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)"><span style="color:var(--text-2,#6b6b76)">\u2212 Safety margin (' + safetyPct + '%)</span><span style="font-family:\'SF Mono\',monospace;color:var(--accent,#c8952c)">-' + safetyDeduction.toFixed(2) + '</span></div>';
+      bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333"><span style="color:#ccc">\u2212 Safety margin (' + safetyPct + '%)</span><span style="font-family:\'SF Mono\',monospace;color:#ff9800">-' + safetyDeduction.toFixed(2) + '</span></div>';
     }
-    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd);font-weight:600"><span style="color:var(--text,#1a1a1e)">= Available for ductwork</span><span style="font-family:\'SF Mono\',monospace;color:#16a34a">' + availableStatic.toFixed(2) + ' IWC</span></div>';
-    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)"><span style="color:var(--text-2,#6b6b76)">\u2212 Duct PD (critical path)</span><span style="font-family:\'SF Mono\',monospace;color:' + (ductPD > availableStatic ? '#dc2626' : 'var(--text-2,#6b6b76)') + '">-' + ductPD.toFixed(3) + '</span></div>';
-    bH += '<div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:13px"><span style="color:var(--text,#1a1a1e)">Remaining</span><span style="font-family:\'SF Mono\',monospace;color:' + budgetColor + '">' + (remaining >= 0 ? '+' : '') + remaining.toFixed(3) + ' IWC</span></div>';
+    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333;font-weight:600"><span style="color:#e0e0e0">= Available for ductwork</span><span style="font-family:\'SF Mono\',monospace;color:#4caf50">' + availableStatic.toFixed(2) + ' IWC</span></div>';
+    bH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333"><span style="color:#ccc">\u2212 Duct PD (critical path)</span><span style="font-family:\'SF Mono\',monospace;color:' + (ductPD > availableStatic ? '#d32f2f' : '#ccc') + '">-' + ductPD.toFixed(3) + '</span></div>';
+    bH += '<div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:13px"><span style="color:#e0e0e0">Remaining</span><span style="font-family:\'SF Mono\',monospace;color:' + budgetColor + '">' + (remaining >= 0 ? '+' : '') + remaining.toFixed(3) + ' IWC</span></div>';
     bH += '<div style="margin-top:6px;padding:6px 8px;border-radius:6px;font-size:11px;font-weight:600;text-align:center;background:' + budgetColor + '22;color:' + budgetColor + ';border:1px solid ' + budgetColor + '44">' + budgetStatus + '</div>';
     bH += '</div>';
 
@@ -8401,13 +8176,13 @@ function wizBudgetDiagnostics(runs, availableStatic, sysFR, maxTEL, critIdx) {
   });
 
   var dH = '<div style="margin-top:12px">';
-  dH += '<div style="font-size:12px;font-weight:700;color:var(--accent,#c8952c);margin-bottom:8px">\u26A0 Diagnostics \u2014 ' + unique.length + ' suggestion' + (unique.length > 1 ? 's' : '') + '</div>';
+  dH += '<div style="font-size:12px;font-weight:700;color:#ff9800;margin-bottom:8px">\u26A0 Diagnostics \u2014 ' + unique.length + ' suggestion' + (unique.length > 1 ? 's' : '') + '</div>';
   unique.forEach(function(d) {
-    dH += '<div class="wiz-diag-card" style="background:var(--surface-2,#f0f0f2);border-left:3px solid ' + d.severity + ';border-radius:8px;padding:10px;margin-bottom:8px">';
+    dH += '<div class="wiz-diag-card" style="background:#1a1a1a;border-left:3px solid ' + d.severity + ';border-radius:8px;padding:10px;margin-bottom:8px">';
     dH += '<div style="font-size:11px;font-weight:600;color:' + d.severity + ';margin-bottom:4px">\u26A0 ' + d.title + '</div>';
-    dH += '<div style="font-size:11px;color:var(--text-2,#6b6b76)">' + d.detail + '</div>';
+    dH += '<div style="font-size:11px;color:#ccc">' + d.detail + '</div>';
     if (d.extra) {
-      dH += '<div style="font-size:10px;color:var(--text-3,#999);margin-top:4px">' + d.extra + '</div>';
+      dH += '<div style="font-size:10px;color:#888;margin-top:4px">' + d.extra + '</div>';
     }
     dH += '</div>';
   });
@@ -10112,20 +9887,20 @@ document.getElementById('sysRetFilterCFM').addEventListener('input', function() 
 
 // ===== ROOM CFM CALCULATOR =====
 const ROOM_CFM_TYPES = [
-  {id:'master_bed', label:'Master Bedroom', cfmPerSqft:0.65, minCfm:80, maxCfm:350, achNote:'0.6-0.7 CFM/ft\u00b2'},
-  {id:'bedroom', label:'Bedroom', cfmPerSqft:0.65, minCfm:60, maxCfm:250, achNote:'0.6-0.7 CFM/ft\u00b2'},
-  {id:'living', label:'Living Room', cfmPerSqft:0.85, minCfm:150, maxCfm:500, achNote:'0.8-0.9 CFM/ft\u00b2'},
-  {id:'great_room', label:'Great Room', cfmPerSqft:0.85, minCfm:200, maxCfm:700, achNote:'0.8-0.9 CFM/ft\u00b2'},
-  {id:'kitchen', label:'Kitchen', cfmPerSqft:1.0, minCfm:120, maxCfm:400, achNote:'1.0 CFM/ft\u00b2 (appliance heat)'},
-  {id:'dining', label:'Dining Room', cfmPerSqft:0.75, minCfm:80, maxCfm:350, achNote:'0.7-0.8 CFM/ft\u00b2'},
-  {id:'master_bath', label:'Master Bathroom', cfmPerSqft:0.8, minCfm:50, maxCfm:150, achNote:'50-80 CFM typical'},
-  {id:'bathroom', label:'Bathroom', cfmPerSqft:0.8, minCfm:40, maxCfm:120, achNote:'40-80 CFM typical'},
-  {id:'laundry', label:'Laundry Room', cfmPerSqft:0.85, minCfm:60, maxCfm:200, achNote:'Appliance heat'},
-  {id:'office', label:'Office/Study', cfmPerSqft:0.7, minCfm:60, maxCfm:250, achNote:'0.7 CFM/ft\u00b2'},
-  {id:'hallway', label:'Hallway', cfmPerSqft:0.4, minCfm:20, maxCfm:120, achNote:'0.4 CFM/ft\u00b2'},
-  {id:'garage', label:'Garage (conditioned)', cfmPerSqft:0.4, minCfm:0, maxCfm:350, achNote:'If conditioned'},
-  {id:'bonus', label:'Bonus Room', cfmPerSqft:0.75, minCfm:80, maxCfm:400, achNote:'0.7-0.8 CFM/ft\u00b2'},
-  {id:'closet', label:'Walk-in Closet', cfmPerSqft:0.4, minCfm:15, maxCfm:80, achNote:'Minimal'},
+  {id:'master_bed', label:'Master Bedroom', cfmPerSqft:0.75, minCfm:100, maxCfm:400, achNote:'0.7-0.8 CFM/ft²'},
+  {id:'bedroom', label:'Bedroom', cfmPerSqft:0.75, minCfm:80, maxCfm:300, achNote:'0.7-0.8 CFM/ft²'},
+  {id:'living', label:'Living Room', cfmPerSqft:1.0, minCfm:200, maxCfm:600, achNote:'1.0 CFM/ft², 6-8 ACH'},
+  {id:'great_room', label:'Great Room', cfmPerSqft:1.0, minCfm:250, maxCfm:800, achNote:'1.0 CFM/ft², 6-8 ACH'},
+  {id:'kitchen', label:'Kitchen', cfmPerSqft:1.2, minCfm:150, maxCfm:500, achNote:'1.2 CFM/ft², higher load'},
+  {id:'dining', label:'Dining Room', cfmPerSqft:0.9, minCfm:100, maxCfm:400, achNote:'0.9 CFM/ft²'},
+  {id:'master_bath', label:'Master Bathroom', cfmPerSqft:1.0, minCfm:50, maxCfm:200, achNote:'50-80 CFM typical'},
+  {id:'bathroom', label:'Bathroom', cfmPerSqft:1.0, minCfm:50, maxCfm:150, achNote:'50-80 CFM typical'},
+  {id:'laundry', label:'Laundry Room', cfmPerSqft:1.0, minCfm:80, maxCfm:250, achNote:'Higher load'},
+  {id:'office', label:'Office/Study', cfmPerSqft:0.8, minCfm:80, maxCfm:300, achNote:'0.8 CFM/ft²'},
+  {id:'hallway', label:'Hallway', cfmPerSqft:0.5, minCfm:25, maxCfm:150, achNote:'0.5 CFM/ft²'},
+  {id:'garage', label:'Garage (conditioned)', cfmPerSqft:0.5, minCfm:0, maxCfm:400, achNote:'If conditioned'},
+  {id:'bonus', label:'Bonus Room', cfmPerSqft:0.9, minCfm:100, maxCfm:500, achNote:'0.9 CFM/ft²'},
+  {id:'closet', label:'Walk-in Closet', cfmPerSqft:0.5, minCfm:15, maxCfm:100, achNote:'Minimal'},
 ];
 
 let roomCfmData = [
@@ -10491,145 +10266,5 @@ calcFrictionRate();
 })();
 </script>
 
-
-<script>
-// ===== V7: Gauge & Chart Rendering =====
-(function() {
-  var CIRCUMFERENCE = 188.5; // 2 * PI * 40 * 0.75 ~ 188.5 for full circle
-
-  function setGauge(arcId, valId, value, max, decimals) {
-    var arc = document.getElementById(arcId);
-    var valEl = document.getElementById(valId);
-    if (!arc || !valEl) return;
-    var pct = Math.min(value / max, 1);
-    var offset = CIRCUMFERENCE * (1 - pct);
-    arc.setAttribute('stroke-dashoffset', offset);
-    valEl.textContent = decimals ? value.toFixed(decimals) : Math.round(value);
-  }
-
-  // Update gauges from data
-  function updateV7Gauges() {
-    // Get total CFM from room data
-    var totalCfm = 0;
-    if (typeof roomCfmData !== 'undefined' && typeof calcRoomCfm === 'function') {
-      roomCfmData.forEach(function(rm) { totalCfm += calcRoomCfm(rm).cfm; });
-    }
-    setGauge('gaugeCfmArc', 'gaugeCfmVal', totalCfm, 3000, 0);
-    
-    // Get velocity from calculator if available
-    var velEl = document.getElementById('calcVelocity') || document.querySelector('[data-calc-velocity]');
-    var vel = velEl ? parseFloat(velEl.textContent) || 0 : 0;
-    setGauge('gaugeVelArc', 'gaugeVelVal', vel, 1200, 0);
-    
-    // Get friction rate
-    var frEl = document.getElementById('calcFriction') || document.querySelector('[data-calc-friction]');
-    var fr = frEl ? parseFloat(frEl.textContent) || 0 : 0;
-    setGauge('gaugeFricArc', 'gaugeFricVal', fr, 0.2, 3);
-  }
-
-  // Room chart
-  var roomChart = null;
-  function updateV7RoomChart() {
-    var canvas = document.getElementById('v7RoomChart');
-    if (!canvas || typeof Chart === 'undefined') return;
-    if (typeof roomCfmData === 'undefined' || typeof calcRoomCfm !== 'function') return;
-    
-    var labels = [];
-    var data = [];
-    var colors = [
-      '#c8952c', '#16a34a', '#2563eb', '#d97706', '#dc2626',
-      '#8b5cf6', '#0891b2', '#be185d', '#65a30d', '#ea580c'
-    ];
-    
-    roomCfmData.forEach(function(rm, i) {
-      labels.push(rm.name);
-      data.push(calcRoomCfm(rm).cfm);
-    });
-    
-    if (roomChart) {
-      roomChart.data.labels = labels;
-      roomChart.data.datasets[0].data = data;
-      roomChart.data.datasets[0].backgroundColor = colors.slice(0, data.length);
-      roomChart.update();
-    } else {
-      roomChart = new Chart(canvas.getContext('2d'), {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: colors.slice(0, data.length),
-            borderWidth: 0,
-            hoverOffset: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '60%',
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: {
-                font: { family: "'Inter', sans-serif", size: 10, weight: '600' },
-                color: '#6b6b76',
-                padding: 8,
-                boxWidth: 10,
-                boxHeight: 10,
-                borderRadius: 3,
-                useBorderRadius: true
-              }
-            },
-            tooltip: {
-              backgroundColor: '#1a1a1e',
-              titleFont: { family: "'Inter', sans-serif", size: 11 },
-              bodyFont: { family: "'DM Mono', monospace", size: 12 },
-              padding: 8,
-              cornerRadius: 8,
-              callbacks: {
-                label: function(ctx) {
-                  return ' ' + ctx.parsed + ' CFM';
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-  }
-
-  // Hook into existing render cycles
-  var _origRenderRoomCfm = window.renderRoomCfm;
-  if (typeof _origRenderRoomCfm === 'function') {
-    window.renderRoomCfm = function(fullRebuild) {
-      _origRenderRoomCfm(fullRebuild);
-      setTimeout(function() {
-        updateV7Gauges();
-        updateV7RoomChart();
-      }, 50);
-    };
-  }
-
-  // Update on page show
-  var _origInterval = setInterval(function() {
-    if (typeof renderRoomCfm === 'function' && typeof roomCfmData !== 'undefined') {
-      clearInterval(_origInterval);
-      updateV7Gauges();
-      setTimeout(updateV7RoomChart, 100);
-    }
-  }, 200);
-
-  // Also update when switching pages
-  document.addEventListener('click', function(e) {
-    var navItem = e.target.closest('.bottom-nav-item, .dash-action');
-    if (navItem) {
-      setTimeout(function() {
-        updateV7Gauges();
-        updateV7RoomChart();
-      }, 200);
-    }
-  });
-})();
-</script>
 </body>
 </html>
