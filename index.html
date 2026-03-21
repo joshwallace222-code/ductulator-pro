@@ -2350,6 +2350,111 @@ footer a:hover { color: var(--accent); }
 }
 .num-flash { animation: highlight-flash 0.6s ease; }
 
+/* ===== DUCT TREE MAP ===== */
+.duct-tree {
+  padding: 12px 0;
+  font-size: 12px;
+  font-family: 'Space Mono', monospace;
+}
+.duct-tree-plenum {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface-2, #222228);
+  border-radius: 12px;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: var(--text-primary, #ececf0);
+}
+.duct-tree-plenum.supply { border-left: 3px solid var(--supply, #f87171); }
+.duct-tree-plenum.return { border-left: 3px solid var(--return, #60a5fa); }
+.duct-tree-trunk {
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: 2px solid var(--surface-3, #2c2c34);
+}
+.duct-tree-trunk-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #9898a8);
+}
+.duct-tree-trunk-cfm {
+  font-family: 'Space Mono', monospace;
+  color: var(--accent, #e8a838);
+  font-size: 11px;
+}
+.duct-tree-branch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0 4px 16px;
+  border-left: 2px solid var(--surface-3, #2c2c34);
+  font-size: 11px;
+  color: var(--text-secondary, #9898a8);
+  position: relative;
+}
+.duct-tree-branch:last-child {
+  border-left-color: transparent;
+}
+.duct-tree-branch::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 0;
+  width: 12px;
+  height: 50%;
+  border-left: 2px solid var(--surface-3, #2c2c34);
+  border-bottom: 2px solid var(--surface-3, #2c2c34);
+  border-radius: 0 0 0 6px;
+}
+.duct-tree-branch:last-child::before {
+  border-left: 2px solid var(--surface-3, #2c2c34);
+}
+.duct-tree-fitting {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--surface-3, #2c2c34);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted, #606070);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.duct-tree-room {
+  color: var(--text-primary, #ececf0);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.duct-tree-cfm {
+  font-family: 'Space Mono', monospace;
+  margin-left: auto;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.duct-tree-cfm.ok { color: var(--pass, #4ade80); }
+.duct-tree-cfm.over { color: var(--fail, #f87171); }
+.duct-tree-size {
+  color: var(--text-muted, #606070);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.duct-tree-empty {
+  padding: 6px 0 6px 16px;
+  font-size: 10px;
+  font-style: italic;
+  color: var(--text-muted, #606070);
+}
+
 </style>
 </head>
 <body>
@@ -3564,6 +3669,14 @@ footer a:hover { color: var(--accent); }
 
 <!-- ===== STEP 4: RESULTS ===== -->
 <div class="wiz-step" id="wizStep4">
+
+  <div class="panel" style="border-left:3px solid var(--surface-3,#2c2c34);background:var(--bg-card,#222)">
+    <div class="wiz-card-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="6" y1="20" x2="12" y2="14"/><line x1="18" y1="20" x2="12" y2="14"/></svg>
+      Duct Map
+    </div>
+    <div id="wizDuctTree"></div>
+  </div>
 
   <div class="panel" style="border-left:3px solid var(--red,#d32f2f);background:var(--bg-card,#222)">
     <div class="wiz-card-title">
@@ -7439,6 +7552,88 @@ function wizMaxCFM(sizeInch, material, compression) {
   return Math.round(best);
 }
 
+// ---- Duct Tree Map ----
+// Visual trunk-to-branch connection tree showing the full duct system as a flow chart
+function wizRenderDuctTree() {
+  if (WIZ.branches.length === 0 || WIZ.trunks.length === 0) return '';
+
+  var supplyTrunks = [];
+  var returnTrunks = [];
+  WIZ.trunks.forEach(function(t, i) {
+    if (t.airPath === 'return') returnTrunks.push({trunk: t, idx: i});
+    else supplyTrunks.push({trunk: t, idx: i});
+  });
+
+  var takeoffLabels = {
+    'conical': 'conical', 'straight90': '90\u00B0', 'angle45': '45\u00B0',
+    'wye': 'wye', 'tee': 'tee', 'jbox': 'j-box', 'top_takeoff': 'top',
+    'reducer': 'reducer'
+  };
+
+  function renderTrunkGroup(items, isReturn) {
+    var out = '';
+    items.forEach(function(item) {
+      var t = item.trunk;
+      var ti = item.idx;
+      var branches = WIZ.branches.filter(function(b) { return b.trunkIdx === ti; });
+      var totalCFM = branches.reduce(function(sum, b) { return sum + (parseFloat(b.cfm) || 0); }, 0);
+      var tSize = wizSizeLabel(t);
+      var matLabel = t.material === 'flex' ? 'flex' : t.material === 'ductboard' ? 'dboard' : 'metal';
+
+      out += '<div class="duct-tree-trunk">';
+      out += '<div class="duct-tree-trunk-hdr">';
+      out += '<span>' + (tSize && !t.isRadial ? tSize + ' ' : '') + matLabel + ' \u2014 ' + (t.label || 'Trunk') + '</span>';
+      out += '<span class="duct-tree-trunk-cfm">' + (totalCFM > 0 ? totalCFM + ' CFM' : '') + '</span>';
+      out += '</div>';
+
+      if (branches.length === 0) {
+        out += '<div class="duct-tree-empty">No branches yet</div>';
+      } else {
+        branches.forEach(function(br) {
+          var takeoff = br.takeoffType || 'conical';
+          var tkLabel = takeoffLabels[takeoff] || takeoff;
+          var brSize = br.shape === 'rect' ? (br.width || '?') + '\u00D7' + (br.height || '?') + '"' : (br.size || '?') + '\u2033';
+          var brMaxCFM = typeof wizMaxCFM === 'function' ? wizMaxCFM(br.size, br.material, br.compression) : 9999;
+          var cfmVal = parseFloat(br.cfm) || 0;
+          var cfmOk = !cfmVal || brMaxCFM >= cfmVal;
+          var filterTag = (isReturn && br.hasFilterGrill) ? ' <span style="font-size:8px;color:var(--warn,#fbbf24)">[FG]</span>' : '';
+
+          out += '<div class="duct-tree-branch">';
+          out += '<span class="duct-tree-fitting">' + tkLabel + '</span>';
+          out += '<span class="duct-tree-size">' + brSize + (br.material === 'flex' ? ' flex' : '') + '</span>';
+          out += '<span class="duct-tree-room">' + (br.room || 'Unnamed') + filterTag + '</span>';
+          if (cfmVal) {
+            out += '<span class="duct-tree-cfm ' + (cfmOk ? 'ok' : 'over') + '">' + cfmVal + '</span>';
+          }
+          out += '</div>';
+        });
+      }
+
+      out += '</div>';
+    });
+    return out;
+  }
+
+  var h = '<div class="duct-tree">';
+
+  if (supplyTrunks.length > 0) {
+    h += '<div class="duct-tree-plenum supply">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>';
+    h += 'Supply Plenum</div>';
+    h += renderTrunkGroup(supplyTrunks, false);
+  }
+
+  if (returnTrunks.length > 0) {
+    h += '<div class="duct-tree-plenum return" style="margin-top:8px">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>';
+    h += 'Return Plenum</div>';
+    h += renderTrunkGroup(returnTrunks, true);
+  }
+
+  h += '</div>';
+  return h;
+}
+
 function wizRenderBranches() {
   var html = '';
   var lastTrunk = -1;
@@ -7511,6 +7706,9 @@ function wizRenderBranches() {
 
   // Add-Branch buttons at bottom of each trunk's group
   // (Re-render adds them inline below each group)
+  // Prepend duct tree map above branch cards
+  html = wizRenderDuctTree() + html;
+
   var el = document.getElementById('wizBranchArea');
   if (el) {
     el.innerHTML = html;
@@ -8038,6 +8236,10 @@ function wizRenderResults() {
   sumH += '<div class="wiz-result-cell"><div class="wiz-result-val mono ' + frClass + '">' + sysFR.toFixed(3) + '</div><div class="wiz-result-lbl">FR (IWC/100ft)</div></div>';
   sumH += '<div class="wiz-result-cell"><div class="wiz-result-val mono ' + (maxTEL > 300 ? 'bad' : maxTEL > 200 ? 'warn' : 'ok') + '">' + Math.round(maxTEL) + ' ft</div><div class="wiz-result-lbl">Longest TEL</div></div>';
   sumH += '</div>';
+  // Populate duct tree map in results
+  var treeEl = document.getElementById('wizDuctTree');
+  if (treeEl) treeEl.innerHTML = wizRenderDuctTree();
+
   var sumEl = document.getElementById('wizSummaryCards');
   if (sumEl) sumEl.innerHTML = sumH;
 
@@ -8425,12 +8627,12 @@ function wizExportPDF() {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('RAGSDALE', lm, 10);
+  doc.text('DUCTCALC PRO', lm, 10);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('Heating \u00B7 Air \u00B7 Plumbing \u00B7 Electric  |  Duct System Report', lm, 16);
+  doc.text('Professional HVAC Duct Design  |  Duct System Report', lm, 16);
   doc.setFontSize(8);
-  doc.text('Generated: ' + new Date().toLocaleDateString() + '  |  "The Name You Know You Can Trust!"', lm, 21);
+  doc.text('Generated: ' + new Date().toLocaleDateString(), lm, 21);
   y = 32;
 
   doc.setTextColor(0, 0, 0);
@@ -8579,10 +8781,10 @@ function wizExportPDF() {
   y += 6;
   doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
-  doc.text('Ragsdale Heating, Air, Plumbing & Electric | (770) 441-4141 | ragsdaleair.com', lm, y);
+  doc.text('DuctCalc Pro \u2014 Professional HVAC Duct Design Tool', lm, y);
   doc.text('This report is an estimate based on field measurements and Manual D guidelines. Not a substitute for a full Manual J/D load calculation.', lm, y+3);
 
-  doc.save('Ragsdale-Duct-Report-' + new Date().toISOString().split('T')[0] + '.pdf');
+  doc.save('DuctCalc-Pro-Report-' + new Date().toISOString().split('T')[0] + '.pdf');
 }
 
 function wizHandleClick(ev) {
