@@ -2487,7 +2487,7 @@ footer a:hover { color: var(--accent); }
 </div>
 
 <!-- ===== HOME SCREEN ===== -->
-<div id="page-home" class="active">
+<div id="page-home" class="page active">
   <div class="home-hero">
     <svg class="home-logo-mark" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="80" height="80" rx="24" fill="#e8a838" fill-opacity="0.08"/>
@@ -4651,14 +4651,24 @@ function rectEquivDiameter(w, h) {
 
 // ===== PAGE NAVIGATION =====
 function showPage(key) {
-  const map = { 'roomcfm': 0, 'calculator': 1, 'eqlen': 2, 'system': 3, 'frworksheet': 4, 'filters': 5, 'psychro': 6 };
-  const idx = map[key] ?? 0;
-  document.querySelectorAll('.page').forEach((p, i) => {
-    p.classList.toggle('active', i === idx);
+  var targetId = 'page-' + key;
+  document.querySelectorAll('.page').forEach(function(p) {
+    p.classList.toggle('active', p.id === targetId);
   });
-  document.querySelectorAll('.nav-tab[data-page]').forEach(btn => {
+  document.querySelectorAll('.nav-tab[data-page]').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.page === key);
   });
+  // Sync bottom nav
+  var bottomNav = document.getElementById('bottomNav');
+  if (bottomNav) {
+    bottomNav.querySelectorAll('.bottom-nav-item').forEach(function(b) {
+      b.classList.remove('active');
+      if (b.getAttribute('data-page') === key) b.classList.add('active');
+    });
+  }
+  // Close more panel
+  var mp = document.getElementById('morePanel');
+  if (mp) mp.classList.remove('open');
 }
 
 // ===== CALCULATOR CONTROLS =====
@@ -4680,6 +4690,17 @@ function setMaterial(val) {
   });
   const comp = document.getElementById('compressionSection');
   if (comp) comp.style.display = val === 'flex' ? 'block' : 'none';
+  // Flex is ALWAYS round — force shape to round when flex selected
+  if (val === 'flex' && state.shape === 'rect') {
+    setShape('round');
+  }
+  // Disable rect button when flex, disable flex when rect
+  var rectBtn = document.querySelector('#shapeControl [data-shape="rect"]');
+  var flexBtn = document.querySelector('#materialControl [data-material="flex"]');
+  if (rectBtn) rectBtn.style.opacity = val === 'flex' ? '0.3' : '1';
+  if (rectBtn) rectBtn.style.pointerEvents = val === 'flex' ? 'none' : 'auto';
+  if (flexBtn) flexBtn.style.opacity = state.shape === 'rect' ? '0.3' : '1';
+  if (flexBtn) flexBtn.style.pointerEvents = state.shape === 'rect' ? 'none' : 'auto';
   calculate();
 }
 
@@ -4692,6 +4713,14 @@ function setShape(val) {
   const wg = document.getElementById('rectWGroup');
   if (rg) rg.style.display = val === 'round' ? '' : 'none';
   if (wg) wg.style.display = val === 'rect' ? '' : 'none';
+  // Rect duct can't be flex — force to metal if rect selected
+  if (val === 'rect' && state.material === 'flex') {
+    setMaterial('metal');
+  }
+  // Update flex button availability
+  var flexBtn = document.querySelector('#materialControl [data-material="flex"]');
+  if (flexBtn) flexBtn.style.opacity = val === 'rect' ? '0.3' : '1';
+  if (flexBtn) flexBtn.style.pointerEvents = val === 'rect' ? 'none' : 'auto';
   calculate();
 }
 
