@@ -2793,10 +2793,35 @@ header.app-header { display: none !important; }
 <div id="page-home" class="page active">
 <div class="app-container">
 
-  <!-- Status summary -->
-  <div class="dash-status">
+  <!-- Project Manager -->
+  <div class="dash-status" id="projectPanel">
     <div class="dash-status-label">Current Project</div>
-    <div class="dash-status-value">No active project — <span class="highlight">start designing</span></div>
+    <div class="dash-status-value" id="projectStatus">No active project</div>
+    <div style="display:flex;gap:6px;margin-top:8px" id="projectActions">
+      <button class="sys-add-btn" id="newProjectBtn" style="flex:1;padding:8px 12px;font-size:12px;min-height:38px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Project
+      </button>
+      <button class="wiz-btn-secondary" id="loadProjectBtn" style="flex:1;padding:8px 12px;font-size:12px;min-height:38px;border-radius:12px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        Load Project
+      </button>
+    </div>
+    <!-- New Project Form (hidden by default) -->
+    <div id="newProjectForm" style="display:none;margin-top:10px;background:var(--surface-2);border-radius:10px;padding:12px">
+      <label class="input-label">Job Name</label>
+      <input type="text" class="input-field" id="projName" placeholder="e.g. Smith Residence" style="margin-bottom:6px">
+      <label class="input-label">Address</label>
+      <input type="text" class="input-field" id="projAddress" placeholder="123 Main St" style="margin-bottom:6px">
+      <label class="input-label">Notes</label>
+      <input type="text" class="input-field" id="projNotes" placeholder="Optional notes" style="margin-bottom:8px">
+      <div style="display:flex;gap:6px">
+        <button class="rb-btn-done" id="projCreate" style="flex:1;border-radius:10px">Create Project</button>
+        <button class="wiz-btn-secondary" id="projCancel" style="flex:0;padding:8px 16px;border-radius:10px">Cancel</button>
+      </div>
+    </div>
+    <!-- Saved Projects List (hidden by default) -->
+    <div id="savedProjectsList" style="display:none;margin-top:10px"></div>
   </div>
 
   <!-- V7: Quick Gauges -->
@@ -10869,6 +10894,129 @@ calcFrictionRate();
     }
   });
 })();
+// ===== PROJECT MANAGEMENT =====
+var PROJ = { active: null, list: [] };
+
+function projLoad() {
+  try {
+    var d = localStorage.getItem('dcp_projects');
+    if (d) PROJ.list = JSON.parse(d);
+    var a = localStorage.getItem('dcp_active');
+    if (a) PROJ.active = JSON.parse(a);
+  } catch(e) {}
+  projUpdateStatus();
+}
+
+function projSave() {
+  try {
+    localStorage.setItem('dcp_projects', JSON.stringify(PROJ.list));
+    if (PROJ.active) localStorage.setItem('dcp_active', JSON.stringify(PROJ.active));
+    else localStorage.removeItem('dcp_active');
+  } catch(e) {}
+}
+
+function projUpdateStatus() {
+  var el = document.getElementById('projectStatus');
+  if (!el) return;
+  if (PROJ.active) {
+    el.innerHTML = '<strong>' + PROJ.active.name + '</strong>' +
+      (PROJ.active.address ? '<br><span style="font-size:11px;color:var(--text-3)">' + PROJ.active.address + '</span>' : '') +
+      '<br><span style="font-size:10px;color:var(--text-3)">Created ' + new Date(PROJ.active.created).toLocaleDateString() + '</span>';
+  } else {
+    el.textContent = 'No active project';
+  }
+}
+
+function projCreate() {
+  var name = document.getElementById('projName');
+  var addr = document.getElementById('projAddress');
+  var notes = document.getElementById('projNotes');
+  if (!name || !name.value.trim()) { name.focus(); return; }
+  var p = {
+    id: Date.now(),
+    name: name.value.trim(),
+    address: addr ? addr.value.trim() : '',
+    notes: notes ? notes.value.trim() : '',
+    created: new Date().toISOString()
+  };
+  PROJ.list.push(p);
+  PROJ.active = p;
+  projSave();
+  projUpdateStatus();
+  document.getElementById('newProjectForm').style.display = 'none';
+  document.getElementById('projectActions').style.display = 'flex';
+  name.value = ''; if(addr) addr.value = ''; if(notes) notes.value = '';
+}
+
+function projRenderList() {
+  var el = document.getElementById('savedProjectsList');
+  if (!el) return;
+  if (PROJ.list.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-3);font-size:12px">No saved projects</div>';
+    return;
+  }
+  var h = '<div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Saved Projects</div>';
+  PROJ.list.slice().reverse().forEach(function(p) {
+    var isActive = PROJ.active && PROJ.active.id === p.id;
+    h += '<div style="background:' + (isActive ? 'var(--accent-soft)' : 'var(--surface-2)') + ';border:1.5px solid ' + (isActive ? 'var(--accent)' : 'var(--surface-4)') + ';border-radius:10px;padding:10px;margin-bottom:6px;cursor:pointer" data-proj-load="' + p.id + '">';
+    h += '<div style="font-size:13px;font-weight:600;color:var(--text)">' + p.name + (isActive ? ' <span style="font-size:9px;color:var(--accent)">ACTIVE</span>' : '') + '</div>';
+    if (p.address) h += '<div style="font-size:11px;color:var(--text-3)">' + p.address + '</div>';
+    h += '<div style="font-size:10px;color:var(--text-3)">' + new Date(p.created).toLocaleDateString() + '</div>';
+    h += '</div>';
+  });
+  h += '<button class="wiz-btn-secondary" id="projListClose" style="width:100%;margin-top:4px;border-radius:10px">Close</button>';
+  el.innerHTML = h;
+}
+
+// Event listeners for project panel
+document.addEventListener('click', function(e) {
+  var t = e.target;
+  if (t.closest('#newProjectBtn')) {
+    document.getElementById('newProjectForm').style.display = '';
+    document.getElementById('projectActions').style.display = 'none';
+    document.getElementById('savedProjectsList').style.display = 'none';
+    document.getElementById('projName').focus();
+    return;
+  }
+  if (t.closest('#projCancel')) {
+    document.getElementById('newProjectForm').style.display = 'none';
+    document.getElementById('projectActions').style.display = 'flex';
+    return;
+  }
+  if (t.closest('#projCreate')) {
+    projCreate();
+    return;
+  }
+  if (t.closest('#loadProjectBtn')) {
+    var list = document.getElementById('savedProjectsList');
+    if (list.style.display === 'none') {
+      projRenderList();
+      list.style.display = '';
+    } else {
+      list.style.display = 'none';
+    }
+    return;
+  }
+  if (t.closest('#projListClose')) {
+    document.getElementById('savedProjectsList').style.display = 'none';
+    return;
+  }
+  var loadBtn = t.closest('[data-proj-load]');
+  if (loadBtn) {
+    var pid = parseInt(loadBtn.dataset.projLoad);
+    var found = PROJ.list.filter(function(p){ return p.id === pid; })[0];
+    if (found) {
+      PROJ.active = found;
+      projSave();
+      projUpdateStatus();
+      document.getElementById('savedProjectsList').style.display = 'none';
+    }
+    return;
+  }
+});
+
+// Init on load
+projLoad();
 </script>
 <script src="run-builder.js"></script>
 </body>
