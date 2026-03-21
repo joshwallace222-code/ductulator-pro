@@ -7051,7 +7051,7 @@ function wizGoTo(step) {
   wizUpdateBar();
 
   if (step === 2) wizRenderTrunks();
-  if (step === 3) wizRenderBranches();
+  if (step === 3 && typeof rbRender === 'function') rbRender(); else if (step === 3) wizRenderBranches();
   if (step === 4) wizRenderResults();
 
   // Scroll to wizard step bar
@@ -9243,7 +9243,7 @@ wizGoTo = function(step) {
   if (restored && WIZ.step > 1) {
     wizUpdateBar();
     if (WIZ.step === 2 && WIZ.trunks.length > 0) wizRenderTrunks();
-    if (WIZ.step === 3 && WIZ.branches.length > 0) wizRenderBranches();
+    if (WIZ.step === 3) { if (typeof rbRender === 'function') rbRender(); else if (WIZ.branches.length > 0) wizRenderBranches(); }
     if (WIZ.step === 4) wizRenderResults();
     // Show the right step page
     for (var si = 1; si <= 4; si++) {
