@@ -8911,6 +8911,151 @@ function wizExportPDF() {
     if (y > 270) { doc.addPage(); y = 15; }
   });
 
+  // ===== MATERIAL TAKEOFF =====
+  if (y > 220) { doc.addPage(); y = 15; }
+  y += 4;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0,0,0);
+  doc.text('Material List', lm, y); y += 6;
+
+  // Gather all materials
+  var matFlex = {}; // {size: totalFt}
+  var matRoundMetal = {}; // {size: totalFt}
+  var matRectMetal = {}; // {WxH: totalFt}
+  var matDuctboard = 0; // total sq ft of surface area
+  var matBoots = {}; // {type+size: count}
+  var matFittings = {}; // {type: count}
+
+  // Trunks
+  WIZ.trunks.forEach(function(t) {
+    var len = parseFloat(t.length) || 0;
+    if (t.material === 'flex') {
+      var sz = String(t.size || 6);
+      matFlex[sz] = (matFlex[sz] || 0) + len;
+    } else if (t.material === 'ductboard') {
+      var dia = parseFloat(t.size) || 12;
+      matDuctboard += Math.PI * (dia / 12) * len; // surface area in sq ft
+    } else if (t.shape === 'rect') {
+      var key = (t.width||12) + 'x' + (t.height||8);
+      matRectMetal[key] = (matRectMetal[key]||0) + len;
+    } else {
+      matRoundMetal[String(t.size||12)] = (matRoundMetal[String(t.size||12)]||0) + len;
+    }
+    if (t.elbows90) matFittings['90\u00B0 Elbow (' + t.size + '\u2033)'] = (matFittings['90\u00B0 Elbow (' + t.size + '\u2033)']||0) + (t.elbows90||0);
+    if (t.elbows45) matFittings['45\u00B0 Elbow (' + t.size + '\u2033)'] = (matFittings['45\u00B0 Elbow (' + t.size + '\u2033)']||0) + (t.elbows45||0);
+  });
+
+  // Branches
+  WIZ.branches.forEach(function(br) {
+    var len = parseFloat(br.length) || 0;
+    var sz = String(br.size || 6);
+    if (br.material === 'flex') {
+      matFlex[sz] = (matFlex[sz] || 0) + len;
+    } else if (br.material === 'ductboard') {
+      var dia2 = parseFloat(br.size) || 6;
+      matDuctboard += Math.PI * (dia2 / 12) * len;
+    } else if (br.shape === 'rect') {
+      var key2 = (br.width||8) + 'x' + (br.height||8);
+      matRectMetal[key2] = (matRectMetal[key2]||0) + len;
+    } else {
+      matRoundMetal[sz] = (matRoundMetal[sz]||0) + len;
+    }
+    // Boot
+    var bootName = (WIZ_BOOT_EQ[br.bootType]||{}).name || br.bootType;
+    var bootKey = bootName + (br.bootSize ? ' ' + br.bootSize : '');
+    matBoots[bootKey] = (matBoots[bootKey]||0) + 1;
+    // Takeoff fitting
+    var takeoff = (WIZ_TAKEOFF_TYPES[br.takeoffType]||{}).name || br.takeoffType;
+    matFittings[takeoff] = (matFittings[takeoff]||0) + 1;
+    // Branch fittings
+    if (br.fittings) br.fittings.forEach(function(f) {
+      var fname = f.type === 'elbow90' ? '90\u00B0 Elbow' : f.type === 'elbow45' ? '45\u00B0 Elbow' : f.type === 'reducer' ? 'Reducer' : f.type;
+      matFittings[fname + ' (' + sz + '\u2033)'] = (matFittings[fname + ' (' + sz + '\u2033)']||0) + 1;
+    });
+  });
+
+  // Render material table
+  doc.setFontSize(8);
+  doc.setFillColor(200, 149, 44);
+  doc.rect(lm, y-3, pw, 4.5, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Material', lm+2, y); doc.text('Size', lm+60, y); doc.text('Total', lm+100, y); doc.text('Order Qty', lm+130, y); doc.text('Unit', lm+160, y);
+  y += 5;
+  doc.setTextColor(0,0,0);
+  doc.setFont('helvetica', 'normal');
+  var mStripe = false;
+
+  // Flex duct (25ft bags)
+  var flexSizes = Object.keys(matFlex).sort(function(a,b){return parseInt(a)-parseInt(b);});
+  flexSizes.forEach(function(sz) {
+    var ft = matFlex[sz];
+    var bags = Math.ceil(ft / 25);
+    if (mStripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 3.5, 'F'); } mStripe=!mStripe;
+    doc.text('Flex Duct', lm+2, y); doc.text(sz + '\u2033', lm+60, y);
+    doc.text(Math.ceil(ft) + ' ft', lm+100, y); doc.text(String(bags), lm+130, y); doc.text('bags (25ft)', lm+160, y);
+    y += 3.5; if (y>265){doc.addPage();y=15;}
+  });
+
+  // Round metal (5ft sections)
+  var metalSizes = Object.keys(matRoundMetal).sort(function(a,b){return parseInt(a)-parseInt(b);});
+  metalSizes.forEach(function(sz) {
+    var ft = matRoundMetal[sz];
+    var sections = Math.ceil(ft / 5);
+    if (mStripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 3.5, 'F'); } mStripe=!mStripe;
+    doc.text('Round Metal', lm+2, y); doc.text(sz + '\u2033', lm+60, y);
+    doc.text(Math.ceil(ft) + ' ft', lm+100, y); doc.text(String(sections), lm+130, y); doc.text('pcs (5ft)', lm+160, y);
+    y += 3.5; if (y>265){doc.addPage();y=15;}
+  });
+
+  // Rect metal (total linear feet)
+  var rectSizes = Object.keys(matRectMetal).sort();
+  rectSizes.forEach(function(sz) {
+    var ft = matRectMetal[sz];
+    if (mStripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 3.5, 'F'); } mStripe=!mStripe;
+    doc.text('Rect Metal', lm+2, y); doc.text(sz + '\u2033', lm+60, y);
+    doc.text(Math.ceil(ft) + ' ft', lm+100, y); doc.text(Math.ceil(ft) + ' ft', lm+130, y); doc.text('linear ft', lm+160, y);
+    y += 3.5; if (y>265){doc.addPage();y=15;}
+  });
+
+  // Ductboard (4x8 sheets = 32 sq ft)
+  if (matDuctboard > 0) {
+    var sheets = Math.ceil(matDuctboard / 32);
+    if (mStripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 3.5, 'F'); } mStripe=!mStripe;
+    doc.text('Ductboard', lm+2, y); doc.text('4\u2032\u00D78\u2032', lm+60, y);
+    doc.text(Math.ceil(matDuctboard) + ' sqft', lm+100, y); doc.text(String(sheets), lm+130, y); doc.text('sheets', lm+160, y);
+    y += 3.5; if (y>265){doc.addPage();y=15;}
+  }
+
+  // Boots
+  y += 2;
+  var bootKeys = Object.keys(matBoots);
+  if (bootKeys.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('Boots & Registers', lm+2, y); y += 4;
+    doc.setFont('helvetica', 'normal');
+    bootKeys.forEach(function(k) {
+      if (mStripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 3.5, 'F'); } mStripe=!mStripe;
+      doc.text(k, lm+2, y); doc.text(String(matBoots[k]), lm+130, y); doc.text('ea', lm+160, y);
+      y += 3.5; if (y>265){doc.addPage();y=15;}
+    });
+  }
+
+  // Fittings
+  y += 2;
+  var fitKeys = Object.keys(matFittings);
+  if (fitKeys.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('Fittings', lm+2, y); y += 4;
+    doc.setFont('helvetica', 'normal');
+    fitKeys.forEach(function(k) {
+      if (mStripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 3.5, 'F'); } mStripe=!mStripe;
+      doc.text(k, lm+2, y); doc.text(String(matFittings[k]), lm+130, y); doc.text('ea', lm+160, y);
+      y += 3.5; if (y>265){doc.addPage();y=15;}
+    });
+  }
+
   // Footer
   y += 6;
   doc.setDrawColor(200, 149, 44);
@@ -8931,7 +9076,7 @@ function wizHandleClick(ev) {
 
   // --- Run Builder click handler ---
   if (WIZ.step === 3 && typeof rbHandleClick === 'function') {
-    var rbTarget = t.closest('[data-rb-section],[data-rb-trunk-dot],[data-rb-prev],[data-rb-next],[data-rb-branch],[data-rb-br-mat],[data-rb-br-comp],[data-rb-br-done],[data-rb-add-branch]');
+    var rbTarget = t.closest('[data-rb-section],[data-rb-trunk-dot],[data-rb-prev],[data-rb-next],[data-rb-branch],[data-rb-br-mat],[data-rb-br-mount],[data-rb-br-comp],[data-rb-br-done],[data-rb-add-branch],[data-rb-del-branch]');
     if (rbTarget) { rbHandleClick(ev); return true; }
   }
 
@@ -9346,7 +9491,7 @@ function wizHandleChange(ev) {
 
   // --- Run Builder change handler ---
   if (WIZ.step === 3 && typeof rbHandleChange === 'function') {
-    var rbTarget = t.closest('[data-rb-br-room],[data-rb-br-cfm],[data-rb-br-takeoff],[data-rb-br-size],[data-rb-br-len],[data-rb-br-boot]');
+    var rbTarget = t.closest('[data-rb-br-room],[data-rb-br-cfm],[data-rb-br-name],[data-rb-br-split],[data-rb-br-size],[data-rb-br-len],[data-rb-br-boot],[data-rb-br-bsize]');
     if (rbTarget) { rbHandleChange(ev); return false; }
   }
 
@@ -11038,6 +11183,7 @@ document.addEventListener('click', function(e) {
 // Init on load
 projLoad();
 </script>
+<script src="boot-data.js"></script>
 <script src="run-builder.js"></script>
 </body>
 </html>
