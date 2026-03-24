@@ -2928,7 +2928,6 @@ header.app-header { display: none !important; }
 
   <div class="room-header-bar">
     <div class="room-header-title">Rooms</div>
-    <button class="room-header-btn" id="roomAddBtn">+ Add Room</button>
   </div>
 
   <!-- House Tightness -->
@@ -2943,6 +2942,12 @@ header.app-header { display: none !important; }
 
   <!-- Room List -->
   <div id="roomCfmList"></div>
+
+  <!-- Add Room Button (below room list for natural flow) -->
+  <button class="sys-add-btn" id="roomAddBtn" style="width:100%;margin-top:10px;justify-content:center">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Room
+  </button>
 
   <!-- Totals -->
   <div class="panel" style="margin-top:12px">
@@ -4732,6 +4737,17 @@ function setMaterial(val) {
   });
   const comp = document.getElementById('compressionSection');
   if (comp) comp.style.display = val === 'flex' ? 'block' : 'none';
+  // Auto-set 10% compression when switching to flex
+  if (val === 'flex') {
+    var cSlider = document.getElementById('compressionSlider');
+    var cInput = document.getElementById('compressionInput');
+    if (cSlider && parseInt(cSlider.value) < 10) { cSlider.value = 10; }
+    if (cInput && parseInt(cInput.value) < 10) { cInput.value = 10; }
+    // Update compression preset buttons
+    document.querySelectorAll('.compression-presets button').forEach(function(b){
+      b.classList.toggle('active', b.dataset.compression === '10');
+    });
+  }
   // Flex is ALWAYS round — force shape to round when flex selected
   if (val === 'flex' && state.shape === 'rect') {
     setShape('round');
@@ -7277,9 +7293,13 @@ function wizGoTo(step) {
   if (step === 3 && typeof rbRender === 'function') rbRender(); else if (step === 3) wizRenderBranches();
   if (step === 4) wizRenderResults();
 
-  // Scroll to wizard step bar
-  var bar = document.getElementById('wizStepBar');
-  if (bar) bar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Scroll to the actual step content (not top of page)
+  var stepEl = document.getElementById('wizStep' + step);
+  if (stepEl) {
+    setTimeout(function() {
+      stepEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
 }
 
 function wizUpdateBar() {
