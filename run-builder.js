@@ -1,474 +1,475 @@
-// ===== SWIPE-BASED DUCT RUN BUILDER =====
-// One run at a time, full screen. Swipe between runs.
-// Supply section first, then Return section.
+// ===== DUCT RUN BUILDER v3 =====
+// Tree model: Collar → Trunk → Multiple Branches → Rooms
+// One trunk per collar. User adds branches off each trunk.
 
-var RB = { runs: [], idx: 0, editPiece: -1 };
+var RB = { trunks: [], idx: 0, editBranch: -1, editPiece: -1 };
 
-// Piece catalog
+// Piece types
 var RB_PIECES = {
-  straight: { name:'Straight Duct', hasLen:true, hasMat:true, hasSize:true },
+  straight: { name:'Straight Duct', eqFn: null },
   elbow90:  { name:'90\u00B0 Elbow', eqFn:function(d){return d<=6?10:d<=8?15:d<=10?20:25;} },
   elbow45:  { name:'45\u00B0 Elbow', eqFn:function(){return 5;} },
-  reducer:  { name:'Reducer',    eqFn:function(){return 5;}, hasSize:true },
-  wye:      { name:'Wye',        eqFn:function(){return 15;} },
-  dbox:     { name:'Dist Box',   eqFn:function(){return 50;} },
-  boot:     { name:'Boot',       isEnd:true }
+  reducer:  { name:'Reducer',    eqFn:function(){return 5;} },
+  dbox:     { name:'Dist Box',   eqFn:function(){return 50;} }
 };
 var RB_BOOTS = {
   '90boot':{name:'90\u00B0 Boot',eq:55},'straightboot':{name:'Straight Boot',eq:35},
   'ceilTop':{name:'Ceiling (top)',eq:10},'ceilSide':{name:'Ceiling (side)',eq:40},
-  'floorReg':{name:'Floor Register',eq:35},'wallReg':{name:'Wall Register',eq:40}
+  'floorReg':{name:'Floor Reg',eq:35},'wallReg':{name:'Wall Reg',eq:40}
+};
+var RB_TAKEOFFS = {
+  'straight90':{name:'90\u00B0 Straight',eq:35},
+  'conical':{name:'Conical',eq:10},
+  'angle45':{name:'45\u00B0 Angled',eq:20},
+  'wye':{name:'Wye',eq:15}
 };
 
-// --- Init runs from collars + rooms ---
+// --- Init from wizard trunks ---
 function rbInit() {
-  RB.runs = []; RB.idx = 0; RB.editPiece = -1;
-  var supCollars = (typeof SS!=='undefined'&&SS.collars)||[];
-  var retCollars = (typeof SS!=='undefined'&&SS.retCollars)||[];
+  RB.trunks = []; RB.idx = 0; RB.editBranch = -1; RB.editPiece = -1;
   var rooms = typeof getRoomsList==='function'?getRoomsList():[];
-  var supTrunks = WIZ.trunks.filter(function(t){return t.airPath==='supply';});
-  var retTrunks = WIZ.trunks.filter(function(t){return t.airPath==='return';});
+  var availRooms = rooms.map(function(r,i){ return {name:r.name, cfm:r.cfm, idx:i, assigned:false}; });
 
-  // Supply: one run per collar, assign rooms round-robin
+  WIZ.trunks.forEach(function(t,ti) {
+    RB.trunks.push({
+      wizIdx: ti,
+      label: t.label,
+      airPath: t.airPath || 'supply',
+      size: parseInt(t.size) || 12,
+      length: parseFloat(t.length) || 0,
+      material: t.material || 'metal',
+      compression: t.compression || 0,
+      branches: []
+    });
+  });
+
+  // Auto-create one branch per room, distributed across supply trunks
+  var supTrunks = RB.trunks.filter(function(t){return t.airPath==='supply';});
   var ri = 0;
-  supCollars.forEach(function(col,ci){
-    var ti = supTrunks.length>0?WIZ.trunks.indexOf(supTrunks[ci%supTrunks.length]):0;
-    var rm = ri<rooms.length?rooms[ri]:null; ri++;
-    RB.runs.push({
-      collar:col, collarSize:parseInt(col.size)||8, airPath:'supply',
-      trunkIdx:ti, pieces:[], room:rm?rm.name:'Supply '+(ci+1),
-      cfm:rm?(rm.cfm||0):0
-    });
-  });
-  // Return: one run per collar
-  var totalCfm = typeof getRoomsTotalCFM==='function'?getRoomsTotalCFM():0;
-  retCollars.forEach(function(col,ci){
-    var ti = retTrunks.length>0?WIZ.trunks.indexOf(retTrunks[ci%retTrunks.length]):0;
-    var retCfm = retCollars.length>0?Math.round(totalCfm/retCollars.length):totalCfm;
-    RB.runs.push({
-      collar:col, collarSize:parseInt(col.size)||14, airPath:'return',
-      trunkIdx:ti, pieces:[], room:'Return '+(ci+1), cfm:retCfm
-    });
-  });
-  // Fallback if no collars
-  if (RB.runs.length===0 && rooms.length>0) {
-    rooms.forEach(function(rm,i){
-      var ti = supTrunks.length>0?WIZ.trunks.indexOf(supTrunks[i%supTrunks.length]):0;
-      RB.runs.push({
-        collar:{size:'8',type:'tab'}, collarSize:8, airPath:'supply',
-        trunkIdx:ti, pieces:[], room:rm.name, cfm:rm.cfm||0
+  if (supTrunks.length > 0 && rooms.length > 0) {
+    rooms.forEach(function(rm, i) {
+      var trunk = supTrunks[i % supTrunks.length];
+      var recSize = rbRecSize(rm.cfm, trunk.size, trunk.material==='flex'?'flex':'metal', 10);
+      trunk.branches.push({
+        room: rm.name,
+        cfm: rm.cfm || 0,
+        roomIdx: i,
+        takeoff: 'straight90',
+        material: WIZ.material || 'flex',
+        size: recSize,
+        length: 12,
+        compression: (WIZ.material==='flex') ? 10 : 0,
+        bootType: '90boot',
+        pieces: [], // extra fittings (elbows, reducers)
+        complete: false
       });
     });
   }
+
+  // Auto-create return branches
+  var retTrunks = RB.trunks.filter(function(t){return t.airPath==='return';});
+  var totalCfm = typeof getRoomsTotalCFM==='function'?getRoomsTotalCFM():0;
+  retTrunks.forEach(function(trunk, ri) {
+    var retCfm = retTrunks.length > 0 ? Math.round(totalCfm / retTrunks.length) : totalCfm;
+    var recSize = rbRecSize(retCfm, trunk.size, trunk.material==='flex'?'flex':'metal', 10);
+    trunk.branches.push({
+      room: 'Return ' + (ri + 1),
+      cfm: retCfm,
+      roomIdx: -1,
+      takeoff: 'straight90',
+      material: WIZ.material || 'flex',
+      size: recSize,
+      length: 10,
+      compression: (WIZ.material==='flex') ? 10 : 0,
+      bootType: 'wallReg',
+      pieces: [],
+      complete: false
+    });
+  });
 }
 
 // --- Helpers ---
-function rbUpSize(run,upTo) {
-  var s=run.collarSize; var p=run.pieces;
-  var end=typeof upTo==='number'?upTo:p.length;
-  for(var i=0;i<end;i++) if(p[i].size) s=p[i].size;
-  return s;
-}
-function rbRecSize(cfm,upSize,mat,comp) {
-  if(!cfm||cfm<=0) return upSize||6;
-  var c=(mat==='flex')?(comp||10):0;
-  var ff=(mat==='flex'&&typeof wizFlexFactor==='function')?wizFlexFactor(c):((mat==='flex')?1.67:1);
-  var sizes=[4,5,6,7,8,9,10,12,14,16,18,20,22,24];
-  for(var i=0;i<sizes.length;i++){
-    var d=sizes[i]; if(upSize&&d>upSize) break;
+function rbRecSize(cfm, upSize, mat, comp) {
+  if (!cfm || cfm <= 0) return Math.min(upSize || 6, 8);
+  var ff = (mat==='flex' && typeof wizFlexFactor==='function') ? wizFlexFactor(comp||10) : (mat==='flex'?1.67:1);
+  var sizes = [4,5,6,7,8,9,10,12,14,16,18,20,22,24];
+  for (var i=0; i<sizes.length; i++) {
+    var d=sizes[i]; if(upSize && d>upSize) break;
     var A=Math.PI*Math.pow(d/12/2,2); var v=cfm/A;
-    if(v>(mat==='flex'?700:900)) continue;
-    var fr=typeof frictionLoss==='function'?frictionLoss(d,cfm):0.08;
-    if(fr*ff<=0.08) return d;
+    if (v > (mat==='flex'?700:900)) continue;
+    var fr = typeof frictionLoss==='function'?frictionLoss(d,cfm):0.08;
+    if (fr*ff <= 0.08) return d;
   }
-  return upSize||6;
-}
-function rbRunDone(run){
-  return run.pieces.length>0&&run.pieces[run.pieces.length-1].type==='boot';
-}
-function rbCalcTEL(run) {
-  var tel=0;
-  var trunk=WIZ.trunks[run.trunkIdx]||WIZ.trunks[0];
-  // Plenum EQ
-  var isRet=run.airPath==='return';
-  var plEl=isRet?document.getElementById('retPlType'):document.getElementById('plType');
-  var plVal=plEl?plEl.value:(isRet?'box':'tapered');
-  tel+=WIZ_PLENUM_EQ[plVal]||10;
-  // Trunk
-  if(trunk&&!trunk.isRadial){
-    var tLen=parseFloat(trunk.length)||0;
-    var tDia=typeof wizEffDia==='function'?wizEffDia(trunk):12;
-    var tFF=trunk.material==='ductboard'?1.2:(trunk.material==='flex'&&typeof wizFlexFactor==='function'?wizFlexFactor(trunk.compression):1);
-    tel+=tLen*tFF;
-    tel+=(trunk.elbows90||0)*(tDia<=6?10:tDia<=8?15:tDia<=10?20:25);
-    tel+=(trunk.elbows45||0)*5;
-    tel+=(trunk.distBoxes||0)*50;
-  }
-  // Pieces
-  run.pieces.forEach(function(p){
-    var pt=RB_PIECES[p.type];
-    if(p.type==='straight'){
-      var len=parseFloat(p.length)||0;
-      var ff=p.material==='flex'?(typeof wizFlexFactor==='function'?wizFlexFactor(p.compression||10):1.67):(p.material==='ductboard'?1.2:1);
-      tel+=len*ff;
-    } else if(p.type==='boot'){
-      tel+=(RB_BOOTS[p.bootType]||{eq:35}).eq;
-    } else if(pt&&pt.eqFn){
-      tel+=pt.eqFn(p.size||rbUpSize(run,run.pieces.indexOf(p)));
-    }
-  });
-  return tel;
+  return Math.min(upSize||6, 8);
 }
 
-// --- Piece icons (compact SVGs) ---
 function rbIcon(t) {
-  var s = {
-    straight:'<svg viewBox="0 0 24 24" width="18" height="18"><rect x="8" y="3" width="8" height="18" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
-    elbow90:'<svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 3v10a5 5 0 005 5h8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-    elbow45:'<svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 3v7l8 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-    reducer:'<svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 3v7l4 4v7M18 3v7l-4 4v7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
-    wye:'<svg viewBox="0 0 24 24" width="18" height="18"><line x1="12" y1="3" x2="12" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="5" y2="21" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="19" y2="21" stroke="currentColor" stroke-width="1.5"/></svg>',
-    dbox:'<svg viewBox="0 0 24 24" width="18" height="18"><rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="2" x2="12" y2="6" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="18" r="1.5" fill="currentColor"/><circle cx="16" cy="18" r="1.5" fill="currentColor"/></svg>',
-    boot:'<svg viewBox="0 0 24 24" width="18" height="18"><rect x="8" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 11L4 17h16l-4-6" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="20" x2="18" y2="20" stroke="currentColor" stroke-width="2"/></svg>'
+  var s={
+    straight:'<svg viewBox="0 0 24 24" w="18" h="18"><rect x="8" y="3" width="8" height="18" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    elbow90:'<svg viewBox="0 0 24 24" w="18" h="18"><path d="M8 3v10a5 5 0 005 5h8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    elbow45:'<svg viewBox="0 0 24 24" w="18" h="18"><path d="M9 3v7l8 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    reducer:'<svg viewBox="0 0 24 24" w="18" h="18"><path d="M6 3v7l4 4v7M18 3v7l-4 4v7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    dbox:'<svg viewBox="0 0 24 24" w="18" h="18"><rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="18" r="1.5" fill="currentColor"/><circle cx="16" cy="18" r="1.5" fill="currentColor"/></svg>',
+    boot:'<svg viewBox="0 0 24 24" w="18" h="18"><rect x="8" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 11L4 17h16l-4-6" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="20" x2="18" y2="20" stroke="currentColor" stroke-width="2"/></svg>'
   };
-  return s[t]||'<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+  return (s[t]||'<svg viewBox="0 0 24 24" w="18" h="18"><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>').replace(/w="/g,'width="').replace(/h="/g,'height="');
 }
 
 // ============ RENDER ============
 function rbRender() {
-  var el=document.getElementById('wizBranchArea');
-  if(!el) return;
-  // Auto-init if needed
-  if(RB.runs.length===0) rbInit();
-  if(RB.runs.length===0){ el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-3)">No start collars defined. Go back to Trunks and add collars on the plenum.</div>'; return; }
+  var el = document.getElementById('wizBranchArea');
+  if (!el) return;
+  if (RB.trunks.length === 0) rbInit();
+  if (RB.trunks.length === 0) { el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-3)">No trunks defined. Go back to Trunks step.</div>'; return; }
 
-  var supRuns=RB.runs.filter(function(r){return r.airPath==='supply';});
-  var retRuns=RB.runs.filter(function(r){return r.airPath==='return';});
-  var run=RB.runs[RB.idx];
-  var isSupply=run.airPath==='supply';
-  var sectionRuns=isSupply?supRuns:retRuns;
-  var sectionIdx=sectionRuns.indexOf(run);
+  var supTrunks = RB.trunks.filter(function(t){return t.airPath==='supply';});
+  var retTrunks = RB.trunks.filter(function(t){return t.airPath==='return';});
+  var trunk = RB.trunks[RB.idx];
+  var isSupply = trunk.airPath === 'supply';
+  var section = isSupply ? supTrunks : retTrunks;
+  var sIdx = section.indexOf(trunk);
 
-  var h='';
+  var rooms = typeof getRoomsList==='function'?getRoomsList():[];
+  var h = '';
 
-  // Section toggle (Supply / Return)
-  if(supRuns.length>0&&retRuns.length>0){
-    h+='<div class="rb-seg" style="margin-bottom:10px">';
-    h+='<div class="rb-seg-btn'+(isSupply?' active':'')+'" data-rb-section="supply">Supply ('+supRuns.length+')</div>';
-    h+='<div class="rb-seg-btn'+(!isSupply?' active':'')+'" data-rb-section="return">Return ('+retRuns.length+')</div>';
+  // Section toggle
+  if (supTrunks.length>0 && retTrunks.length>0) {
+    h+='<div class="rb-seg" style="margin-bottom:8px">';
+    h+='<div class="rb-seg-btn'+(isSupply?' active':'')+'" data-rb-section="supply">Supply ('+supTrunks.length+')</div>';
+    h+='<div class="rb-seg-btn'+(!isSupply?' active':'')+'" data-rb-section="return">Return ('+retTrunks.length+')</div>';
     h+='</div>';
   }
 
-  // Counter + dots
-  h+='<div class="rb-counter"><strong>'+(sectionIdx+1)+'</strong> of '+sectionRuns.length+' '+(isSupply?'supply':'return')+' runs</div>';
-  h+='<div class="rb-dots">';
-  sectionRuns.forEach(function(r,i){
-    var cls='rb-dot';
-    if(i===sectionIdx) cls+=' active';
-    else if(rbRunDone(r)) cls+=' done';
-    h+='<div class="'+cls+'" data-rb-go-dot="'+RB.runs.indexOf(r)+'"></div>';
-  });
-  h+='</div>';
+  // Trunk selector dots
+  if (section.length > 1) {
+    h+='<div class="rb-dots">';
+    section.forEach(function(t,i){
+      h+='<div class="rb-dot'+(i===sIdx?' active':'')+'" data-rb-trunk-dot="'+RB.trunks.indexOf(t)+'"></div>';
+    });
+    h+='</div>';
+  }
 
-  // Swipe area with arrows
-  h+='<div class="rb-swipe-wrap">';
-  if(sectionIdx>0) h+='<div class="rb-arrow rb-arrow-left" data-rb-prev>&#x2039;</div>';
-  if(sectionIdx<sectionRuns.length-1) h+='<div class="rb-arrow rb-arrow-right" data-rb-next>&#x203A;</div>';
-
-  // The run card
+  // ---- TRUNK CARD ----
   h+='<div class="rb-run-card">';
-
-  // Header
+  
+  // Trunk header
   h+='<div class="rb-run-hdr">';
-  h+='<div class="rb-run-title">'+run.room+'</div>';
+  h+='<div class="rb-run-title">'+trunk.label+'</div>';
   h+='<div class="rb-run-badges">';
   h+='<span class="rb-badge '+(isSupply?'rb-badge-sup':'rb-badge-ret')+'">'+(isSupply?'SUP':'RTN')+'</span>';
-  h+='<span class="rb-badge rb-badge-size">'+run.collarSize+'&#x2033;</span>';
+  h+='<span class="rb-badge rb-badge-size">'+trunk.size+'&#x2033;</span>';
+  if (trunk.length) h+='<span class="rb-badge" style="background:var(--surface-2);color:var(--text-2)">'+trunk.length+'ft</span>';
   h+='</div></div>';
 
-  // Room + CFM fields
-  h+='<div class="rb-fields">';
-  h+='<div class="rb-field"><label>Room</label><input type="text" class="input-field" value="'+run.room+'" data-rb-room></div>';
-  h+='<div class="rb-field" style="max-width:90px"><label>CFM</label><input type="number" class="input-field" value="'+(run.cfm||'')+'" placeholder="CFM" data-rb-cfm></div>';
+  // Trunk info
+  h+='<div style="font-size:11px;color:var(--text-3);margin-bottom:12px">';
+  h+=trunk.size+'&#x2033; '+trunk.material+' trunk &middot; '+trunk.length+'ft';
+  if (trunk.material==='flex'&&trunk.compression) h+=' &middot; '+trunk.compression+'% compression';
   h+='</div>';
 
-  // Piece chain
-  h+='<div class="rb-chain">';
+  // ---- BRANCHES off this trunk ----
+  h+='<div style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Branches ('+trunk.branches.length+')</div>';
 
-  // Start collar node
-  h+='<div class="rb-node rb-node-start">';
-  h+='<div class="rb-node-card">';
-  h+='<div class="rb-node-icon">'+rbIcon('straight')+'</div>';
-  h+='<div class="rb-node-body"><div class="rb-node-name">Start Collar</div>';
-  h+='<div class="rb-node-detail">'+run.collarSize+'&#x2033; '+(run.collar?run.collar.type:'')+'</div></div>';
-  h+='</div></div>';
+  trunk.branches.forEach(function(br, bi) {
+    var isEditing = bi === RB.editBranch;
+    var takeoff = RB_TAKEOFFS[br.takeoff] || RB_TAKEOFFS['straight90'];
+    var boot = RB_BOOTS[br.bootType] || RB_BOOTS['90boot'];
 
-  // Each placed piece
-  run.pieces.forEach(function(p,pi){
-    var pt=RB_PIECES[p.type]||{};
-    var isActive=pi===RB.editPiece;
-    var isEnd=p.type==='boot';
-    var upSz=rbUpSize(run,pi);
+    h+='<div class="rb-branch-card'+(isEditing?' editing':'')+'" data-rb-branch="'+bi+'">';
+    
+    // Branch header
+    h+='<div class="rb-branch-hdr">';
+    h+='<div class="rb-branch-num">'+(bi+1)+'</div>';
+    h+='<div class="rb-branch-info">';
+    h+='<div class="rb-branch-room">'+br.room+'</div>';
+    h+='<div class="rb-branch-meta">';
+    h+=br.size+'&#x2033; '+(br.material||'flex')+' &middot; '+br.length+'ft &middot; '+(br.cfm||'?')+' CFM';
+    h+='</div>';
+    h+='</div>';
+    h+='<div class="rb-branch-boot-badge">'+boot.name+'</div>';
+    h+='</div>';
 
-    h+='<div class="rb-node'+(isActive?' rb-node-active':'')+(isEnd?' rb-node-end':'')+'" data-rb-tap="'+pi+'">';
-    h+='<div class="rb-node-card">';
-    h+='<div class="rb-node-icon">'+rbIcon(p.type)+'</div>';
-    h+='<div class="rb-node-body"><div class="rb-node-name">'+(pt.name||p.type)+'</div>';
-    h+='<div class="rb-node-detail">';
-    if(p.type==='straight'){
-      h+=(p.size||'?')+'&#x2033; '+(p.material||'flex')+' &middot; '+(p.length||0)+'ft';
-      if(p.material==='flex'&&p.compression) h+=' &middot; '+p.compression+'%';
-    } else if(p.type==='reducer'){
-      h+=upSz+'&#x2033; &#x2192; '+(p.size||'?')+'&#x2033; (+5ft)';
-    } else if(p.type==='boot'){
-      var bt=RB_BOOTS[p.bootType]||{};
-      h+=(bt.name||'Boot')+' (+'+((bt.eq||0))+'ft)';
-    } else {
-      var eq=pt.eqFn?pt.eqFn(p.size||upSz):0;
-      h+='+'+eq+'ft EQ';
+    // Expanded edit form
+    if (isEditing) {
+      h+='<div class="rb-branch-edit">';
+
+      // Room picker
+      h+='<div class="rb-edit-row"><label class="input-label">Room (destination)</label>';
+      h+='<select class="input-field" data-rb-br-room="'+bi+'">';
+      h+='<option value="">— Select Room —</option>';
+      rooms.forEach(function(rm,ri){
+        h+='<option value="'+ri+'"'+(br.roomIdx===ri?' selected':'')+'>'+rm.name+' ('+rm.cfm+' CFM)</option>';
+      });
+      h+='<option value="-1"'+(br.roomIdx===-1?' selected':'')+'>Custom (manual CFM)</option>';
+      h+='</select></div>';
+
+      // CFM (read-only if room selected, editable if custom)
+      if (br.roomIdx >= 0 && rooms[br.roomIdx]) {
+        h+='<div class="rb-edit-row" style="font-size:11px;color:var(--accent);font-weight:600">'+rooms[br.roomIdx].cfm+' CFM from '+rooms[br.roomIdx].name+'</div>';
+      } else {
+        h+='<div class="rb-edit-row"><label class="input-label">CFM</label>';
+        h+='<input type="number" class="input-field" value="'+(br.cfm||'')+'" data-rb-br-cfm="'+bi+'" placeholder="CFM"></div>';
+      }
+
+      // Takeoff type
+      h+='<div class="rb-edit-row"><label class="input-label">Takeoff from Trunk</label>';
+      h+='<select class="input-field" data-rb-br-takeoff="'+bi+'">';
+      Object.keys(RB_TAKEOFFS).forEach(function(k){
+        h+='<option value="'+k+'"'+(br.takeoff===k?' selected':'')+'>'+RB_TAKEOFFS[k].name+' (+'+RB_TAKEOFFS[k].eq+'ft)</option>';
+      });
+      h+='</select></div>';
+
+      // Material
+      h+='<div class="rb-edit-row"><label class="input-label">Branch Material</label>';
+      h+='<div class="rb-seg">';
+      h+='<div class="rb-seg-btn'+(br.material!=='flex'?' active':'')+'" data-rb-br-mat="'+bi+'" data-rb-matv="metal">Metal</div>';
+      h+='<div class="rb-seg-btn'+(br.material==='flex'?' active':'')+'" data-rb-br-mat="'+bi+'" data-rb-matv="flex">Flex</div>';
+      h+='</div></div>';
+
+      // Size
+      var recSz = rbRecSize(br.cfm, trunk.size, br.material, br.compression);
+      h+='<div class="rb-edit-row"><label class="input-label">Size <span class="rb-rec-tag">rec: '+recSz+'&#x2033;</span></label>';
+      h+='<select class="input-field" data-rb-br-size="'+bi+'">';
+      [4,5,6,7,8,9,10,12,14,16,18,20,22,24].forEach(function(s){
+        if(s>trunk.size) return;
+        h+='<option value="'+s+'"'+(br.size==s?' selected':'')+'>'+s+'&#x2033;'+(s==recSz?' \u2190 rec':'')+'</option>';
+      });
+      h+='</select></div>';
+
+      // Length
+      h+='<div class="rb-edit-row"><label class="input-label">Branch Length (ft)</label>';
+      h+='<input type="number" class="input-field" value="'+(br.length||12)+'" min="1" max="200" data-rb-br-len="'+bi+'"></div>';
+
+      // Compression
+      if (br.material==='flex') {
+        h+='<div class="rb-edit-row"><label class="input-label">Compression %</label>';
+        h+='<div class="rb-comp-chips">';
+        [4,5,10,15,20,25,30].forEach(function(c){
+          h+='<div class="rb-comp-chip'+(br.compression==c?' active':'')+'" data-rb-br-comp="'+bi+'" data-rb-cv="'+c+'">'+c+'%</div>';
+        });
+        h+='</div></div>';
+      }
+
+      // Boot type
+      h+='<div class="rb-edit-row"><label class="input-label">Ends At (Boot/Register)</label>';
+      h+='<select class="input-field" data-rb-br-boot="'+bi+'">';
+      Object.keys(RB_BOOTS).forEach(function(k){
+        h+='<option value="'+k+'"'+(br.bootType===k?' selected':'')+'>'+RB_BOOTS[k].name+' (+'+RB_BOOTS[k].eq+'ft)</option>';
+      });
+      h+='</select></div>';
+
+      // CFM capacity check
+      if (br.cfm > 0 && br.size > 0) {
+        var maxCFM = typeof wizMaxCFM==='function'? wizMaxCFM(br.size, br.material, br.compression) : 999;
+        var ok = maxCFM >= br.cfm;
+        h+='<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:4px;';
+        h+=ok?'background:var(--green-soft);color:var(--green)':'background:var(--red-soft);color:var(--red)';
+        h+='">';
+        h+=ok ? '\u2713 '+br.size+'&#x2033; can deliver '+maxCFM+' CFM (need '+br.cfm+')' :
+               '\u26A0 '+br.size+'&#x2033; max '+maxCFM+' CFM \u2014 need '+br.cfm+'. Upsize to '+rbRecSize(br.cfm,trunk.size,br.material,br.compression)+'&#x2033;';
+        h+='</div>';
+      }
+
+      h+='<button class="rb-btn-done" data-rb-br-done>Done</button>';
+      h+='</div>'; // /edit
     }
-    h+='</div></div>';
-    h+='<div class="rb-node-x" data-rb-del="'+pi+'">&times;</div>';
-    h+='</div></div>';
 
-    // Edit panel
-    if(isActive) h+=rbEditHTML(run,p,pi);
+    h+='</div>'; // /branch-card
   });
 
-  h+='</div>'; // /chain
+  // Add Branch button
+  h+='<button class="sys-add-btn" data-rb-add-branch style="width:100%;margin-top:8px;justify-content:center">';
+  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  h+='Add Branch to '+trunk.label+'</button>';
 
-  // Stats bar
-  var tel=rbCalcTEL(run);
-  var frNum=0;
-  var espEl=document.getElementById('wizESP');
-  var coilEl=document.getElementById('wizCoilPD');
-  var asp=(espEl?parseFloat(espEl.value):0.5)-(coilEl?parseFloat(coilEl.value):0.07);
-  if(tel>0) frNum=asp/tel*100;
-  var frCls=frNum<=0.05?'good':frNum<=0.08?'warn':'bad';
-
-  h+='<div class="rb-stats">';
-  h+='<div class="rb-stat"><div class="rb-stat-val">'+Math.round(tel)+'</div><div class="rb-stat-lbl">TEL (ft)</div></div>';
-  h+='<div class="rb-stat"><div class="rb-stat-val '+(tel>0?frCls:'')+'">'+frNum.toFixed(3)+'</div><div class="rb-stat-lbl">FR (IWC/100ft)</div></div>';
-  h+='<div class="rb-stat"><div class="rb-stat-val">'+(run.cfm||'—')+'</div><div class="rb-stat-lbl">CFM</div></div>';
-  h+='</div>';
-
-  // Add piece palette (or done banner)
-  if(!rbRunDone(run)){
-    h+='<div class="rb-add-section">';
-    h+='<div class="rb-add-title">Add next piece</div>';
-    h+='<div class="rb-add-grid">';
-    ['straight','elbow90','elbow45','reducer','wye','dbox','boot'].forEach(function(k){
-      h+='<div class="rb-add-btn" data-rb-add="'+k+'">';
-      h+=rbIcon(k);
-      h+='<div class="rb-add-lbl">'+RB_PIECES[k].name+'</div></div>';
-    });
-    h+='</div></div>';
-  } else {
-    h+='<div class="rb-done-banner">';
-    h+='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
-    h+=' Run complete';
-    // Auto-advance prompt
-    if(sectionIdx<sectionRuns.length-1){
-      h+=' &mdash; <span data-rb-next style="text-decoration:underline;cursor:pointer">next run &#x203A;</span>';
-    }
+  // Navigation arrows
+  if (section.length > 1) {
+    h+='<div style="display:flex;justify-content:space-between;margin-top:10px">';
+    if (sIdx > 0) h+='<button class="wiz-btn-secondary" data-rb-prev style="border-radius:10px;padding:8px 16px">\u2039 Prev Trunk</button>';
+    else h+='<div></div>';
+    if (sIdx < section.length-1) h+='<button class="wiz-btn-secondary" data-rb-next style="border-radius:10px;padding:8px 16px">Next Trunk \u203A</button>';
+    else h+='<div></div>';
     h+='</div>';
   }
 
   h+='</div>'; // /run-card
-  h+='</div>'; // /swipe-wrap
 
-  el.innerHTML=h;
+  el.innerHTML = h;
 }
 
-// --- Edit HTML for a piece ---
-function rbEditHTML(run,p,idx) {
-  var h='<div class="rb-edit">';
-  var up=rbUpSize(run,idx);
-  var rec=rbRecSize(run.cfm,up,p.material||WIZ.material,p.compression||10);
+// ============ EVENTS ============
+function rbHandleClick(e) {
+  var t = e.target;
 
-  if(p.type==='straight'){
-    // Material
-    h+='<div class="rb-edit-row"><label class="input-label">Material</label>';
-    h+='<div class="rb-seg">';
-    h+='<div class="rb-seg-btn'+(p.material!=='flex'?' active':'')+'" data-rb-set="material" data-rb-v="metal" data-rb-i="'+idx+'">Metal</div>';
-    h+='<div class="rb-seg-btn'+(p.material==='flex'?' active':'')+'" data-rb-set="material" data-rb-v="flex" data-rb-i="'+idx+'">Flex</div>';
-    h+='</div></div>';
-    // Size
-    h+='<div class="rb-edit-row"><label class="input-label">Size <span class="rb-rec-tag">rec: '+rec+'&#x2033;</span></label>';
-    h+='<select class="input-field" data-rb-sel="size" data-rb-i="'+idx+'">';
-    [4,5,6,7,8,9,10,12,14,16,18,20,22,24].forEach(function(s){
-      if(s>up) return;
-      h+='<option value="'+s+'"'+(p.size==s?' selected':'')+'>'+s+'&#x2033;'+(s==rec?' \u2190 rec':'')+'</option>';
-    });
-    h+='</select></div>';
-    // Length
-    h+='<div class="rb-edit-row"><label class="input-label">Length (ft)</label>';
-    h+='<input type="number" class="input-field" value="'+(p.length||12)+'" min="1" max="200" data-rb-inp="length" data-rb-i="'+idx+'"></div>';
-    // Compression
-    if(p.material==='flex'){
-      h+='<div class="rb-edit-row"><label class="input-label">Compression %</label>';
-      h+='<div class="rb-comp-chips">';
-      [4,5,10,15,20,25,30].forEach(function(c){
-        h+='<div class="rb-comp-chip'+(p.compression==c?' active':'')+'" data-rb-set="compression" data-rb-v="'+c+'" data-rb-i="'+idx+'">'+c+'%</div>';
-      });
-      h+='</div></div>';
-    }
-  }
-  if(p.type==='reducer'){
-    h+='<div class="rb-edit-row"><label class="input-label">Reduce from '+up+'&#x2033; to:</label>';
-    h+='<select class="input-field" data-rb-sel="size" data-rb-i="'+idx+'">';
-    [4,5,6,7,8,9,10,12,14,16,18,20,22,24].forEach(function(s){
-      if(s>=up) return;
-      h+='<option value="'+s+'"'+(p.size==s?' selected':'')+'>'+s+'&#x2033;</option>';
-    });
-    h+='</select></div>';
-  }
-  if(p.type==='boot'){
-    h+='<div class="rb-edit-row"><label class="input-label">Boot Type</label>';
-    h+='<select class="input-field" data-rb-sel="bootType" data-rb-i="'+idx+'">';
-    Object.keys(RB_BOOTS).forEach(function(k){
-      var b=RB_BOOTS[k];
-      h+='<option value="'+k+'"'+(p.bootType===k?' selected':'')+'>'+b.name+' (+'+b.eq+'ft)</option>';
-    });
-    h+='</select></div>';
-  }
-  h+='<button class="rb-btn-done" data-rb-done>Done</button>';
-  h+='</div>';
-  return h;
-}
-
-// ============ ACTIONS ============
-function rbAddPiece(type){
-  var run=RB.runs[RB.idx]; if(!run||rbRunDone(run)) return;
-  var up=rbUpSize(run,run.pieces.length);
-  var rec=rbRecSize(run.cfm,up,WIZ.material,10);
-  var p={type:type};
-  if(type==='straight'){
-    p.material=WIZ.material||'flex'; p.size=rec; p.length=12;
-    p.compression=p.material==='flex'?10:0; p.shape='round';
-  } else if(type==='reducer'){
-    var sizes=[4,5,6,7,8,9,10,12,14,16,18,20,22,24];
-    var ns=up; for(var i=sizes.length-1;i>=0;i--){if(sizes[i]<up){ns=sizes[i];break;}}
-    p.size=ns;
-  } else if(type==='boot'){
-    p.bootType='90boot';
-  }
-  run.pieces.push(p);
-  RB.editPiece=run.pieces.length-1;
-  rbRender();
-  // Scroll edit into view
-  setTimeout(function(){
-    var ed=document.querySelector('.rb-edit');
-    if(ed) ed.scrollIntoView({behavior:'smooth',block:'center'});
-  },50);
-}
-
-function rbSetProp(idx,prop,val){
-  var run=RB.runs[RB.idx]; if(!run||!run.pieces[idx]) return;
-  var p=run.pieces[idx];
-  if(prop==='size'||prop==='length'||prop==='compression') p[prop]=parseInt(val)||0;
-  else p[prop]=val;
-  if(prop==='material'){
-    if(val==='flex'){p.compression=p.compression||10;p.shape='round';}
-    else p.compression=0;
-  }
-  rbRender();
-}
-
-function rbNav(dir){
-  var run=RB.runs[RB.idx];
-  var isS=run.airPath==='supply';
-  var section=RB.runs.filter(function(r){return r.airPath===(isS?'supply':'return');});
-  var si=section.indexOf(run);
-  var newSi=si+dir;
-  if(newSi>=0&&newSi<section.length){
-    RB.idx=RB.runs.indexOf(section[newSi]);
-    RB.editPiece=-1;
-    rbRender();
-    document.getElementById('wizBranchArea').scrollIntoView({behavior:'smooth',block:'start'});
-  }
-}
-
-function rbSwitchSection(airPath){
-  var section=RB.runs.filter(function(r){return r.airPath===airPath;});
-  if(section.length>0){
-    RB.idx=RB.runs.indexOf(section[0]);
-    RB.editPiece=-1;
-    rbRender();
-  }
-}
-
-// ============ EVENT HANDLERS ============
-function rbHandleClick(e){
-  var t=e.target;
   // Section toggle
-  var sec=t.closest('[data-rb-section]'); if(sec){rbSwitchSection(sec.dataset.rbSection);return;}
-  // Dot nav
-  var dot=t.closest('[data-rb-go-dot]'); if(dot){RB.idx=parseInt(dot.dataset.rbGoDot);RB.editPiece=-1;rbRender();return;}
-  // Arrow nav
-  if(t.closest('[data-rb-prev]')){rbNav(-1);return;}
-  if(t.closest('[data-rb-next]')){rbNav(1);return;}
-  // Add piece
-  var add=t.closest('[data-rb-add]'); if(add){rbAddPiece(add.dataset.rbAdd);return;}
-  // Delete piece
-  var del=t.closest('[data-rb-del]');
-  if(del){var di=parseInt(del.dataset.rbDel);var run=RB.runs[RB.idx];if(run){run.pieces.splice(di,1);if(RB.editPiece>=run.pieces.length)RB.editPiece=-1;if(RB.editPiece===di)RB.editPiece=-1;rbRender();}return;}
-  // Tap piece to edit
-  var tap=t.closest('[data-rb-tap]');
-  if(tap&&!t.closest('[data-rb-del]')&&!t.closest('.rb-edit')){
-    var pi=parseInt(tap.dataset.rbTap);
-    RB.editPiece=(RB.editPiece===pi)?-1:pi;
+  var sec=t.closest('[data-rb-section]');
+  if(sec){
+    var ap=sec.dataset.rbSection;
+    var section=RB.trunks.filter(function(tr){return tr.airPath===ap;});
+    if(section.length>0){RB.idx=RB.trunks.indexOf(section[0]); RB.editBranch=-1; rbRender();}
+    return;
+  }
+  // Trunk dots
+  var dot=t.closest('[data-rb-trunk-dot]');
+  if(dot){RB.idx=parseInt(dot.dataset.rbTrunkDot); RB.editBranch=-1; rbRender(); return;}
+  // Nav
+  if(t.closest('[data-rb-prev]')){rbNavTrunk(-1);return;}
+  if(t.closest('[data-rb-next]')){rbNavTrunk(1);return;}
+  // Tap branch to edit
+  var brCard=t.closest('[data-rb-branch]');
+  if(brCard && !t.closest('.rb-branch-edit') && !t.closest('[data-rb-br-done]')){
+    var bi=parseInt(brCard.dataset.rbBranch);
+    RB.editBranch=(RB.editBranch===bi)?-1:bi;
+    rbRender();
+    if(RB.editBranch>=0) setTimeout(function(){
+      var ed=document.querySelector('.rb-branch-card.editing');
+      if(ed) ed.scrollIntoView({behavior:'smooth',block:'start'});
+    },50);
+    return;
+  }
+  // Material toggle
+  var mat=t.closest('[data-rb-br-mat]');
+  if(mat){
+    var bi2=parseInt(mat.dataset.rbBrMat);
+    var mv=mat.dataset.rbMatv;
+    var trunk=RB.trunks[RB.idx];
+    if(trunk&&trunk.branches[bi2]){
+      trunk.branches[bi2].material=mv;
+      if(mv==='flex'){trunk.branches[bi2].compression=trunk.branches[bi2].compression||10;}
+      else trunk.branches[bi2].compression=0;
+    }
     rbRender(); return;
   }
-  // Segment btn
-  var seg=t.closest('[data-rb-set]');
-  if(seg&&seg.dataset.rbV!==undefined){rbSetProp(parseInt(seg.dataset.rbI),seg.dataset.rbSet,seg.dataset.rbV);return;}
+  // Compression chip
+  var comp=t.closest('[data-rb-br-comp]');
+  if(comp){
+    var bi3=parseInt(comp.dataset.rbBrComp);
+    var cv=parseInt(comp.dataset.rbCv);
+    var trunk2=RB.trunks[RB.idx];
+    if(trunk2&&trunk2.branches[bi3]) trunk2.branches[bi3].compression=cv;
+    rbRender(); return;
+  }
   // Done
-  if(t.closest('[data-rb-done]')){RB.editPiece=-1;rbRender();return;}
+  if(t.closest('[data-rb-br-done]')){RB.editBranch=-1; rbRender(); return;}
+  // Add branch
+  if(t.closest('[data-rb-add-branch]')){
+    var trunk3=RB.trunks[RB.idx];
+    if(!trunk3) return;
+    trunk3.branches.push({
+      room:'', cfm:0, roomIdx:-1, takeoff:'straight90',
+      material:WIZ.material||'flex', size:rbRecSize(0,trunk3.size,WIZ.material,10),
+      length:12, compression:(WIZ.material==='flex')?10:0,
+      bootType:'90boot', pieces:[], complete:false
+    });
+    RB.editBranch=trunk3.branches.length-1;
+    rbRender();
+    setTimeout(function(){
+      var ed=document.querySelector('.rb-branch-card.editing');
+      if(ed) ed.scrollIntoView({behavior:'smooth',block:'start'});
+    },50);
+    return;
+  }
 }
 
-function rbHandleChange(e){
+function rbHandleChange(e) {
   var t=e.target;
-  // Select
-  if(t.dataset.rbSel){rbSetProp(parseInt(t.dataset.rbI),t.dataset.rbSel,t.value);return;}
-  // Input
-  if(t.dataset.rbInp){rbSetProp(parseInt(t.dataset.rbI),t.dataset.rbInp,t.value);return;}
-  // Room
-  if(t.hasAttribute('data-rb-room')){var r=RB.runs[RB.idx];if(r)r.room=t.value;}
+  var trunk=RB.trunks[RB.idx];
+  if(!trunk) return;
+
+  // Room picker
+  if(t.dataset.rbBrRoom!==undefined){
+    var bi=parseInt(t.dataset.rbBrRoom);
+    var br=trunk.branches[bi]; if(!br) return;
+    var ri=parseInt(t.value);
+    br.roomIdx=ri;
+    var rooms=typeof getRoomsList==='function'?getRoomsList():[];
+    if(ri>=0 && rooms[ri]){
+      br.room=rooms[ri].name;
+      br.cfm=rooms[ri].cfm;
+      br.size=rbRecSize(br.cfm,trunk.size,br.material,br.compression);
+    } else {
+      br.roomIdx=-1;
+    }
+    rbRender(); return;
+  }
   // CFM
-  if(t.hasAttribute('data-rb-cfm')){var r=RB.runs[RB.idx];if(r)r.cfm=parseInt(t.value)||0;}
+  if(t.dataset.rbBrCfm!==undefined){
+    var bi2=parseInt(t.dataset.rbBrCfm);
+    var br2=trunk.branches[bi2]; if(!br2) return;
+    br2.cfm=parseInt(t.value)||0;
+    return; // don't re-render on every keystroke
+  }
+  // Takeoff
+  if(t.dataset.rbBrTakeoff!==undefined){
+    var bi3=parseInt(t.dataset.rbBrTakeoff);
+    var br3=trunk.branches[bi3]; if(!br3) return;
+    br3.takeoff=t.value;
+    rbRender(); return;
+  }
+  // Size
+  if(t.dataset.rbBrSize!==undefined){
+    var bi4=parseInt(t.dataset.rbBrSize);
+    var br4=trunk.branches[bi4]; if(!br4) return;
+    br4.size=parseInt(t.value)||6;
+    rbRender(); return;
+  }
+  // Length
+  if(t.dataset.rbBrLen!==undefined){
+    var bi5=parseInt(t.dataset.rbBrLen);
+    var br5=trunk.branches[bi5]; if(!br5) return;
+    br5.length=parseInt(t.value)||12;
+    return;
+  }
+  // Boot
+  if(t.dataset.rbBrBoot!==undefined){
+    var bi6=parseInt(t.dataset.rbBrBoot);
+    var br6=trunk.branches[bi6]; if(!br6) return;
+    br6.bootType=t.value;
+    rbRender(); return;
+  }
+}
+
+function rbNavTrunk(dir) {
+  var trunk=RB.trunks[RB.idx];
+  var isS=trunk.airPath==='supply';
+  var section=RB.trunks.filter(function(t){return t.airPath===(isS?'supply':'return');});
+  var si=section.indexOf(trunk);
+  var newSi=si+dir;
+  if(newSi>=0&&newSi<section.length){
+    RB.idx=RB.trunks.indexOf(section[newSi]);
+    RB.editBranch=-1;
+    rbRender();
+  }
 }
 
 // ============ TRANSLATE TO WIZ.branches ============
-function rbTranslateToBranches(){
-  WIZ.branches=[];
-  var num=1;
-  RB.runs.forEach(function(run){
-    var totLen=0, mat=WIZ.material, comp=0, sz=run.collarSize;
-    var fittings=[], bootType='90boot', shape='round';
-    run.pieces.forEach(function(p){
-      if(p.type==='straight'){
-        totLen+=parseFloat(p.length)||0;
-        mat=p.material||mat; comp=p.compression||comp;
-        if(p.size) sz=p.size;
-      } else if(p.type==='boot'){
-        bootType=p.bootType||'90boot';
-      } else if(p.type==='reducer'){
-        if(p.size) sz=p.size;
-        fittings.push({type:'reducer'});
-      } else {
-        fittings.push({type:p.type});
-      }
-    });
-    WIZ.branches.push({
-      trunkIdx:run.trunkIdx, num:num++, room:run.room, cfm:run.cfm||'',
-      shape:shape, size:String(sz), width:'8', height:'8',
-      material:mat, compression:comp, length:String(totLen),
-      fittings:fittings, bootType:bootType, takeoffType:'straight90',
-      done:rbRunDone(run), recommended:String(sz), runouts:[]
+function rbTranslateToBranches() {
+  WIZ.branches = [];
+  var num = 1;
+  RB.trunks.forEach(function(trunk) {
+    trunk.branches.forEach(function(br) {
+      var fittings = br.pieces ? br.pieces.map(function(p){return {type:p.type};}) : [];
+      WIZ.branches.push({
+        trunkIdx: trunk.wizIdx,
+        num: num++,
+        room: br.room || 'Branch',
+        cfm: br.cfm || '',
+        shape: 'round',
+        size: String(br.size || 6),
+        width: '8', height: '8',
+        material: br.material || 'flex',
+        compression: br.compression || 0,
+        length: String(br.length || 12),
+        fittings: fittings,
+        bootType: br.bootType || '90boot',
+        takeoffType: br.takeoff || 'straight90',
+        done: true,
+        recommended: String(br.size || 6),
+        runouts: []
+      });
     });
   });
 }
 
 // Legacy compat
-function rbInitRuns(){ rbInit(); }
+function rbInitRuns() { rbInit(); }

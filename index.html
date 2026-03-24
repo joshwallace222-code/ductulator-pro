@@ -8931,7 +8931,7 @@ function wizHandleClick(ev) {
 
   // --- Run Builder click handler ---
   if (WIZ.step === 3 && typeof rbHandleClick === 'function') {
-    var rbTarget = t.closest('[data-rb-tab],[data-rb-add],[data-rb-del],[data-rb-tap],[data-rb-set],[data-rb-done],[data-rb-next],[data-rb-prev],[data-rb-go-dot],[data-rb-section]');
+    var rbTarget = t.closest('[data-rb-section],[data-rb-trunk-dot],[data-rb-prev],[data-rb-next],[data-rb-branch],[data-rb-br-mat],[data-rb-br-comp],[data-rb-br-done],[data-rb-add-branch]');
     if (rbTarget) { rbHandleClick(ev); return true; }
   }
 
@@ -9346,7 +9346,7 @@ function wizHandleChange(ev) {
 
   // --- Run Builder change handler ---
   if (WIZ.step === 3 && typeof rbHandleChange === 'function') {
-    var rbTarget = t.closest('[data-rb-sel],[data-rb-inp],[data-rb-room],[data-rb-cfm]');
+    var rbTarget = t.closest('[data-rb-br-room],[data-rb-br-cfm],[data-rb-br-takeoff],[data-rb-br-size],[data-rb-br-len],[data-rb-br-boot]');
     if (rbTarget) { rbHandleChange(ev); return false; }
   }
 
