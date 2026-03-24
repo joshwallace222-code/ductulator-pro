@@ -7276,7 +7276,7 @@ function wizGoTo(step) {
 
   // Init downstream data
   if (step === 2 && WIZ.trunks.length === 0) wizInitTrunks();
-  if (step === 3) { if (WIZ.trunks.length === 0) wizInitTrunks(); if (typeof RB !== 'undefined' && RB.runs.length === 0 && typeof rbInit === 'function') rbInit(); }
+  if (step === 3) { if (WIZ.trunks.length === 0) wizInitTrunks(); if (typeof RB !== 'undefined' && typeof rbInit === 'function' && RB.trunks.length === 0) rbInit(); }
   if (step === 4) wizCalcResults();
 
   var prev = document.getElementById('wizStep' + WIZ.step);
@@ -8253,7 +8253,7 @@ function wizCalcRun(br) {
 
 function wizCalcResults() {
   // Translate run builder data to branches format for the calc engine
-  if (typeof rbTranslateToBranches === 'function' && typeof RB !== 'undefined' && RB.runs.length > 0) {
+  if (typeof rbTranslateToBranches === 'function' && typeof RB !== 'undefined' && RB.trunks.length > 0) {
     rbTranslateToBranches();
   }
   // Results calculated lazily inside wizRenderResults
@@ -8953,7 +8953,7 @@ function wizHandleClick(ev) {
     WIZ.trunks = [];
     WIZ.branches = [];
     WIZ.activeBranch = -1;
-    if (typeof RB !== 'undefined') { RB.runs = []; RB.activeRun = 0; RB.editingPiece = -1; }
+    if (typeof RB !== 'undefined') { RB.trunks = []; RB.idx = 0; RB.editBranch = -1; }
     return true;
   }
 
@@ -9074,7 +9074,7 @@ function wizHandleClick(ev) {
     WIZ.trunks.push({ label:'Trunk ' + String.fromCharCode(65 + idx), airPath:'supply', isRadial:false, shape:'round', size:'10', width:'10', height:'8', length:'20', elbows90:0, elbows45:0, material:'metal', compression:0 });
     WIZ.branches = []; // reset branches when trunks change
     WIZ.activeBranch = -1;
-    if (typeof RB !== 'undefined') { RB.runs = []; RB.activeRun = 0; RB.editingPiece = -1; }
+    if (typeof RB !== 'undefined') { RB.trunks = []; RB.idx = 0; RB.editBranch = -1; }
     wizRenderTrunks();
     return true;
   }
