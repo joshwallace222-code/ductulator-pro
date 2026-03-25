@@ -423,35 +423,10 @@ body {
   line-height: 1.3;
 }
 
-/* Recent projects */
-.dash-recent {
-  background: var(--surface);
-  border: 2px dashed var(--surface-3);
-  border-radius: var(--r-md);
-  padding: 24px;
-  text-align: center;
-}
-.dash-recent-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: var(--surface-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 10px;
-  color: var(--text-3);
-}
-.dash-recent-icon svg { width: 20px; height: 20px; }
-.dash-recent-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-  margin-bottom: 4px;
-}
-.dash-recent-desc {
-  font-size: 11px;
-  color: var(--text-3);
+/* Project shortcuts */
+.dash-shortcut:active {
+  background: var(--surface-2) !important;
+  transform: scale(0.98);
 }
 
 /* Footer */
@@ -2905,12 +2880,33 @@ header.app-header { display: none !important; }
     </div>
   </div>
 
-  <!-- Recent Projects -->
-  <div class="dash-section-label">Recent Projects</div>
-  <div class="dash-recent">
-    <div class="dash-recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></div>
-    <div class="dash-recent-title">No projects yet</div>
-    <div class="dash-recent-desc">Your completed system designs will appear here</div>
+  <!-- Project Shortcuts -->
+  <div class="dash-section-label">Project Shortcuts</div>
+  <div id="dashProjectShortcuts" style="display:flex;flex-direction:column;gap:6px">
+    <div style="display:flex;gap:6px">
+      <div class="dash-shortcut" data-home-nav="roomcfm" style="flex:1;background:var(--surface);border:1px solid var(--surface-3);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">Rooms</div>
+          <div style="font-size:10px;color:var(--text-3)" id="dashRoomCount">0 rooms · 0 CFM</div>
+        </div>
+      </div>
+      <div class="dash-shortcut" data-home-nav="system" style="flex:1;background:var(--surface);border:1px solid var(--surface-3);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06"/></svg>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">System</div>
+          <div style="font-size:10px;color:var(--text-3)" id="dashCollarCount">Collars · Trunks</div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-shortcut" data-home-nav="ductestimator" style="background:var(--surface);border:1px solid var(--surface-3);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text)">Duct Estimator</div>
+        <div style="font-size:10px;color:var(--text-3)">Quick sizing, static risk, zoning check</div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" style="margin-left:auto;flex-shrink:0"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
   </div>
 
   <div class="dash-footer">
@@ -2989,13 +2985,13 @@ header.app-header { display: none !important; }
   </div>
 
   <!-- Go to System Design button -->
-  <button class="wiz-btn-primary" style="width:100%;margin-top:12px" onclick="showPage('system')">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1018 0 9 9 0 00-18 0"/><path d="M12 8v4l2 2"/></svg>
+  <button class="wiz-btn-primary" style="width:100%;margin-top:12px" data-rooms-nav="system">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21"/></svg>
     Design Duct System
   </button>
 
   <!-- Duct Estimator shortcut -->
-  <button class="wiz-btn-primary" style="width:100%;margin-top:8px;background:var(--surface-3);color:var(--text);border:1px solid var(--surface-4)" onclick="showPage('ductestimator')">
+  <button class="wiz-btn-primary" style="width:100%;margin-top:8px;background:var(--surface-3);color:var(--text);border:1px solid var(--surface-4)" data-rooms-nav="ductestimator">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
     Duct Estimator
   </button>
@@ -4826,6 +4822,10 @@ header.app-header { display: none !important; }
     <div class="more-panel-handle"></div>
     <div class="more-panel-title">Tools</div>
     <div class="more-panel-grid">
+      <button class="more-tool" data-page="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
       <button class="more-tool" data-page="calculator">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
         <span>Calculator</span>
@@ -11326,6 +11326,17 @@ calcFrictionRate();
   }
 
   function navigateToPage(pageName) {
+    // Close more panel if open
+    var mp = document.getElementById('morePanel');
+    if (mp) mp.classList.remove('open');
+
+    // Home is special — show home page
+    if (pageName === 'home') {
+      showHomePage();
+      updateDashShortcuts();
+      return;
+    }
+
     // Hide home
     pageHome.classList.remove('active');
     // Use existing showPage
@@ -11337,9 +11348,6 @@ calcFrictionRate();
       b.classList.remove('active');
       if (b.getAttribute('data-page') === pageName) b.classList.add('active');
     });
-    // Close more panel if open
-    var mp = document.getElementById('morePanel');
-    if (mp) mp.classList.remove('open');
   }
 
   // Home card clicks
@@ -11349,9 +11357,28 @@ calcFrictionRate();
     });
   });
 
+  // Update dashboard shortcut labels with live data
+  function updateDashShortcuts() {
+    try {
+      var rooms = typeof getRoomsList === 'function' ? getRoomsList() : [];
+      var totalCfm = typeof getRoomsTotalCFM === 'function' ? getRoomsTotalCFM() : 0;
+      var supCount = (typeof SS !== 'undefined' && SS.collars) ? SS.collars.length : 0;
+      var retCount = (typeof SS !== 'undefined' && SS.retCollars) ? SS.retCollars.length : 0;
+
+      var rcEl = document.getElementById('dashRoomCount');
+      if (rcEl) rcEl.textContent = rooms.length + ' room' + (rooms.length !== 1 ? 's' : '') + ' \u00b7 ' + totalCfm + ' CFM';
+
+      var ccEl = document.getElementById('dashCollarCount');
+      if (ccEl) ccEl.textContent = supCount + ' supply \u00b7 ' + retCount + ' return';
+    } catch(e) {}
+  }
+
   // App header logo -> home
   if (appHeader) {
-    appHeader.addEventListener('click', showHomePage);
+    appHeader.addEventListener('click', function() {
+      showHomePage();
+      updateDashShortcuts();
+    });
   }
 
   // Override bottom nav to also hide home
@@ -11369,6 +11396,24 @@ calcFrictionRate();
       if (pg) navigateToPage(pg);
     }, true);
   });
+
+  // Rooms tab bottom navigation buttons (Design Duct System, Duct Estimator)
+  document.querySelectorAll('[data-rooms-nav]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var pg = this.getAttribute('data-rooms-nav');
+      if (pg) showPage(pg);
+    });
+  });
+
+  // Dashboard shortcut cards also navigate
+  document.querySelectorAll('.dash-shortcut[data-home-nav]').forEach(function(el) {
+    el.addEventListener('click', function() {
+      navigateToPage(this.getAttribute('data-home-nav'));
+    });
+  });
+
+  // Update shortcuts on initial load
+  setTimeout(updateDashShortcuts, 500);
 })();
 
 </script>
