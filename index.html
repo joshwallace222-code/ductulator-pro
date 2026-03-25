@@ -4002,6 +4002,25 @@ header.app-header { display: none !important; }
     <div id="wizAllRuns"></div>
   </div>
 
+  <!-- CFM Balance Check -->
+  <div class="panel" style="border-left:3px solid var(--blue,#2563eb)">
+    <div class="wiz-card-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V2M2 12h20"/><path d="M17 7l-5-5-5 5"/><path d="M7 17l5 5 5-5"/></svg>
+      Airflow Balance
+    </div>
+    <div id="wizCfmBalance"></div>
+  </div>
+
+  <!-- TESP Estimate -->
+  <div class="panel" style="border-left:3px solid var(--amber,#d97706)">
+    <div class="wiz-card-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
+      Estimated TESP
+    </div>
+    <div style="font-size:10px;color:var(--text-3);margin-bottom:6px">Total External Static Pressure — what the equipment sees across supply and return.</div>
+    <div id="wizTESP"></div>
+  </div>
+
   <!-- Static Pressure Budget -->
   <div class="panel" style="border-left:3px solid var(--green,#16a34a)">
     <div class="wiz-card-title">
@@ -8393,7 +8412,8 @@ function wizRenderResults() {
   var sumEl = document.getElementById('wizSummaryCards');
   if (sumEl) sumEl.innerHTML = sumH;
 
-  // -- Gauge --
+  // -- Gauge (with clear FR label) --
+  var critRun = critIdx >= 0 ? runs[critIdx] : null;
   var gaugePct = Math.min(sysFR / 0.12 * 100, 100);
   var gaugeColor = sysFR <= 0.05 ? 'green' : sysFR <= 0.08 ? 'yellow' : 'red';
   var gaugeH = '';
@@ -8402,9 +8422,123 @@ function wizRenderResults() {
   gaugeH += '<span style="color:' + frColor + ';font-family:\'SF Mono\',monospace">' + sysFR.toFixed(3) + ' IWC/100ft</span></div>';
   gaugeH += '<div class="wiz-gauge-track"><div class="wiz-gauge-fill ' + gaugeColor + '" style="width:' + gaugePct + '%"></div></div>';
   gaugeH += '<div class="wiz-gauge-markers"><span>0.00</span><span style="color:#4caf50">0.05</span><span style="color:#ff9800">0.08</span><span style="color:#d32f2f">0.12</span></div>';
+  // FR explanation
+  gaugeH += '<div style="font-size:10px;color:var(--text-3);margin-top:6px;line-height:1.4">';
+  gaugeH += '<strong>FR = Available Static \u00F7 Longest TEL \u00D7 100</strong><br>';
+  gaugeH += availableStatic.toFixed(2) + ' IWC \u00F7 ' + Math.round(maxTEL) + ' ft \u00D7 100 = ' + sysFR.toFixed(3) + ' IWC/100ft';
+  if (critRun) gaugeH += '<br>Critical path: <strong>' + critRun.branch.room + '</strong> (' + Math.round(critRun.tel) + ' ft TEL)';
+  gaugeH += '</div>';
   gaugeH += '</div>';
   var gaugeEl = document.getElementById('wizFrictionGauge');
   if (gaugeEl) gaugeEl.innerHTML = gaugeH;
+
+  // -- CFM Balance Check --
+  var supplyRuns = runs.filter(function(r) { return WIZ.trunks[r.branch.trunkIdx] && WIZ.trunks[r.branch.trunkIdx].airPath === 'supply'; });
+  var returnRuns = runs.filter(function(r) { return WIZ.trunks[r.branch.trunkIdx] && WIZ.trunks[r.branch.trunkIdx].airPath === 'return'; });
+  var totalSupplyCFM = 0; supplyRuns.forEach(function(r) { totalSupplyCFM += (parseInt(r.branch.cfm) || 0); });
+  var totalReturnCFM = 0; returnRuns.forEach(function(r) { totalReturnCFM += (parseInt(r.branch.cfm) || 0); });
+  var systemCFM = adjustedCFM || roomsCFM || 0;
+
+  var balH = '<div style="font-size:12px">';
+  // Supply total
+  balH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
+  balH += '<span style="color:var(--text-2)">Total Supply CFM (all boots)</span>';
+  balH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600;color:' + (totalSupplyCFM >= systemCFM * 0.95 ? 'var(--green)' : 'var(--red)') + '">' + totalSupplyCFM + '</span></div>';
+  // Return total
+  balH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
+  balH += '<span style="color:var(--text-2)">Total Return CFM (all returns)</span>';
+  balH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600;color:' + (totalReturnCFM >= systemCFM * 0.95 ? 'var(--green)' : 'var(--red)') + '">' + totalReturnCFM + '</span></div>';
+  // System target
+  balH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
+  balH += '<span style="color:var(--text-2);font-weight:600">System Airflow Target</span>';
+  balH += '<span style="font-family:\'DM Mono\',monospace;font-weight:700;color:var(--text)">' + systemCFM + ' CFM</span></div>';
+
+  // Warnings
+  if (totalReturnCFM < systemCFM * 0.95 && totalReturnCFM > 0) {
+    balH += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:6px;background:var(--red-soft);color:var(--red)">\u26A0 Return CFM (' + totalReturnCFM + ') is less than system airflow (' + systemCFM + '). Return ductwork may be undersized.</div>';
+  }
+  if (totalSupplyCFM < systemCFM * 0.95 && totalSupplyCFM > 0) {
+    balH += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:4px;background:var(--amber-soft);color:var(--amber)">\u26A0 Supply CFM (' + totalSupplyCFM + ') does not cover system airflow (' + systemCFM + '). Check room assignments.</div>';
+  }
+  // Depressurization check: per-room return > supply
+  var rooms = typeof getRoomsList === 'function' ? getRoomsList() : [];
+  rooms.forEach(function(rm) {
+    var roomSupply = 0, roomReturn = 0;
+    supplyRuns.forEach(function(r) { if (r.branch.room === rm.name) roomSupply += (parseInt(r.branch.cfm)||0); });
+    returnRuns.forEach(function(r) { if (r.branch.room === rm.name) roomReturn += (parseInt(r.branch.cfm)||0); });
+    if (roomReturn > 0 && roomReturn > roomSupply && roomSupply > 0) {
+      balH += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:4px;background:var(--amber-soft);color:var(--amber)">\u26A0 <strong>' + rm.name + '</strong>: Return (' + roomReturn + ' CFM) > Supply (' + roomSupply + ' CFM) \u2014 risk of negative pressure / depressurization. Can pull unconditioned air through the building envelope.</div>';
+    }
+  });
+  balH += '</div>';
+  var balEl = document.getElementById('wizCfmBalance');
+  if (balEl) balEl.innerHTML = balH;
+
+  // -- TESP Estimate --
+  // Fan Law 2: SP2 = SP1 × (CFM2/CFM1)²
+  // If return is undersized, actual velocity is higher → filter PD increases
+  var designFilterPD = filterPD || 0.12; // design filter PD
+  var actualFilterPD = designFilterPD;
+  var returnUndersized = false;
+  if (totalReturnCFM > 0 && returnRuns.length > 0) {
+    // Check if any return duct is carrying more CFM than its capacity
+    returnRuns.forEach(function(r) {
+      var retMax = typeof wizMaxCFM === 'function' ? wizMaxCFM(r.branch.size, r.branch.material, r.branch.compression) : 999;
+      var retCfm = parseInt(r.branch.cfm) || 0;
+      if (retCfm > retMax) {
+        returnUndersized = true;
+        // Fan Law 2: PD increases with square of CFM ratio
+        var ratio = retCfm / retMax;
+        var adjustedPD = designFilterPD * ratio * ratio;
+        if (adjustedPD > actualFilterPD) actualFilterPD = adjustedPD;
+      }
+    });
+  }
+
+  // Calculate duct PD from critical path
+  var ductPD = maxTEL > 0 ? sysFR * maxTEL / 100 : 0;
+  // Split between supply and return (approximate: assume 60/40 split)
+  var supplyDuctPD = ductPD * 0.6;
+  var returnDuctPD = ductPD * 0.4;
+
+  var tespH = '<div style="font-size:12px">';
+  tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
+  tespH += '<span style="color:var(--text-2)">Supply duct PD (est.)</span>';
+  tespH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600">' + supplyDuctPD.toFixed(3) + ' IWC</span></div>';
+
+  tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
+  tespH += '<span style="color:var(--text-2)">Return duct PD (est.)</span>';
+  tespH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600">' + returnDuctPD.toFixed(3) + ' IWC</span></div>';
+
+  tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
+  tespH += '<span style="color:var(--text-2)">Filter PD' + (returnUndersized ? ' <span style="color:var(--red)">(Fan Law 2 adjusted)</span>' : '') + '</span>';
+  tespH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600;color:' + (actualFilterPD > 0.2 ? 'var(--red)' : 'var(--text)') + '">' + actualFilterPD.toFixed(3) + ' IWC</span></div>';
+
+  tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
+  tespH += '<span style="color:var(--text-2)">Coil PD</span>';
+  tespH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600">' + coilPD.toFixed(3) + ' IWC</span></div>';
+
+  var estTESP = supplyDuctPD + returnDuctPD + actualFilterPD + coilPD;
+  var tespOk = estTESP <= equipESP;
+  tespH += '<div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:13px">';
+  tespH += '<span style="color:var(--text)">Estimated TESP</span>';
+  tespH += '<span style="font-family:\'DM Mono\',monospace;color:' + (tespOk ? 'var(--green)' : 'var(--red)') + '">' + estTESP.toFixed(3) + ' IWC</span></div>';
+
+  tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0">';
+  tespH += '<span style="color:var(--text-3);font-size:11px">Equipment rated ESP</span>';
+  tespH += '<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text-3)">' + equipESP.toFixed(2) + ' IWC</span></div>';
+
+  if (!tespOk) {
+    tespH += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:6px;background:var(--red-soft);color:var(--red)">\u26A0 Estimated TESP (' + estTESP.toFixed(3) + ') exceeds equipment ESP (' + equipESP.toFixed(2) + '). System will be starved for airflow. Reduce duct restrictions or select higher-capacity equipment.</div>';
+  }
+
+  if (returnUndersized) {
+    tespH += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:4px;background:var(--amber-soft);color:var(--amber)">\u26A0 <strong>Fan Law 2:</strong> Undersized return increases air velocity through the filter. Filter PD adjusted from ' + designFilterPD.toFixed(3) + ' to ' + actualFilterPD.toFixed(3) + ' IWC (pressure changes with the square of CFM ratio).</div>';
+  }
+
+  tespH += '</div>';
+  var tespEl = document.getElementById('wizTESP');
+  if (tespEl) tespEl.innerHTML = tespH;
 
   // -- Critical path --
   var cpH = '';
