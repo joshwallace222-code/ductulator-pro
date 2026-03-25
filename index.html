@@ -2988,6 +2988,12 @@ header.app-header { display: none !important; }
     <canvas id="v7RoomChart" class="v7-chart-canvas" height="160"></canvas>
   </div>
 
+  <!-- Go to System Design button -->
+  <button class="wiz-btn-primary" style="width:100%;margin-top:12px" onclick="showPage('system')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1018 0 9 9 0 00-18 0"/><path d="M12 8v4l2 2"/></svg>
+    Design Duct System
+  </button>
+
   <div class="info-note" style="margin-top:8px">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
     <span style="font-weight:600;color:#c8952c">&#x26A0; ESTIMATE ONLY</span>
@@ -7351,6 +7357,33 @@ function wizInitTrunks() {
   WIZ.trunks = [];
   var layout = WIZ.layout;
 
+  // ---- Auto-create collars if none exist ----
+  if (typeof SS !== 'undefined') {
+    if (!SS.collars) SS.collars = [];
+    if (!SS.retCollars) SS.retCollars = [];
+    if (SS.collars.length === 0 && SS.retCollars.length === 0) {
+      var totalCFM = typeof getRoomsTotalCFM === 'function' ? getRoomsTotalCFM() : 800;
+      if (totalCFM <= 0) totalCFM = 800;
+      // Size 2 supply collars to handle total system CFM split in half
+      var supCfmEach = Math.ceil(totalCFM / 2);
+      var supSize = typeof wizRecommendSize === 'function' ? wizRecommendSize(supCfmEach, false, true, 'metal', 0) : '10';
+      // Size 2 return collars — returns handle full system CFM split in half
+      var retCfmEach = Math.ceil(totalCFM / 2);
+      var retSize = typeof wizRecommendSize === 'function' ? wizRecommendSize(retCfmEach, true, true, 'metal', 0) : '14';
+      // Collar type based on plenum material
+      var supCollarType = (WIZ.supPlenumMaterial === 'ductboard') ? 'finger-saver' : 'tab';
+      var retCollarType = (WIZ.retPlenumMaterial === 'ductboard') ? 'finger-saver' : 'tab';
+      // Create 2 supply + 2 return
+      SS.collars.push({ size: supSize, type: supCollarType });
+      SS.collars.push({ size: supSize, type: supCollarType });
+      SS.retCollars.push({ size: retSize, type: retCollarType });
+      SS.retCollars.push({ size: retSize, type: retCollarType });
+      // Render collar chips
+      if (typeof renderCollars === 'function') renderCollars();
+      if (typeof renderRetCollars === 'function') renderRetCollars();
+    }
+  }
+
   // Auto-create from plenum collars if any exist
   var supplyCollars = (typeof SS !== 'undefined' && SS.collars) ? SS.collars : [];
   var returnCollars = (typeof SS !== 'undefined' && SS.retCollars) ? SS.retCollars : [];
@@ -8728,6 +8761,7 @@ function wizSendToFR() {
 // ================================================================
 
 function wizExportPDF() {
+  wizAutoSave(); // Save project before export
   if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
     alert('PDF library loading... please try again in a moment.');
     return;
@@ -9076,7 +9110,7 @@ function wizHandleClick(ev) {
 
   // --- Run Builder click handler ---
   if (WIZ.step === 3 && typeof rbHandleClick === 'function') {
-    var rbTarget = t.closest('[data-rb-section],[data-rb-trunk-dot],[data-rb-prev],[data-rb-next],[data-rb-branch],[data-rb-br-mat],[data-rb-br-mount],[data-rb-br-comp],[data-rb-br-done],[data-rb-add-branch],[data-rb-del-branch]');
+    var rbTarget = t.closest('[data-rb-section],[data-rb-trunk-dot],[data-rb-prev],[data-rb-next],[data-rb-node],[data-rb-add],[data-rb-del],[data-rb-set],[data-rb-done]');
     if (rbTarget) { rbHandleClick(ev); return true; }
   }
 
@@ -9473,6 +9507,7 @@ function wizHandleClick(ev) {
 
   // --- Send to FR Worksheet ---
   if (t.closest('#wizSendToFR')) {
+    wizAutoSave(); // Save project before sending
     wizSendToFR();
     return true;
   }
@@ -9491,7 +9526,7 @@ function wizHandleChange(ev) {
 
   // --- Run Builder change handler ---
   if (WIZ.step === 3 && typeof rbHandleChange === 'function') {
-    var rbTarget = t.closest('[data-rb-br-room],[data-rb-br-cfm],[data-rb-br-name],[data-rb-br-split],[data-rb-br-size],[data-rb-br-len],[data-rb-br-boot],[data-rb-br-bsize]');
+    var rbTarget = t.closest('[data-rb-sel],[data-rb-inp]');
     if (rbTarget) { rbHandleChange(ev); return false; }
   }
 
@@ -9614,19 +9649,50 @@ function wizHandleChange(ev) {
 // Auto-save wizard state to sessionStorage
 function wizAutoSave() {
   try {
-    var data = JSON.stringify(WIZ);
-    sessionStorage.setItem('ductulator_wiz', data);
-  } catch(e) { /* sessionStorage may be blocked in some contexts */ }
+    // Save wizard state
+    sessionStorage.setItem('ductulator_wiz', JSON.stringify(WIZ));
+    // Also persist to localStorage for phone calls / leaving and coming back
+    localStorage.setItem('dcp_wiz', JSON.stringify(WIZ));
+    // Save room data
+    if (typeof roomCfmData !== 'undefined') localStorage.setItem('dcp_rooms', JSON.stringify(roomCfmData));
+    // Save collar data
+    if (typeof SS !== 'undefined') {
+      localStorage.setItem('dcp_collars', JSON.stringify(SS.collars || []));
+      localStorage.setItem('dcp_retCollars', JSON.stringify(SS.retCollars || []));
+    }
+    // Save run builder state
+    if (typeof RB !== 'undefined' && RB.trunks && RB.trunks.length > 0) {
+      localStorage.setItem('dcp_rb', JSON.stringify(RB));
+    }
+  } catch(e) { /* storage may be blocked */ }
 }
 
 // Auto-restore wizard state from sessionStorage
 function wizAutoRestore() {
   try {
-    var data = sessionStorage.getItem('ductulator_wiz');
+    // Try sessionStorage first (same tab), then localStorage (persisted)
+    var data = sessionStorage.getItem('ductulator_wiz') || localStorage.getItem('dcp_wiz');
     if (data) {
       var saved = JSON.parse(data);
-      // Restore all properties
       Object.keys(saved).forEach(function(k) { WIZ[k] = saved[k]; });
+      // Restore rooms
+      var roomData = localStorage.getItem('dcp_rooms');
+      if (roomData && typeof roomCfmData !== 'undefined') {
+        var savedRooms = JSON.parse(roomData);
+        roomCfmData.length = 0;
+        savedRooms.forEach(function(r) { roomCfmData.push(r); });
+      }
+      // Restore collars
+      var colData = localStorage.getItem('dcp_collars');
+      var retColData = localStorage.getItem('dcp_retCollars');
+      if (colData && typeof SS !== 'undefined') SS.collars = JSON.parse(colData);
+      if (retColData && typeof SS !== 'undefined') SS.retCollars = JSON.parse(retColData);
+      // Restore run builder
+      var rbData = localStorage.getItem('dcp_rb');
+      if (rbData && typeof RB !== 'undefined') {
+        var savedRB = JSON.parse(rbData);
+        Object.keys(savedRB).forEach(function(k) { RB[k] = savedRB[k]; });
+      }
       return true;
     }
   } catch(e) { /* ignore */ }
