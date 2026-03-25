@@ -1,488 +1,360 @@
-// ===== ROUGH DUCT ESTIMATOR =====
-// Educational tool: reads actual room data + collar data and suggests a complete
-// conceptual duct layout with teaching explanations for beginner techs.
-// Different from rough-layout.js (generic CFM splitter). This one uses YOUR rooms.
+// ===== DUCT ESTIMATOR v2 =====
+// Two modes: (1) Rough Estimate — quick ballpark from tonnage + layout profile
+//            (2) Duct Estimator — detailed trunk/branch with material/shape/fittings
+// Aligned with ACCA Manual D principles. Flags zoning per Manual Z/EWC/Resideo.
+// NOT a Manual D or Manual Z replacement — realistic simplified field tool.
 
 var DE = {
-  lastResult: null
+  mode: 'rough',       // 'rough' or 'detailed'
+  lastResult: null,
+  // Layout profiles: default assumptions for common residential systems
+  PROFILES: {
+    plenum_flex: {
+      id: 'plenum_flex', label: 'Short Plenum + Flex Branches',
+      desc: 'Most common residential — short metal/ductboard plenum off the unit with several flex runs.',
+      trunkMat: 'metal', branchMat: 'flex', trunkShape: 'rect',
+      plenumEQ: 15, avgBranchLen: 25, elbowsPer: 1, elbowEQ: 15,
+      targetFR: 0.08, flexCompress: 10
+    },
+    extended_trunk: {
+      id: 'extended_trunk', label: 'Extended Metal Trunk + Flex Runouts',
+      desc: 'Metal trunk runs through the attic/crawl with flex takeoffs to each room.',
+      trunkMat: 'metal', branchMat: 'flex', trunkShape: 'rect',
+      plenumEQ: 15, avgBranchLen: 15, elbowsPer: 1, elbowEQ: 15,
+      trunkLen: 30, trunkElbows: 1, trunkElbowEQ: 35,
+      targetFR: 0.08, flexCompress: 10
+    },
+    octopus: {
+      id: 'octopus', label: 'All-Flex Octopus',
+      desc: 'All flex duct from plenum box — no metal trunk. Common in tract homes and mobile homes.',
+      trunkMat: 'flex', branchMat: 'flex', trunkShape: 'round',
+      plenumEQ: 10, avgBranchLen: 30, elbowsPer: 1.5, elbowEQ: 15,
+      targetFR: 0.08, flexCompress: 10
+    },
+    rect_metal_round: {
+      id: 'rect_metal_round', label: 'Rectangular Metal Trunk + Round Metal Branches',
+      desc: 'Rectangular main trunk with round metal branch runs. Traditional high-quality install.',
+      trunkMat: 'metal', branchMat: 'metal', trunkShape: 'rect',
+      plenumEQ: 15, avgBranchLen: 20, elbowsPer: 2, elbowEQ: 12,
+      trunkLen: 25, trunkElbows: 1, trunkElbowEQ: 25,
+      targetFR: 0.08, flexCompress: 0
+    }
+  },
+  // Plenum types with equivalent length presets
+  PLENUM_TYPES: {
+    straight: { label: 'Straight Plenum', eqLen: 10, teach: 'Lowest resistance. Air flows straight from equipment into trunk/branches.' },
+    turn_vanes: { label: '90° Plenum w/ Turning Vanes', eqLen: 20, teach: 'Turning vanes guide airflow around the corner, cutting turbulence. Adds about 20 ft equivalent length.' },
+    turn_no_vanes: { label: '90° Plenum — No Turning Vanes', eqLen: 50, teach: 'A 90° turn without vanes is very high resistance — about 50 ft equivalent length. Turbulence starves the far branches.' }
+  },
+  // Zoning config
+  ZONING: {
+    none: { label: 'No Zoning', staticMult: 1.0 },
+    two: { label: '2 Zones', staticMult: 1.35 },
+    three_plus: { label: '3+ Zones', staticMult: 1.5 }
+  }
 };
 
-// ---- Room clustering logic ----
-// Groups rooms into intelligent clusters based on room type
-function deClusterRooms(rooms) {
-  // Define cluster groups by room type
-  var clusterDefs = [
-    { id: 'master', label: 'Master Suite', types: ['master_bed', 'master_bath'], minSupply: 2, minReturn: 1,
-      teach: 'Master bedrooms are usually the largest bedroom and farthest from the unit. They need more airflow and their own dedicated branch to avoid starving other rooms.' },
-    { id: 'living', label: 'Living / Kitchen Area', types: ['living', 'great_room', 'kitchen', 'dining'], minSupply: 2, minReturn: 1,
-      teach: 'Living areas and kitchens are high-traffic, open spaces with more heat gain (windows, appliances, people). They get the most CFM and often need multiple supply runs.' },
-    { id: 'guest', label: 'Guest Bedrooms', types: ['bedroom', 'office', 'bonus'], minSupply: 1, minReturn: 1,
-      teach: 'Guest bedrooms and offices are typically smaller and closer together. They can often share a common branch off the trunk, with individual takeoffs to each room.' },
-    { id: 'utility', label: 'Utility / Other', types: ['bathroom', 'laundry', 'hallway', 'garage', 'closet'], minSupply: 1, minReturn: 0,
-      teach: 'Bathrooms, laundry rooms, and hallways need less airflow. They are usually served by short takeoffs near the trunk — keep duct runs short to minimize pressure loss.' }
-  ];
+// ===========================
+// CORE SIZING ENGINE
+// ===========================
 
-  var clusters = [];
-  var assigned = {};
-
-  clusterDefs.forEach(function(def) {
-    var clusterRooms = [];
-    rooms.forEach(function(rm, idx) {
-      if (assigned[idx]) return;
-      if (def.types.indexOf(rm.type) !== -1) {
-        clusterRooms.push({ idx: idx, name: rm.name, cfm: rm.cfm, type: rm.type });
-        assigned[idx] = true;
-      }
-    });
-    if (clusterRooms.length > 0) {
-      var totalCfm = 0;
-      clusterRooms.forEach(function(r) { totalCfm += r.cfm; });
-      clusters.push({
-        id: def.id,
-        label: def.label,
-        rooms: clusterRooms,
-        totalCfm: totalCfm,
-        minSupply: def.minSupply,
-        minReturn: def.minReturn,
-        teach: def.teach
-      });
-    }
-  });
-
-  // Catch any unassigned rooms
-  var unassigned = [];
-  rooms.forEach(function(rm, idx) {
-    if (!assigned[idx]) {
-      unassigned.push({ idx: idx, name: rm.name, cfm: rm.cfm, type: rm.type });
-    }
-  });
-  if (unassigned.length > 0) {
-    var uCfm = 0;
-    unassigned.forEach(function(r) { uCfm += r.cfm; });
-    clusters.push({
-      id: 'other',
-      label: 'Other Rooms',
-      rooms: unassigned,
-      totalCfm: uCfm,
-      minSupply: 1,
-      minReturn: 0,
-      teach: 'These rooms did not fit a standard cluster. They will be served by the nearest available branch.'
-    });
-  }
-
-  return clusters;
-}
-
-// ---- Assign collars to clusters ----
-function deAssignCollars(clusters, supplyCollars, returnCollars) {
-  var totalCfm = 0;
-  clusters.forEach(function(c) { totalCfm += c.totalCfm; });
-  if (totalCfm <= 0) totalCfm = 1;
-
-  var numSupply = supplyCollars.length;
-  var numReturn = returnCollars.length;
-
-  // Distribute supply collars proportionally by CFM share
-  // Every cluster with rooms gets at least 1 collar
-  var supplyAssign = [];
-  var remainingCollars = numSupply;
-
-  // First: give each cluster with rooms at least 1 collar
-  clusters.forEach(function(c) {
-    if (c.rooms.length > 0 && remainingCollars > 0) {
-      supplyAssign.push(1);
-      remainingCollars--;
-    } else {
-      supplyAssign.push(0);
-    }
-  });
-
-  // Second: distribute remaining collars to clusters with the highest CFM-per-collar
-  while (remainingCollars > 0) {
-    var bestIdx = -1;
-    var bestRatio = 0;
-    clusters.forEach(function(c, i) {
-      if (supplyAssign[i] === 0) return;
-      var ratio = c.totalCfm / supplyAssign[i];
-      if (ratio > bestRatio) { bestRatio = ratio; bestIdx = i; }
-    });
-    if (bestIdx < 0) break;
-    supplyAssign[bestIdx]++;
-    remainingCollars--;
-  }
-
-  // Return collars: if only 1, it goes to the largest area (living/great room)
-  var returnAssign = clusters.map(function() { return 0; });
-
-  if (numReturn === 1) {
-    // Single return — find the living area cluster, or the largest cluster
-    var livingIdx = -1;
-    var maxCfmIdx = 0;
-    clusters.forEach(function(c, i) {
-      if (c.id === 'living') livingIdx = i;
-      if (c.totalCfm > clusters[maxCfmIdx].totalCfm) maxCfmIdx = i;
-    });
-    returnAssign[livingIdx >= 0 ? livingIdx : maxCfmIdx] = 1;
-  } else if (numReturn > 1) {
-    // Multiple returns — distribute proportionally
-    var retRemaining = numReturn;
-    clusters.forEach(function(c, i) {
-      var min = Math.min(c.minReturn, retRemaining);
-      returnAssign[i] = min;
-      retRemaining -= min;
-    });
-    if (retRemaining > 0) {
-      var retScores = clusters.map(function(c, i) {
-        return { idx: i, cfmPerRet: c.totalCfm / Math.max(1, returnAssign[i] || 0.01) };
-      });
-      retScores.sort(function(a, b) { return b.cfmPerRet - a.cfmPerRet; });
-      while (retRemaining > 0) {
-        returnAssign[retScores[0].idx]++;
-        retScores[0].cfmPerRet = clusters[retScores[0].idx].totalCfm / returnAssign[retScores[0].idx];
-        retScores.sort(function(a, b) { return b.cfmPerRet - a.cfmPerRet; });
-        retRemaining--;
-      }
-    }
-  }
-
-  // Build enriched cluster data with collar assignments
-  return clusters.map(function(c, i) {
-    var numSup = supplyAssign[i];
-    var numRet = returnAssign[i];
-    // Pick collar sizes from the actual collar arrays
-    var supCollarSizes = [];
-    var collarOffset = 0;
-    for (var ci = 0; ci < i; ci++) collarOffset += supplyAssign[ci];
-    for (var s = 0; s < numSup; s++) {
-      var idx = collarOffset + s;
-      if (idx < supplyCollars.length) {
-        supCollarSizes.push(supplyCollars[idx]);
-      } else {
-        // Fallback: use the most common collar size
-        supCollarSizes.push(supplyCollars[supplyCollars.length - 1] || { size: '10', type: 'tab' });
-      }
-    }
-
-    return {
-      id: c.id,
-      label: c.label,
-      rooms: c.rooms,
-      totalCfm: c.totalCfm,
-      teach: c.teach,
-      supplyCollars: numSup,
-      supplyCollarSizes: supCollarSizes,
-      returnCollars: numRet
-    };
-  });
-}
-
-// ---- Size ducts for a cluster ----
-function deSizeCluster(cluster) {
-  var totalCfm = cluster.totalCfm;
-  var numCollars = cluster.supplyCollars;
-
-  // If no collars assigned, these rooms will be served from the nearest trunk
-  if (numCollars <= 0) {
-    return [{
-      collarIndex: 0,
-      collarSize: 0,
-      branchCfm: totalCfm,
-      trunkSize: 0,
-      trunkVel: 0,
-      trunkFR: 0,
-      noCollar: true,
-      rooms: cluster.rooms,
-      takeoffs: cluster.rooms.map(function(rm) {
-        var takeoffSize = deFindDuctSize(rm.cfm, 'flex');
-        var bootSize = deRecommendBoot(takeoffSize.size, rm.cfm);
-        return {
-          room: rm.name, roomCfm: rm.cfm,
-          takeoffSize: takeoffSize.size, takeoffVel: takeoffSize.velocity, takeoffFR: takeoffSize.friction,
-          fittingType: 'takeoff from trunk', fittingEQ: 15,
-          bootSize: bootSize, trunkBefore: 0, trunkAfter: null, trunkAfterCfm: 0
-        };
-      })
-    }];
-  }
-
-  // CFM per collar (trunk branch)
-  var cfmPerCollar = Math.round(totalCfm / numCollars);
-
-  var branches = [];
-
-  for (var c = 0; c < numCollars; c++) {
-    var collarSize = parseInt(cluster.supplyCollarSizes[c] ? cluster.supplyCollarSizes[c].size : 10);
-    var branchCfm = cfmPerCollar;
-    // Adjust last branch to absorb rounding
-    if (c === numCollars - 1) {
-      branchCfm = totalCfm - (cfmPerCollar * (numCollars - 1));
-    }
-
-    // Determine rooms served by this branch
-    var roomsPerCollar = Math.ceil(cluster.rooms.length / numCollars);
-    var startIdx = c * roomsPerCollar;
-    var endIdx = Math.min(startIdx + roomsPerCollar, cluster.rooms.length);
-    if (c === numCollars - 1) endIdx = cluster.rooms.length; // last collar gets remainder
-    var branchRooms = cluster.rooms.slice(startIdx, endIdx);
-
-    // Size the trunk/branch from collar
-    var trunkSize = deFindDuctSize(branchCfm, 'metal');
-
-    // Build the run: collar → trunk → takeoffs to rooms
-    var takeoffs = [];
-    var remainingCfm = branchCfm;
-    var currentSize = trunkSize.size;
-
-    branchRooms.forEach(function(rm, ri) {
-      var takeoffSize = deFindDuctSize(rm.cfm, 'flex');
-      var fittingType = 'straight-through wye';
-      var fittingEQ = 15;
-
-      // If this is the last room, it's the end of the run (no split needed)
-      if (ri === branchRooms.length - 1) {
-        fittingType = 'end cap / direct';
-        fittingEQ = 0;
-      }
-
-      // After this takeoff, remaining CFM decreases
-      var afterCfm = remainingCfm - rm.cfm;
-      var afterSize = afterCfm > 0 ? deFindDuctSize(afterCfm, 'metal') : null;
-
-      // Boot recommendation
-      var bootSize = deRecommendBoot(takeoffSize.size, rm.cfm);
-
-      takeoffs.push({
-        room: rm.name,
-        roomCfm: rm.cfm,
-        takeoffSize: takeoffSize.size,
-        takeoffVel: takeoffSize.velocity,
-        takeoffFR: takeoffSize.friction,
-        fittingType: fittingType,
-        fittingEQ: fittingEQ,
-        bootSize: bootSize,
-        trunkBefore: currentSize,
-        trunkAfter: afterSize ? afterSize.size : null,
-        trunkAfterCfm: afterCfm
-      });
-
-      remainingCfm = afterCfm;
-      if (afterSize && afterSize.size < currentSize) {
-        currentSize = afterSize.size; // Reduce trunk after takeoff
-      }
-    });
-
-    branches.push({
-      collarIndex: c + 1,
-      collarSize: collarSize,
-      branchCfm: branchCfm,
-      trunkSize: trunkSize.size,
-      trunkVel: trunkSize.velocity,
-      trunkFR: trunkSize.friction,
-      rooms: branchRooms,
-      takeoffs: takeoffs
-    });
-  }
-
-  return branches;
-}
-
-// ---- Find best duct size for given CFM ----
-function deFindDuctSize(cfm, material) {
-  var candidates = [4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24];
+// Size a round duct for given CFM and material
+function deSize(cfm, material, targetFR) {
+  if (!targetFR) targetFR = 0.08;
+  var candidates = [4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
   var best = null;
   var bestScore = Infinity;
 
   for (var i = 0; i < candidates.length; i++) {
     var d = candidates[i];
-    var A = Math.PI * Math.pow(d / 12 / 2, 2);
-    var vel = cfm / A;
+    var A = Math.PI * Math.pow(d / 12 / 2, 2); // sq ft
+    var vel = cfm / A; // FPM
     var fr = 0;
 
     if (typeof frictionLoss === 'function') {
       fr = frictionLoss(d, cfm, material, false);
+    } else {
+      // Fallback Darcy-Weisbach
+      var D_ft = d / 12;
+      var V_fps = vel / 60;
+      var rho = 0.075;
+      var rough = material === 'flex' ? 0.003 : (material === 'ductboard' ? 0.002 : 0.0003);
+      var Re = V_fps * D_ft / (1.63e-4);
+      if (Re < 100) continue;
+      var term1 = rough / (3.7 * D_ft);
+      var term2 = 5.74 / Math.pow(Re, 0.9);
+      var fD = 0.25 / Math.pow(Math.log10(term1 + term2), 2);
+      fr = fD * (100 / D_ft) * (rho * V_fps * V_fps) / (2 * 32.174) / 5.192;
     }
 
-    // Apply flex factor for flex duct (10% compression default)
+    // Apply flex compression factor
     if (material === 'flex' && typeof flexFactor === 'function') {
       fr = fr * flexFactor(10);
+    } else if (material === 'flex') {
+      fr = fr * 2.0; // conservative fallback: 10% compression ~doubles FR
     }
 
-    // Score the candidate: want FR ≤ 0.08 and velocity 300-900
-    var score = 0;
-    if (fr > 0.08) score += (fr - 0.08) * 500; // penalize high friction
-    if (vel > 900) score += (vel - 900) * 0.1;  // penalize high velocity
-    if (vel < 200) score += (200 - vel) * 0.5;  // penalize very low velocity
-    score += Math.abs(fr - 0.06) * 100; // prefer FR around 0.06
+    // Score: want FR ≤ targetFR, velocity 300-900 for supply
+    var score = Math.abs(fr - targetFR * 0.8) * 100;
+    if (fr > targetFR) score += (fr - targetFR) * 800;
+    if (vel > 900) score += (vel - 900) * 0.2;
+    if (vel < 200) score += (200 - vel) * 0.8;
 
-    // For flex, add slight upsize preference
-    if (material === 'flex' && fr > 0.06) score += 5;
-
-    if (fr <= 0.08 && vel <= 900) {
-      // Acceptable candidate
+    if (fr <= targetFR && vel <= 900 && vel >= 100) {
       if (score < bestScore) {
         bestScore = score;
-        best = { size: d, velocity: Math.round(vel), friction: fr };
+        best = { size: d, velocity: Math.round(vel), friction: parseFloat(fr.toFixed(4)), area: A };
       }
-      // Take the smallest acceptable duct
-      break;
+      break; // smallest acceptable
     }
-
-    // Track best fallback
     if (score < bestScore) {
       bestScore = score;
-      best = { size: d, velocity: Math.round(vel), friction: fr };
+      best = { size: d, velocity: Math.round(vel), friction: parseFloat(fr.toFixed(4)), area: A };
     }
   }
-
-  if (!best) best = { size: 4, velocity: 0, friction: 0 };
+  if (!best) best = { size: 6, velocity: 0, friction: 0, area: 0 };
   return best;
 }
 
-// ---- Boot recommendation ----
-function deRecommendBoot(ductDia, cfm) {
-  // Common residential boot sizes by duct diameter
-  var bootMap = {
-    4: '6x4 floor',
-    5: '8x4 floor',
-    6: '10x4 floor or 10x6 floor',
-    7: '10x6 floor or 12x4 floor',
-    8: '12x6 floor or 10x8 ceiling',
-    9: '12x6 floor or 14x6 floor',
-    10: '14x6 floor or 12x8 ceiling',
-    12: '14x8 floor or 12x10 ceiling',
-    14: '14x10 floor or 16x8 ceiling'
+// Rectangular equivalent for round duct (ASHRAE)
+function deRectEquiv(roundDia) {
+  // Common rect equivalents for residential trunks
+  var map = {
+    6: '8x6', 7: '8x6', 8: '10x6', 9: '10x8', 10: '12x8',
+    12: '14x8', 14: '16x10', 16: '20x10', 18: '22x10',
+    20: '24x12', 22: '26x12', 24: '28x14', 26: '30x14', 28: '32x16', 30: '36x16'
   };
-  return bootMap[ductDia] || (ductDia + ' inch round to register');
+  return map[roundDia] || (roundDia + '" round');
 }
 
-// ---- Generate return layout ----
-function deReturnLayout(clusters, returnCollars, totalCfm) {
-  var numReturn = returnCollars.length;
-  var layout = [];
-
-  if (numReturn === 0) {
-    layout.push({
-      label: 'No Return Collars',
-      teach: 'No return collars are configured. Every system needs a return path. Without returns, the system creates negative pressure, causing air infiltration and reduced efficiency.',
-      size: null,
-      cfm: 0
-    });
-    return layout;
-  }
-
-  if (numReturn === 1) {
-    var retSize = deFindDuctSize(totalCfm, 'metal');
-    var retCollar = returnCollars[0];
-    layout.push({
-      label: 'Central Return — Living Area',
-      teach: 'With a single return, place it in the largest open area (usually the living room or hallway). This creates a central return point. Door undercuts (1 inch) or transfer grilles help air return from closed bedrooms.',
-      size: parseInt(retCollar.size),
-      cfm: totalCfm,
-      velocity: retSize.velocity,
-      bootSize: 'Large filter grille (20x25 or 25x20 typical)',
-      trunkSize: retSize.size
-    });
-  } else {
-    // Multiple returns — assign to clusters by CFM priority
-    // Sort clusters by CFM descending and assign returns
-    var sortedClusters = clusters.slice().sort(function(a, b) { return b.totalCfm - a.totalCfm; });
-    var cfmPerReturn = Math.round(totalCfm / numReturn);
-    returnCollars.forEach(function(col, i) {
-      var retCfm = (i === numReturn - 1) ? totalCfm - (cfmPerReturn * (numReturn - 1)) : cfmPerReturn;
-      var retSize = deFindDuctSize(retCfm, 'metal');
-      var servingCluster = i < sortedClusters.length ? sortedClusters[i].label : 'General Area';
-      layout.push({
-        label: 'Return ' + (i + 1) + ' — ' + servingCluster,
-        teach: i === 0 ?
-          'Multiple returns help balance pressure across the house. Each return should be sized for its share of total airflow. This prevents one area from starving another.' :
-          'This return serves a separate zone. Keep return grilles away from supply registers to avoid short-circuiting the airflow.',
-        size: parseInt(col.size),
-        cfm: retCfm,
-        velocity: retSize.velocity,
-        bootSize: retCfm > 300 ? 'Filter grille (20x20 or 16x25)' : 'Return grille (14x14 or 12x12)',
-        trunkSize: retSize.size
-      });
-    });
-  }
-
-  return layout;
+// Static pressure estimate
+function deEstimateStatic(totalEQ, frictionRate, filterPD, coilPD, extras) {
+  // Total duct PD = (TEL / 100) * FR
+  var ductPD = (totalEQ / 100) * frictionRate;
+  var total = ductPD + (filterPD || 0.1) + (coilPD || 0.2) + (extras || 0);
+  return { ductPD: ductPD, filterPD: filterPD || 0.1, coilPD: coilPD || 0.2, total: total };
 }
 
-// ---- Main estimation function ----
-function deEstimate() {
-  // Get room data
+// Risk assessment
+function deRiskLevel(totalStatic, zoning) {
+  var threshold = zoning === 'none' ? 0.5 : (zoning === 'two' ? 0.45 : 0.4);
+  var marginal = zoning === 'none' ? 0.4 : (zoning === 'two' ? 0.35 : 0.3);
+  if (totalStatic <= marginal) return { level: 'ok', label: 'OK', color: 'var(--green)', desc: 'Static pressure is within a comfortable range for standard equipment.' };
+  if (totalStatic <= threshold) return { level: 'marginal', label: 'Marginal', color: 'var(--amber)', desc: 'Static is getting close to equipment limits. Review longest runs and fitting losses.' };
+  return { level: 'high', label: 'High Risk', color: 'var(--red)', desc: 'Static pressure exceeds typical equipment capacity. Oversized ducts, fewer fittings, or a high-static blower may be needed.' };
+}
+
+
+// ===========================
+// MODE 1: ROUGH ESTIMATE
+// ===========================
+
+function deRoughEstimate() {
+  // Read inputs
+  var tons = parseFloat(document.getElementById('deRoughTons').value) || 0;
+  var cfmPerTon = parseFloat(document.getElementById('deRoughCfmPerTon').value) || 400;
+  var profileId = document.getElementById('deRoughProfile').value || 'plenum_flex';
+  var plenumType = document.getElementById('deRoughPlenum').value || 'straight';
+  var zoning = document.getElementById('deRoughZoning').value || 'none';
+  var smallZone = document.getElementById('deRoughSmallZone') ? document.getElementById('deRoughSmallZone').value : 'no';
+  var approxLen = parseFloat(document.getElementById('deRoughTotalLen').value) || 60;
+
+  if (tons <= 0) return { error: true, message: 'Enter system tonnage to get started.' };
+
+  var totalCFM = Math.round(tons * cfmPerTon);
+  var profile = DE.PROFILES[profileId] || DE.PROFILES.plenum_flex;
+  var plenum = DE.PLENUM_TYPES[plenumType] || DE.PLENUM_TYPES.straight;
+
+  // Estimate branch count from CFM (rule of thumb: ~120-180 CFM per branch for flex)
+  var cfmPerBranch = profile.branchMat === 'flex' ? 140 : 160;
+  var estBranches = Math.max(2, Math.round(totalCFM / cfmPerBranch));
+
+  // Size trunk
+  var trunkSizing = deSize(totalCFM, profile.trunkMat, profile.targetFR);
+  var trunkRect = profile.trunkShape === 'rect' ? deRectEquiv(trunkSizing.size) : null;
+
+  // Size average branch
+  var branchCFM = Math.round(totalCFM / estBranches);
+  var branchSizing = deSize(branchCFM, profile.branchMat, profile.targetFR);
+
+  // Total equivalent length estimate
+  var supplyTEL = plenum.eqLen + approxLen + (profile.elbowsPer * profile.elbowEQ * estBranches / estBranches);
+  if (profile.trunkLen) supplyTEL += profile.trunkLen + (profile.trunkElbows || 0) * (profile.trunkElbowEQ || 25);
+  var returnTEL = supplyTEL * 0.7; // returns are typically shorter
+  var totalTEL = supplyTEL + returnTEL;
+
+  // Static estimate
+  var frRate = Math.max(trunkSizing.friction, branchSizing.friction, profile.targetFR);
+  var staticEst = deEstimateStatic(totalTEL, frRate, 0.10, 0.20, 0.05);
+  
+  // Apply zoning multiplier
+  var zoneMult = DE.ZONING[zoning] ? DE.ZONING[zoning].staticMult : 1.0;
+  var zonedStatic = { ductPD: staticEst.ductPD * zoneMult, filterPD: staticEst.filterPD, coilPD: staticEst.coilPD, total: staticEst.total * zoneMult };
+  
+  var risk = deRiskLevel(zonedStatic.total, zoning);
+
+  // Material estimate (rough)
+  var flexBags = profile.branchMat === 'flex' ? Math.ceil(estBranches * profile.avgBranchLen / 25) : 0;
+  var metalSections = 0;
+  if (profile.trunkMat === 'metal') {
+    metalSections = Math.ceil((profile.trunkLen || 8) / 5); // 5ft sections
+  }
+  if (profile.branchMat === 'metal') {
+    metalSections += Math.ceil(estBranches * profile.avgBranchLen / 5);
+  }
+
+  return {
+    mode: 'rough',
+    totalCFM: totalCFM,
+    tons: tons,
+    profile: profile,
+    plenum: plenum,
+    plenumType: plenumType,
+    zoning: zoning,
+    smallZone: smallZone,
+    estBranches: estBranches,
+    branchCFM: branchCFM,
+    trunk: { sizing: trunkSizing, rect: trunkRect },
+    branch: { sizing: branchSizing },
+    tel: { supply: Math.round(supplyTEL), return: Math.round(returnTEL), total: Math.round(totalTEL) },
+    static: zonedStatic,
+    risk: risk,
+    material: { flexBags: flexBags, metalSections: metalSections },
+    frRate: frRate
+  };
+}
+
+
+// ===========================
+// MODE 2: DETAILED ESTIMATOR
+// ===========================
+
+function deDetailedEstimate() {
+  // Read system inputs
+  var totalCFM = 0;
   var rooms = [];
-  if (typeof getRoomsList === 'function') {
-    rooms = getRoomsList(); // [{name, cfm}, ...]
-  }
-  if (rooms.length === 0) {
-    return { error: 'norooms', message: 'Add rooms in the Rooms tab first. The estimator reads your room data to build a layout suggestion.' };
-  }
+  if (typeof getRoomsList === 'function') rooms = getRoomsList();
+  rooms.forEach(function(r) { totalCFM += r.cfm; });
 
-  // Enrich rooms with type info
-  if (typeof roomCfmData !== 'undefined') {
-    rooms = rooms.map(function(rm, i) {
-      var data = roomCfmData[i] || {};
-      return {
-        name: rm.name,
-        cfm: rm.cfm,
-        type: data.type || 'bedroom',
-        sqft: (data.length || 0) * (data.width || 0)
-      };
+  // Fallback: manual CFM entry
+  var manualCFM = parseFloat(document.getElementById('deDetailCFM').value) || 0;
+  if (totalCFM === 0 && manualCFM > 0) totalCFM = manualCFM;
+  if (totalCFM <= 0) return { error: true, message: 'Add rooms in the Rooms tab, or enter total system CFM above.' };
+
+  var strategy = document.getElementById('deDetailStrategy').value || 'metal_flex';
+  var trunkShape = document.getElementById('deDetailTrunkShape').value || 'rect';
+  var plenumType = document.getElementById('deDetailPlenum').value || 'straight';
+  var plenumMat = document.getElementById('deDetailPlenumMat').value || 'metal';
+  var zoning = document.getElementById('deDetailZoning').value || 'none';
+  var smallZone = document.getElementById('deDetailSmallZone') ? document.getElementById('deDetailSmallZone').value : 'no';
+  
+  // Trunk inputs
+  var trunkLen = parseFloat(document.getElementById('deDetailTrunkLen').value) || 15;
+  var trunkElbows90 = parseInt(document.getElementById('deDetailTrunk90s').value) || 0;
+  var trunkElbows90Vane = parseInt(document.getElementById('deDetailTrunk90sVane').value) || 0;
+  var trunkTrans = parseInt(document.getElementById('deDetailTrunkTrans').value) || 0;
+
+  // Branch inputs
+  var numBranches = parseInt(document.getElementById('deDetailBranches').value) || 0;
+  if (numBranches === 0 && rooms.length > 0) numBranches = rooms.length;
+  if (numBranches === 0) numBranches = Math.max(2, Math.round(totalCFM / 140));
+  var avgBranchLen = parseFloat(document.getElementById('deDetailBranchLen').value) || 20;
+  var branchElbows = parseFloat(document.getElementById('deDetailBranchElbows').value) || 1;
+
+  // Determine materials from strategy
+  var trunkMat = 'metal', branchMat = 'flex';
+  if (strategy === 'all_flex') { trunkMat = 'flex'; branchMat = 'flex'; }
+  else if (strategy === 'all_metal') { trunkMat = 'metal'; branchMat = 'metal'; }
+  else if (strategy === 'rect_round') { trunkMat = 'metal'; branchMat = 'metal'; }
+  // else metal_flex is default
+
+  if (plenumMat === 'ductboard') trunkMat = 'ductboard';
+
+  var plenum = DE.PLENUM_TYPES[plenumType] || DE.PLENUM_TYPES.straight;
+
+  // Size trunk
+  var trunkSizing = deSize(totalCFM, trunkMat, 0.08);
+  var trunkRect = (trunkShape === 'rect') ? deRectEquiv(trunkSizing.size) : null;
+
+  // Size branches
+  var branchCFM = Math.round(totalCFM / numBranches);
+  var branchSizing = deSize(branchCFM, branchMat, 0.08);
+
+  // Per-room sizing (if rooms available)
+  var roomSizes = [];
+  if (rooms.length > 0) {
+    // Enrich with types
+    if (typeof roomCfmData !== 'undefined') {
+      rooms = rooms.map(function(rm, i) {
+        var data = roomCfmData[i] || {};
+        return { name: rm.name, cfm: rm.cfm, type: data.type || 'bedroom' };
+      });
+    }
+    rooms.forEach(function(rm) {
+      var sz = deSize(rm.cfm, branchMat, 0.08);
+      roomSizes.push({ name: rm.name, cfm: rm.cfm, type: rm.type || 'bedroom', size: sz.size, vel: sz.velocity, fr: sz.friction });
     });
   }
 
-  // Get collars
-  var supplyCollars = (typeof SS !== 'undefined' && SS.collars) ? SS.collars : [];
-  var returnCollars = (typeof SS !== 'undefined' && SS.retCollars) ? SS.retCollars : [];
+  // Calculate TEL
+  // Supply side: plenum + trunk + trunk fittings + (avg branch + branch fittings)
+  var trunkEQ = trunkLen;
+  trunkEQ += trunkElbows90 * 55;      // 90° elbow no vanes
+  trunkEQ += trunkElbows90Vane * 15;   // 90° with turning vanes
+  trunkEQ += trunkTrans * 5;           // transitions
+  var supplyTEL = plenum.eqLen + trunkEQ + avgBranchLen + (branchElbows * 15);
+  var returnTEL = supplyTEL * 0.7;
+  var totalTEL = supplyTEL + returnTEL;
 
-  var totalCfm = 0;
-  rooms.forEach(function(r) { totalCfm += r.cfm; });
+  // Static estimate
+  var frRate = 0.08;
+  var staticEst = deEstimateStatic(totalTEL, frRate, 0.10, 0.20, 0.05);
+  var zoneMult = DE.ZONING[zoning] ? DE.ZONING[zoning].staticMult : 1.0;
+  var zonedStatic = { ductPD: staticEst.ductPD * zoneMult, filterPD: staticEst.filterPD, coilPD: staticEst.coilPD, total: (staticEst.ductPD * zoneMult) + staticEst.filterPD + staticEst.coilPD + 0.05 };
 
-  if (supplyCollars.length === 0) {
-    return { error: 'nocollars', message: 'No supply collars found. Go to the System tab and add your plenum collars, then come back here.' };
+  var risk = deRiskLevel(zonedStatic.total, zoning);
+
+  // Material estimate
+  var flexBags = branchMat === 'flex' ? Math.ceil(numBranches * avgBranchLen / 25) : 0;
+  var metalSections = 0;
+  if (trunkMat === 'metal') metalSections += Math.ceil(trunkLen / 5);
+  if (branchMat === 'metal') metalSections += Math.ceil(numBranches * avgBranchLen / 5);
+  var ductboardSheets = 0;
+  if (trunkMat === 'ductboard' || plenumMat === 'ductboard') {
+    ductboardSheets = Math.ceil(trunkLen / 6); // ~6ft per 4x8 sheet
   }
 
-  // Step 1: Cluster rooms
-  var clusters = deClusterRooms(rooms);
-
-  // Step 2: Assign collars to clusters
-  var enriched = deAssignCollars(clusters, supplyCollars, returnCollars);
-
-  // Step 3: Size ducts for each cluster
-  var clusterResults = enriched.map(function(cluster) {
-    var branches = deSizeCluster(cluster);
-    return {
-      label: cluster.label,
-      id: cluster.id,
-      totalCfm: cluster.totalCfm,
-      supplyCollars: cluster.supplyCollars,
-      returnCollars: cluster.returnCollars,
-      teach: cluster.teach,
-      rooms: cluster.rooms,
-      branches: branches
-    };
-  });
-
-  // Step 4: Return layout
-  var returnLayout = deReturnLayout(enriched, returnCollars, totalCfm);
-
-  var result = {
-    totalCfm: totalCfm,
-    totalRooms: rooms.length,
-    supplyCollars: supplyCollars.length,
-    returnCollars: returnCollars.length,
-    clusters: clusterResults,
-    returns: returnLayout,
-    timestamp: new Date().toLocaleString()
+  return {
+    mode: 'detailed',
+    totalCFM: totalCFM,
+    rooms: rooms,
+    roomSizes: roomSizes,
+    numBranches: numBranches,
+    strategy: strategy,
+    trunkShape: trunkShape,
+    trunkMat: trunkMat,
+    branchMat: branchMat,
+    plenum: plenum,
+    plenumType: plenumType,
+    plenumMat: plenumMat,
+    zoning: zoning,
+    smallZone: smallZone,
+    trunk: { sizing: trunkSizing, rect: trunkRect, len: trunkLen, elbows90: trunkElbows90, elbows90Vane: trunkElbows90Vane, trans: trunkTrans, eq: trunkEQ },
+    branch: { sizing: branchSizing, cfm: branchCFM, len: avgBranchLen, elbows: branchElbows },
+    tel: { supply: Math.round(supplyTEL), return: Math.round(returnTEL), total: Math.round(totalTEL) },
+    static: zonedStatic,
+    risk: risk,
+    material: { flexBags: flexBags, metalSections: metalSections, ductboardSheets: ductboardSheets },
+    frRate: frRate
   };
-
-  DE.lastResult = result;
-  return result;
 }
 
-// ---- Render the estimation ----
-function deRender(result) {
+
+// ===========================
+// RENDERING
+// ===========================
+
+function deRenderResults(result) {
   var el = document.getElementById('deResults');
   if (!el) return;
 
@@ -495,204 +367,289 @@ function deRender(result) {
 
   var h = '';
 
-  // Summary header
+  // === ZONING BANNER (always first if zoned) ===
+  if (result.zoning !== 'none') {
+    var isSmall = result.zoning === 'three_plus' && result.smallZone === 'yes';
+    var bannerBg = isSmall ? '#8b1a1a' : '#7a5c00';
+    var bannerIcon = isSmall ? '\u26D4' : '\u26A0\uFE0F';
+    h += '<div style="background:' + bannerBg + ';color:#fff;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:11px;line-height:1.5">';
+    h += '<div style="font-size:13px;font-weight:700;margin-bottom:4px">' + bannerIcon + ' ZONED SYSTEM</div>';
+    if (isSmall) {
+      h += '<div style="margin-bottom:6px"><strong>SMALL ZONE PRESENT</strong> — High risk of excessive static and comfort issues when that zone runs alone. Consider bypass or other excess air strategies per Manual Zr, EWC, and Honeywell zoning guidance.</div>';
+    }
+    h += '<div>This tool provides only rough duct and static guidance. Actual performance depends on zone design, control strategy, and bypass/relief. Use <strong>ACCA Manual Zr</strong> and manufacturer zoning guides (<strong>EWC</strong>, <strong>Honeywell/Resideo</strong>) for proper zoning design and adjustment.</div>';
+    h += '</div>';
+  }
+
+  // === SUMMARY HEADER ===
   h += '<div style="background:linear-gradient(135deg,var(--accent),#a37524);border-radius:12px;padding:14px 16px;margin-bottom:12px;color:#fff">';
-  h += '<div style="font-size:15px;font-weight:700;margin-bottom:4px">Rough Duct Estimate</div>';
-  h += '<div style="display:flex;gap:12px;font-size:11px;opacity:0.9">';
-  h += '<span>' + result.totalCfm + ' CFM</span>';
-  h += '<span>' + result.totalRooms + ' rooms</span>';
-  h += '<span>' + result.supplyCollars + ' supply collar' + (result.supplyCollars !== 1 ? 's' : '') + '</span>';
-  h += '<span>' + result.returnCollars + ' return' + (result.returnCollars !== 1 ? 's' : '') + '</span>';
+  h += '<div style="font-size:15px;font-weight:700;margin-bottom:4px">' + (result.mode === 'rough' ? 'Rough Estimate' : 'Duct Estimate') + '</div>';
+  h += '<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:11px;opacity:0.92">';
+  h += '<span>' + result.totalCFM + ' CFM</span>';
+  if (result.tons) h += '<span>' + result.tons + ' ton</span>';
+  if (result.profile) h += '<span>' + result.profile.label + '</span>';
+  if (result.numBranches) h += '<span>' + result.numBranches + ' branches</span>';
   h += '</div></div>';
 
-  // Important note
-  h += '<div class="info-note" style="margin-bottom:12px">';
-  h += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>';
-  h += '<span style="font-size:10px">This is a conceptual starting point, not a Manual D design. Actual duct routes depend on where the furnace and rooms are located. Use this to understand how rooms group together and what sizes to expect.</span>';
+  // === STATIC PRESSURE RISK ===
+  h += '<div class="panel" style="margin-bottom:10px;border-left:4px solid ' + result.risk.color + '">';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--text)">Static Pressure Risk</div>';
+  h += '<div style="font-size:13px;font-weight:800;color:' + result.risk.color + ';font-family:\'DM Mono\',monospace">' + result.risk.label + '</div>';
   h += '</div>';
 
-  // Supply clusters
-  h += '<div style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Supply Layout</div>';
+  // Static breakdown
+  h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
+  h += deStatChip('Duct PD', result.static.ductPD.toFixed(2) + '" WC');
+  h += deStatChip('Filter', result.static.filterPD.toFixed(2) + '" WC');
+  h += deStatChip('Coil', result.static.coilPD.toFixed(2) + '" WC');
+  h += deStatChip('Total', result.static.total.toFixed(2) + '" WC', result.risk.color);
+  h += '</div>';
 
-  result.clusters.forEach(function(cluster) {
-    if (cluster.rooms.length === 0) return;
+  h += '<div style="font-size:10px;color:var(--text-3);line-height:1.4">' + result.risk.desc + '</div>';
 
-    h += '<div class="panel" style="margin-bottom:10px;border-left:3px solid var(--accent)">';
+  if (result.zoning !== 'none') {
+    h += '<div style="font-size:10px;color:var(--amber);margin-top:4px;font-weight:600">Zoning increases worst-case static when fewer zones call. This estimate includes a ' + Math.round((DE.ZONING[result.zoning].staticMult - 1) * 100) + '% zoning safety factor on duct pressure drop.</div>';
+  }
+  h += '</div>';
 
-    // Cluster header
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-    h += '<div style="font-size:14px;font-weight:700;color:var(--text)">' + cluster.label + '</div>';
-    h += '<div style="font-size:12px;font-family:\'DM Mono\',monospace;color:var(--accent);font-weight:700">' + cluster.totalCfm + ' CFM</div>';
-    h += '</div>';
-
-    // Room list
-    h += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">';
-    cluster.rooms.forEach(function(rm) {
-      h += '<span style="background:var(--surface-2);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--text-2)">';
-      h += rm.name + ' <span style="font-family:\'DM Mono\',monospace;color:var(--accent);font-weight:600">' + rm.cfm + '</span>';
-      h += '</span>';
-    });
-    h += '</div>';
-
-    // Teaching blurb
-    h += '<div style="background:var(--surface-2);border-radius:8px;padding:8px 10px;margin-bottom:10px;border-left:2px solid var(--accent)">';
-    h += '<div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:2px">WHY THIS GROUPING</div>';
-    h += '<div style="font-size:11px;color:var(--text-2);line-height:1.4">' + cluster.teach + '</div>';
-    h += '</div>';
-
-    // Collar assignments
-    h += '<div style="font-size:10px;color:var(--text-3);margin-bottom:6px">' +
-      cluster.supplyCollars + ' supply collar' + (cluster.supplyCollars !== 1 ? 's' : '') +
-      (cluster.returnCollars > 0 ? ' + ' + cluster.returnCollars + ' return' : '') + '</div>';
-
-    // Branch details
-    cluster.branches.forEach(function(branch) {
-      h += '<div style="background:var(--surface-2);border-radius:8px;padding:10px;margin-bottom:6px">';
-
-      if (branch.noCollar) {
-        // No dedicated collar — rooms served from nearest trunk
-        h += '<div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px">';
-        h += '<span style="font-style:italic">No dedicated collar — served from nearest trunk branch</span>';
-        h += '</div>';
-      } else {
-        // Branch header
-        h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-        h += '<div style="font-size:12px;font-weight:700;color:var(--text)">';
-        h += '<span style="color:var(--accent)">Collar ' + branch.collarIndex + '</span>';
-        h += ' \u2014 ' + branch.collarSize + '\u2033 start';
-        h += '</div>';
-        h += '<div style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--text-2)">' + branch.branchCfm + ' CFM</div>';
-        h += '</div>';
-
-        // Trunk info
-        h += '<div style="font-size:10px;color:var(--text-3);margin-bottom:8px">';
-        h += 'Trunk: <strong style="color:var(--text)">' + branch.trunkSize + '\u2033</strong> metal';
-        h += ' \u00B7 ' + branch.trunkVel + ' FPM';
-        h += ' \u00B7 ' + branch.trunkFR.toFixed(3) + ' IWC/100ft';
-        h += '</div>';
-      }
-
-      // Takeoff table
-      h += '<div style="overflow-x:auto">';
-      h += '<table style="width:100%;border-collapse:collapse;font-size:10px">';
-      h += '<thead><tr style="background:var(--accent);color:#fff;text-align:left">';
-      h += '<th style="padding:4px 6px;border-radius:4px 0 0 0">Room</th>';
-      h += '<th style="padding:4px 6px">CFM</th>';
-      h += '<th style="padding:4px 6px">Flex</th>';
-      h += '<th style="padding:4px 6px">Fitting</th>';
-      h += '<th style="padding:4px 6px;border-radius:0 4px 0 0">Boot</th>';
-      h += '</tr></thead><tbody>';
-
-      branch.takeoffs.forEach(function(to, ti) {
-        var bg = ti % 2 === 1 ? 'background:var(--surface-3)' : '';
-        h += '<tr style="' + bg + '">';
-        h += '<td style="padding:5px 6px;font-weight:600;color:var(--text)">' + to.room + '</td>';
-        h += '<td style="padding:5px 6px;font-family:\'DM Mono\',monospace">' + to.roomCfm + '</td>';
-        h += '<td style="padding:5px 6px;font-family:\'DM Mono\',monospace;font-weight:700;color:var(--accent)">' + to.takeoffSize + '\u2033</td>';
-        h += '<td style="padding:5px 6px;font-size:9px;color:var(--text-2)">' + to.fittingType + '</td>';
-        h += '<td style="padding:5px 6px;font-size:9px;color:var(--text-2)">' + to.bootSize + '</td>';
-        h += '</tr>';
-      });
-      h += '</tbody></table></div>';
-
-      // Trunk reduction note
-      var reductions = branch.takeoffs.filter(function(to) { return to.trunkAfter !== null && to.trunkAfter < to.trunkBefore; });
-      if (reductions.length > 0) {
-        h += '<div style="margin-top:6px;background:var(--surface-3);border-radius:6px;padding:6px 8px">';
-        h += '<div style="font-size:9px;font-weight:700;color:var(--accent);margin-bottom:2px">TRUNK REDUCES</div>';
-        reductions.forEach(function(rd) {
-          h += '<div style="font-size:10px;color:var(--text-2)">After ' + rd.room + ': ' + rd.trunkBefore + '\u2033 \u2192 ' + rd.trunkAfter + '\u2033 (' + rd.trunkAfterCfm + ' CFM remaining)</div>';
-        });
-        h += '</div>';
-      }
-
-      h += '</div>'; // branch panel
-    });
-
-    h += '</div>'; // cluster panel
-  });
-
-  // Return layout section
-  h += '<div style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 8px">Return Layout</div>';
-
-  result.returns.forEach(function(ret) {
-    h += '<div class="panel" style="margin-bottom:8px;border-left:3px solid #5b8def">';
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--text)">' + ret.label + '</div>';
-    if (ret.cfm > 0) {
-      h += '<div style="font-size:12px;font-family:\'DM Mono\',monospace;color:#5b8def;font-weight:700">' + ret.cfm + ' CFM</div>';
+  // === TEL BREAKDOWN ===
+  h += '<div class="panel" style="margin-bottom:10px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">Equivalent Length</div>';
+  h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  h += deStatChip('Supply TEL', result.tel.supply + ' ft');
+  h += deStatChip('Return TEL', result.tel.return + ' ft');
+  h += deStatChip('Total TEL', result.tel.total + ' ft', 'var(--accent)');
+  h += '</div>';
+  if (result.plenumType) {
+    var pl = DE.PLENUM_TYPES[result.plenumType];
+    if (pl) {
+      h += '<div style="font-size:10px;color:var(--text-3);margin-top:6px">' + pl.label + ': ' + pl.eqLen + ' ft EQ — ' + pl.teach + '</div>';
     }
-    h += '</div>';
-
-    if (ret.size) {
-      h += '<div style="font-size:10px;color:var(--text-3);margin-bottom:6px">';
-      h += 'Collar: <strong>' + ret.size + '\u2033</strong>';
-      h += ' \u00B7 Trunk: <strong>' + ret.trunkSize + '\u2033</strong>';
-      h += ' \u00B7 ' + ret.velocity + ' FPM';
-      h += ' \u00B7 ' + ret.bootSize;
-      h += '</div>';
-    }
-
-    // Teaching blurb
-    h += '<div style="background:var(--surface-2);border-radius:8px;padding:8px 10px;border-left:2px solid #5b8def">';
-    h += '<div style="font-size:10px;font-weight:700;color:#5b8def;margin-bottom:2px">RETURN TIP</div>';
-    h += '<div style="font-size:11px;color:var(--text-2);line-height:1.4">' + ret.teach + '</div>';
-    h += '</div>';
-
-    h += '</div>';
-  });
-
-  // General teaching section
-  h += '<div style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 8px">Good Habits for Installers</div>';
-
-  h += '<div class="panel" style="margin-bottom:8px">';
-  var tips = [
-    { icon: '\u{1F4CF}', title: 'Pull Flex Tight', text: 'Flex duct must be pulled tight with no sag. Even 5% compression doubles friction loss. Always support flex every 4 feet.' },
-    { icon: '\u{1F527}', title: 'Size Down After Splits', text: 'After each takeoff, the trunk can reduce in size because there is less CFM to carry. This saves material and keeps velocity in a good range.' },
-    { icon: '\u{1F3AF}', title: 'Target 0.08 IWC/100ft', text: 'Manual D says 0.08 IWC per 100 feet of duct is the maximum friction rate for residential. Lower is better — it means your fan works less hard.' },
-    { icon: '\u26A1', title: 'Keep Runs Short', text: 'Every foot of duct and every fitting adds resistance. The shorter and straighter the run, the more airflow the room gets.' },
-    { icon: '\u{1F6AA}', title: 'Return Air Path', text: 'Air pushed into a room must have a path back to the return. Door undercuts (1 inch minimum) or transfer grilles keep rooms from pressurizing.' },
-    { icon: '\u2696\uFE0F', title: 'Balance Supply + Return', text: 'Total return CFM should roughly equal total supply CFM. If returns are undersized, the house goes negative pressure, pulling in hot/humid attic or crawl air.' }
-  ];
-
-  tips.forEach(function(tip) {
-    h += '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--surface-3)">';
-    h += '<div style="font-size:18px;flex-shrink:0;width:24px;text-align:center">' + tip.icon + '</div>';
-    h += '<div>';
-    h += '<div style="font-size:11px;font-weight:700;color:var(--text)">' + tip.title + '</div>';
-    h += '<div style="font-size:10px;color:var(--text-3);line-height:1.3">' + tip.text + '</div>';
-    h += '</div></div>';
-  });
+  }
   h += '</div>';
 
-  // Disclaimer
-  h += '<div class="info-note" style="margin-top:8px">';
+  // === TRUNK SIZING ===
+  h += '<div class="panel" style="margin-bottom:10px;border-left:3px solid var(--accent)">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">Trunk</div>';
+  h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+  h += deStatChip('Round', result.trunk.sizing.size + '"', 'var(--accent)');
+  if (result.trunk.rect) h += deStatChip('Rect Equiv', result.trunk.rect, 'var(--accent)');
+  h += deStatChip('Velocity', result.trunk.sizing.velocity + ' FPM');
+  h += deStatChip('FR', result.trunk.sizing.friction.toFixed(3) + ' IWC/100ft');
+  h += '</div>';
+  var trunkMatLabel = result.trunkMat === 'ductboard' ? 'Ductboard' : (result.trunkMat === 'flex' ? 'Flex' : 'Metal');
+  h += '<div style="font-size:10px;color:var(--text-3)">Material: ' + trunkMatLabel + (result.trunkShape === 'rect' ? ' (rectangular)' : ' (round)') + '</div>';
+  h += '</div>';
+
+  // === BRANCH SIZING ===
+  h += '<div class="panel" style="margin-bottom:10px;border-left:3px solid var(--accent)">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">Typical Branch</div>';
+  h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+  h += deStatChip('Size', result.branch.sizing.size + '"', 'var(--accent)');
+  h += deStatChip('CFM/branch', (result.branch.cfm || result.branchCFM) + '');
+  h += deStatChip('Velocity', result.branch.sizing.velocity + ' FPM');
+  h += deStatChip('FR', result.branch.sizing.friction.toFixed(3));
+  h += '</div>';
+  var branchMatLabel = result.branchMat === 'flex' ? 'Flex' : 'Metal';
+  h += '<div style="font-size:10px;color:var(--text-3)">Material: ' + branchMatLabel;
+  if (result.branchMat === 'flex') h += ' (10% compression assumed — pull tight!)';
+  h += '</div></div>';
+
+  // === PER-ROOM TABLE (detailed mode only) ===
+  if (result.roomSizes && result.roomSizes.length > 0) {
+    h += '<div class="panel" style="margin-bottom:10px">';
+    h += '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">Per-Room Duct Sizes</div>';
+    h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:10px">';
+    h += '<thead><tr style="background:var(--accent);color:#fff;text-align:left">';
+    h += '<th style="padding:5px 6px;border-radius:4px 0 0 0">Room</th>';
+    h += '<th style="padding:5px 6px">CFM</th>';
+    h += '<th style="padding:5px 6px">Duct</th>';
+    h += '<th style="padding:5px 6px">Vel</th>';
+    h += '<th style="padding:5px 6px;border-radius:0 4px 0 0">FR</th>';
+    h += '</tr></thead><tbody>';
+    result.roomSizes.forEach(function(rm, ri) {
+      var bg = ri % 2 === 1 ? 'background:var(--surface-2)' : '';
+      var frColor = rm.fr > 0.10 ? 'var(--red)' : rm.fr > 0.08 ? 'var(--amber)' : 'var(--green)';
+      h += '<tr style="' + bg + '">';
+      h += '<td style="padding:5px 6px;font-weight:600">' + rm.name + '</td>';
+      h += '<td style="padding:5px 6px;font-family:\'DM Mono\',monospace">' + rm.cfm + '</td>';
+      h += '<td style="padding:5px 6px;font-family:\'DM Mono\',monospace;font-weight:700;color:var(--accent)">' + rm.size + '"</td>';
+      h += '<td style="padding:5px 6px;font-family:\'DM Mono\',monospace">' + rm.vel + '</td>';
+      h += '<td style="padding:5px 6px;font-family:\'DM Mono\',monospace;color:' + frColor + '">' + rm.fr.toFixed(3) + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table></div></div>';
+  }
+
+  // === MATERIAL ESTIMATE ===
+  h += '<div class="panel" style="margin-bottom:10px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">Rough Material Estimate</div>';
+  h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  if (result.material.flexBags > 0) h += deStatChip('Flex', result.material.flexBags + ' bag' + (result.material.flexBags > 1 ? 's' : '') + ' (25ft)');
+  if (result.material.metalSections > 0) h += deStatChip('Metal', result.material.metalSections + ' section' + (result.material.metalSections > 1 ? 's' : '') + ' (5ft)');
+  if (result.material.ductboardSheets > 0) h += deStatChip('Ductboard', result.material.ductboardSheets + ' sheet' + (result.material.ductboardSheets > 1 ? 's' : '') + ' (4x8)');
+  h += '</div>';
+  h += '<div style="font-size:9px;color:var(--text-3);margin-top:4px">Always round up. Flex in 25ft bags, metal in 5ft sections, ductboard in 4x8 sheets.</div>';
+  h += '</div>';
+
+  // === ZONING GUIDANCE (if zoned) ===
+  if (result.zoning !== 'none') {
+    h += deRenderZoningGuidance(result);
+  }
+
+  // === DISCLAIMER ===
+  h += '<div class="info-note" style="margin-top:10px">';
   h += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>';
-  h += '<span style="font-size:10px">This is a rough estimate for educational purposes. Actual duct design must account for equipment location, room positions, attic/crawl routing constraints, and a full Manual D calculation. Use the System Design wizard for a production layout.</span>';
-  h += '</div>';
-
-  // Timestamp
-  h += '<div style="font-size:9px;color:var(--text-3);text-align:center;margin-top:8px">';
-  h += 'Estimated ' + result.timestamp;
+  h += '<span style="font-size:10px">This is an estimator aligned with ACCA Manual D principles, not a full Manual D calculation. Actual duct design must account for equipment location, room positions, attic/crawl constraints, and measured static pressure. Use the System Design wizard for a production layout.</span>';
   h += '</div>';
 
   el.innerHTML = h;
+  DE.lastResult = result;
 }
 
-// ---- Event delegation ----
+// Stat chip helper
+function deStatChip(label, value, accent) {
+  var col = accent || 'var(--text)';
+  return '<div style="background:var(--surface-2);border-radius:8px;padding:5px 10px;display:inline-flex;flex-direction:column;align-items:flex-start">' +
+    '<div style="font-size:8px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.3px">' + label + '</div>' +
+    '<div style="font-size:13px;font-weight:700;color:' + col + ';font-family:\'DM Mono\',monospace;white-space:nowrap">' + value + '</div></div>';
+}
+
+
+// ===========================
+// ZONING GUIDANCE RENDERER
+// ===========================
+
+function deRenderZoningGuidance(result) {
+  var h = '';
+  h += '<div class="panel" style="margin-bottom:10px;border-left:3px solid #5b8def">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px">\u26A0\uFE0F Zoning Guidance</div>';
+
+  if (result.zoning === 'two') {
+    h += '<div style="font-size:11px;color:var(--text-2);line-height:1.5;margin-bottom:8px">';
+    h += '<strong>2-Zone System Considerations:</strong><br>';
+    h += '\u2022 Each zone handles roughly half the total load when calling alone.<br>';
+    h += '\u2022 When only one zone calls, the blower pushes full CFM into half the ductwork — expect higher static pressure.<br>';
+    h += '\u2022 Ensure the larger zone can handle at least 60-70% of system CFM safely.<br>';
+    h += '\u2022 Consider a static-pressure-controlled bypass damper (CPRD/MARD) if static exceeds 0.5" WC in single-zone operation.';
+    h += '</div>';
+  }
+
+  if (result.zoning === 'three_plus') {
+    h += '<div style="font-size:11px;color:var(--text-2);line-height:1.5;margin-bottom:8px">';
+    h += '<strong>3+ Zone System Considerations:</strong><br>';
+    h += '\u2022 More zones = more potential for high static when only 1-2 zones call.<br>';
+    h += '\u2022 Worst-case scenario: smallest zone calling alone while system delivers full CFM.<br>';
+    h += '</div>';
+
+    if (result.smallZone === 'yes') {
+      h += '<div style="background:#3a1818;color:#ffb4b4;border-radius:8px;padding:10px;margin-bottom:8px;font-size:11px;line-height:1.5">';
+      h += '<strong>\u26D4 Small Zone Detected — Bypass Likely Needed</strong><br>';
+      h += '\u2022 Consider bypass when the smallest zone cannot safely handle ~60% of system CFM.<br>';
+      h += '\u2022 Bypass sizing should be based on the difference between equipment CFM and smallest-zone CFM under worst-case single-zone operation.<br>';
+      h += '\u2022 Options: bypass to return duct or dump zone — keep mixing distance in mind to avoid cold air complaints.<br>';
+      h += '\u2022 Static-pressure-controlled bypass dampers (EWC EBD/PRD, Honeywell/Resideo CPRD/MARD) should be adjusted with the smallest zone calling alone.';
+      h += '</div>';
+    } else {
+      h += '<div style="font-size:11px;color:var(--text-2);line-height:1.5;margin-bottom:8px">';
+      h += '\u2022 No very small zone — lower bypass risk, but still monitor static when fewer zones call.<br>';
+      h += '\u2022 A bypass damper or variable-speed blower can help manage excess pressure.';
+      h += '</div>';
+    }
+  }
+
+  // Reference section
+  h += '<div style="background:var(--surface-2);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--text-3);line-height:1.4">';
+  h += '<strong style="color:var(--text-2)">References for Proper Zoning Design:</strong><br>';
+  h += '\u2022 <strong>ACCA Manual Zr</strong> — Residential zoning system design procedures, bypass sizing, and zone damper selection.<br>';
+  h += '\u2022 <strong>EWC Controls</strong> — Zoning panel setup, bypass factor, worst-case smallest-zone operation, EBD/PRD damper guides.<br>';
+  h += '\u2022 <strong>Honeywell/Resideo</strong> — Static bypass damper usage (CPRD/MARD), adjustment procedures with smallest zone calling.<br>';
+  h += '<em>This tool does not replace these procedures. Use them for final design and adjustment.</em>';
+  h += '</div>';
+
+  h += '</div>';
+  return h;
+}
+
+
+// ===========================
+// UI TAB SWITCHING
+// ===========================
+
+function deSetMode(mode) {
+  DE.mode = mode;
+  var roughTab = document.getElementById('deTabRough');
+  var detailTab = document.getElementById('deTabDetail');
+  var roughPanel = document.getElementById('deRoughPanel');
+  var detailPanel = document.getElementById('deDetailPanel');
+
+  // Style active/inactive tabs
+  if (roughTab) {
+    roughTab.style.background = mode === 'rough' ? '' : 'var(--surface-3)';
+    roughTab.style.color = mode === 'rough' ? '' : 'var(--text-2)';
+    roughTab.classList.toggle('active', mode === 'rough');
+  }
+  if (detailTab) {
+    detailTab.style.background = mode === 'detailed' ? '' : 'var(--surface-3)';
+    detailTab.style.color = mode === 'detailed' ? '' : 'var(--text-2)';
+    detailTab.classList.toggle('active', mode === 'detailed');
+  }
+  if (roughPanel) roughPanel.style.display = mode === 'rough' ? '' : 'none';
+  if (detailPanel) detailPanel.style.display = mode === 'detailed' ? '' : 'none';
+  // Clear results
+  var resEl = document.getElementById('deResults');
+  if (resEl) resEl.innerHTML = '';
+}
+
+// Zoning small-zone question visibility
+function deUpdateZoningUI(selectEl, smallZoneId) {
+  var val = selectEl ? selectEl.value : 'none';
+  var szEl = document.getElementById(smallZoneId);
+  if (szEl) {
+    szEl.closest('.de-small-zone-wrap').style.display = val === 'three_plus' ? '' : 'none';
+  }
+}
+
+
+// ===========================
+// EVENT DELEGATION
+// ===========================
+
 document.addEventListener('click', function(e) {
   var t = e.target;
 
+  // Tab switching
+  if (t.closest('#deTabRough')) { deSetMode('rough'); return; }
+  if (t.closest('#deTabDetail')) { deSetMode('detailed'); return; }
+
   // Run estimation
-  if (t.closest('#deRunEstimate')) {
-    var result = deEstimate();
-    deRender(result);
+  if (t.closest('#deRunBtn')) {
+    var result;
+    if (DE.mode === 'rough') {
+      result = deRoughEstimate();
+    } else {
+      result = deDetailedEstimate();
+    }
+    deRenderResults(result);
     var resEl = document.getElementById('deResults');
     if (resEl) {
-      setTimeout(function() {
-        resEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      setTimeout(function() { resEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
     }
     return;
+  }
+});
+
+document.addEventListener('change', function(e) {
+  var t = e.target;
+  // Zoning dropdown changes
+  if (t.id === 'deRoughZoning') deUpdateZoningUI(t, 'deRoughSmallZone');
+  if (t.id === 'deDetailZoning') deUpdateZoningUI(t, 'deDetailSmallZone');
+
+  // Profile change — update description
+  if (t.id === 'deRoughProfile') {
+    var prof = DE.PROFILES[t.value];
+    var descEl = document.getElementById('deRoughProfileDesc');
+    if (descEl && prof) descEl.textContent = prof.desc;
   }
 });

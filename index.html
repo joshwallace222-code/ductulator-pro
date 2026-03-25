@@ -4577,128 +4577,211 @@ header.app-header { display: none !important; }
 </div>
 
 <!-- ========================================
-     ROUGH LAYOUT HELPER PAGE
-     ======================================== -->
-<div id="page-roughlayout" class="page">
-<div class="app-container">
-
-  <div class="panel-title" style="font-size:18px;margin-bottom:4px">Rough Layout Helper</div>
-  <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">Rule-of-thumb first-pass duct layout. NOT a Manual D design — use as a starting point.</div>
-
-  <!-- System CFM -->
-  <div class="panel">
-    <div class="wiz-card-title" style="margin-bottom:8px">System Airflow</div>
-    <div style="display:flex;gap:8px;margin-bottom:6px">
-      <div style="flex:1">
-        <label class="input-label">Total System CFM</label>
-        <input type="number" class="input-field" id="rlTotalCFM" value="" placeholder="e.g. 1200" min="200" max="10000" style="font-size:14px">
-      </div>
-      <div style="flex:1">
-        <label class="input-label">Or: Tonnage</label>
-        <div style="display:flex;gap:4px">
-          <input type="number" class="input-field" id="rlTonnage" value="" placeholder="e.g. 3" min="0.5" max="10" step="0.5">
-          <button class="sys-add-btn" id="rlCalcFromTon" style="padding:6px 10px;font-size:11px;white-space:nowrap;min-height:36px">× <span id="rlCfmPerTon">400</span></button>
-        </div>
-      </div>
-    </div>
-    <div style="display:flex;gap:4px;align-items:center;font-size:10px;color:var(--text-3)">
-      <span>CFM/ton:</span>
-      <input type="number" class="input-field" id="rlCfmPerTonInput" value="400" min="300" max="500" step="10" style="width:60px;font-size:11px;padding:4px">
-    </div>
-  </div>
-
-  <!-- Target Parameters -->
-  <div class="panel">
-    <div class="wiz-card-title" style="margin-bottom:8px">Design Targets</div>
-    <div style="display:flex;gap:8px;margin-bottom:6px">
-      <div style="flex:1">
-        <label class="input-label">Target FR (IWC/100ft)</label>
-        <input type="number" class="input-field" id="rlTargetFR" value="0.08" min="0.01" max="0.20" step="0.01">
-      </div>
-      <div style="flex:1">
-        <label class="input-label">FR Range ±</label>
-        <input type="number" class="input-field" id="rlFRRange" value="0.02" min="0.005" max="0.05" step="0.005">
-      </div>
-    </div>
-    <div style="display:flex;gap:8px">
-      <div style="flex:1">
-        <label class="input-label">Min Velocity (FPM)</label>
-        <input type="number" class="input-field" id="rlMinVel" value="400" min="100" max="900" step="50">
-      </div>
-      <div style="flex:1">
-        <label class="input-label">Max Velocity (FPM)</label>
-        <input type="number" class="input-field" id="rlMaxVel" value="700" min="400" max="1200" step="50">
-      </div>
-    </div>
-  </div>
-
-  <!-- Room Clusters -->
-  <div class="panel">
-    <div class="wiz-card-title" style="margin-bottom:8px">Room Clusters</div>
-    <div style="font-size:10px;color:var(--text-3);margin-bottom:8px">Group rooms into clusters. Adjust the weight to bias more/less airflow. Higher weight = more CFM.</div>
-    <div id="rlClusters"></div>
-    <button class="sys-add-btn" id="rlAddCluster" style="width:100%;margin-top:8px;justify-content:center">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Add Cluster
-    </button>
-  </div>
-
-  <!-- Calculate Button -->
-  <button class="wiz-btn-primary" id="rlCalculate" style="width:100%;margin-top:8px">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-    Calculate Layout
-  </button>
-
-  <!-- Results -->
-  <div id="rlResults" style="margin-top:12px"></div>
-
-</div>
-</div>
-
-<footer>
-  <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">
-    Created with Perplexity Computer
-  </a>
-</footer>
-
-<!-- ========================================
-     ROUGH DUCT ESTIMATOR PAGE
+     DUCT ESTIMATOR (unified — replaces both old pages)
      ======================================== -->
 <div id="page-ductestimator" class="page">
 <div class="app-container">
 
-  <div class="panel-title" style="font-size:18px;margin-bottom:4px">Rough Duct Estimator</div>
-  <div style="font-size:11px;color:var(--text-3);margin-bottom:12px;line-height:1.4">Reads your rooms and collars to suggest a complete conceptual duct layout. Great for learning how rooms group together and what duct sizes to expect.</div>
+  <div class="panel-title" style="font-size:18px;margin-bottom:2px">Duct Estimator</div>
+  <div style="font-size:11px;color:var(--text-3);margin-bottom:10px;line-height:1.3">Realistic simplified duct sizing aligned with ACCA Manual D. Not a full Manual D — a field estimator.</div>
 
-  <!-- System summary -->
-  <div class="panel" style="margin-bottom:10px">
-    <div class="wiz-card-title" style="margin-bottom:8px">Your System Data</div>
-    <div id="deSummary" style="font-size:11px;color:var(--text-2)">
-      <div style="display:flex;gap:8px;flex-wrap:wrap" id="deSummaryGrid">
-        <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;flex:1;min-width:100px">
-          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Rooms</div>
-          <div style="font-size:16px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace" id="deRoomCount">--</div>
+  <!-- Mode tabs -->
+  <div style="display:flex;gap:4px;margin-bottom:12px">
+    <button class="wiz-btn-primary active" id="deTabRough" style="flex:1;font-size:12px;padding:8px 0">Rough Estimate</button>
+    <button class="wiz-btn-primary" id="deTabDetail" style="flex:1;font-size:12px;padding:8px 0;background:var(--surface-3);color:var(--text-2)">Duct Estimator</button>
+  </div>
+
+  <!-- ===================== ROUGH ESTIMATE MODE ===================== -->
+  <div id="deRoughPanel">
+
+    <!-- Tonnage -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">System Size</div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <label class="input-label">Tonnage</label>
+          <input type="number" class="input-field" id="deRoughTons" placeholder="e.g. 3" min="0.5" max="10" step="0.5" style="font-size:14px">
         </div>
-        <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;flex:1;min-width:100px">
-          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Total CFM</div>
-          <div style="font-size:16px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace" id="deTotalCfm">--</div>
-        </div>
-        <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;flex:1;min-width:100px">
-          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Supply Collars</div>
-          <div style="font-size:16px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace" id="deSupplyCount">--</div>
-        </div>
-        <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;flex:1;min-width:100px">
-          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Return Collars</div>
-          <div style="font-size:16px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace" id="deReturnCount">--</div>
+        <div style="flex:1">
+          <label class="input-label">CFM/Ton</label>
+          <input type="number" class="input-field" id="deRoughCfmPerTon" value="400" min="300" max="500" step="10">
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Run button -->
-  <button class="wiz-btn-primary" id="deRunEstimate" style="width:100%;margin-bottom:8px">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-    Estimate My Layout
+    <!-- Layout Profile -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">Layout Profile</div>
+      <select class="input-field" id="deRoughProfile" style="font-size:12px;margin-bottom:4px">
+        <option value="plenum_flex" selected>Short Plenum + Flex Branches (most common)</option>
+        <option value="extended_trunk">Extended Metal Trunk + Flex Runouts</option>
+        <option value="octopus">All-Flex Octopus</option>
+        <option value="rect_metal_round">Rectangular Metal Trunk + Round Branches</option>
+      </select>
+      <div id="deRoughProfileDesc" style="font-size:10px;color:var(--text-3);line-height:1.3">Most common residential — short metal/ductboard plenum off the unit with several flex runs.</div>
+    </div>
+
+    <!-- Plenum Type -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">Plenum Type</div>
+      <select class="input-field" id="deRoughPlenum" style="font-size:12px">
+        <option value="straight" selected>Straight Plenum</option>
+        <option value="turn_vanes">90° Plenum w/ Turning Vanes</option>
+        <option value="turn_no_vanes">90° Plenum — No Turning Vanes</option>
+      </select>
+    </div>
+
+    <!-- Approx total duct length -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">Approximate Total Duct Length</div>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <div style="flex:1">
+          <label class="input-label">Longest supply run (ft)</label>
+          <input type="number" class="input-field" id="deRoughTotalLen" value="60" min="10" max="200" step="5">
+        </div>
+      </div>
+      <div style="font-size:9px;color:var(--text-3);margin-top:4px">Estimate from equipment to farthest register. Include straight + fitting equivalent.</div>
+    </div>
+
+    <!-- Zoning -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">Zoning</div>
+      <select class="input-field" id="deRoughZoning" style="font-size:12px;margin-bottom:4px">
+        <option value="none" selected>No Zoning</option>
+        <option value="two">Yes — 2 Zones</option>
+        <option value="three_plus">Yes — 3+ Zones (or complex)</option>
+      </select>
+      <div class="de-small-zone-wrap" style="display:none">
+        <label class="input-label" style="margin-top:4px">Is there a very small zone?</label>
+        <select class="input-field" id="deRoughSmallZone" style="font-size:12px">
+          <option value="no" selected>No — zones are roughly equal</option>
+          <option value="yes">Yes — one zone is significantly smaller</option>
+        </select>
+      </div>
+    </div>
+
+  </div><!-- /deRoughPanel -->
+
+  <!-- ===================== DETAILED ESTIMATOR MODE ===================== -->
+  <div id="deDetailPanel" style="display:none">
+
+    <!-- System CFM -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">System Airflow</div>
+      <div style="font-size:10px;color:var(--text-3);margin-bottom:4px">Uses Rooms tab data if available, or enter manually:</div>
+      <input type="number" class="input-field" id="deDetailCFM" placeholder="Total CFM (leave blank to use Rooms tab)" min="200" max="10000">
+    </div>
+
+    <!-- System Strategy -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">Duct Strategy</div>
+      <select class="input-field" id="deDetailStrategy" style="font-size:12px;margin-bottom:4px">
+        <option value="metal_flex" selected>Metal Trunk / Flex Branches</option>
+        <option value="all_flex">All Flex</option>
+        <option value="all_metal">All Metal</option>
+        <option value="rect_round">Rectangular Metal Trunk / Round Metal Branches</option>
+      </select>
+    </div>
+
+    <!-- Trunk -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">Trunk Details</div>
+      <div style="display:flex;gap:8px;margin-bottom:6px">
+        <div style="flex:1">
+          <label class="input-label">Trunk Shape</label>
+          <select class="input-field" id="deDetailTrunkShape" style="font-size:12px">
+            <option value="rect" selected>Rectangular</option>
+            <option value="round">Round</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label class="input-label">Length (ft)</label>
+          <input type="number" class="input-field" id="deDetailTrunkLen" value="15" min="0" max="100" step="1">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:6px">
+        <div style="flex:1">
+          <label class="input-label">90° Elbows (no vanes)</label>
+          <input type="number" class="input-field" id="deDetailTrunk90s" value="0" min="0" max="10">
+        </div>
+        <div style="flex:1">
+          <label class="input-label">90° w/ Turning Vanes</label>
+          <input type="number" class="input-field" id="deDetailTrunk90sVane" value="0" min="0" max="10">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <label class="input-label">Transitions</label>
+          <input type="number" class="input-field" id="deDetailTrunkTrans" value="0" min="0" max="10">
+        </div>
+        <div style="flex:1"></div>
+      </div>
+    </div>
+
+    <!-- Plenum -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">Plenum</div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <label class="input-label">Type</label>
+          <select class="input-field" id="deDetailPlenum" style="font-size:12px">
+            <option value="straight" selected>Straight</option>
+            <option value="turn_vanes">90° w/ Turning Vanes</option>
+            <option value="turn_no_vanes">90° No Vanes</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label class="input-label">Material</label>
+          <select class="input-field" id="deDetailPlenumMat" style="font-size:12px">
+            <option value="metal" selected>Metal</option>
+            <option value="ductboard">Ductboard</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Branches -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">Branch Details</div>
+      <div style="display:flex;gap:8px;margin-bottom:6px">
+        <div style="flex:1">
+          <label class="input-label">Number of Branches</label>
+          <input type="number" class="input-field" id="deDetailBranches" placeholder="Auto from rooms" min="0" max="30">
+        </div>
+        <div style="flex:1">
+          <label class="input-label">Avg Branch Length (ft)</label>
+          <input type="number" class="input-field" id="deDetailBranchLen" value="20" min="5" max="100" step="5">
+        </div>
+      </div>
+      <div>
+        <label class="input-label">Avg Elbows per Branch</label>
+        <input type="number" class="input-field" id="deDetailBranchElbows" value="1" min="0" max="5" step="0.5" style="width:80px">
+      </div>
+    </div>
+
+    <!-- Zoning -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="wiz-card-title" style="margin-bottom:6px">Zoning</div>
+      <select class="input-field" id="deDetailZoning" style="font-size:12px;margin-bottom:4px">
+        <option value="none" selected>No Zoning</option>
+        <option value="two">Yes — 2 Zones</option>
+        <option value="three_plus">Yes — 3+ Zones (or complex)</option>
+      </select>
+      <div class="de-small-zone-wrap" style="display:none">
+        <label class="input-label" style="margin-top:4px">Is there a very small zone?</label>
+        <select class="input-field" id="deDetailSmallZone" style="font-size:12px">
+          <option value="no" selected>No — zones are roughly equal</option>
+          <option value="yes">Yes — one zone is significantly smaller</option>
+        </select>
+      </div>
+    </div>
+
+  </div><!-- /deDetailPanel -->
+
+  <!-- Run Button -->
+  <button class="wiz-btn-primary" id="deRunBtn" style="width:100%;margin-top:4px;margin-bottom:8px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Estimate
   </button>
 
   <!-- Results -->
@@ -4756,10 +4839,6 @@ header.app-header { display: none !important; }
       <button class="more-tool" data-page="psychro">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
         <span>Psychrometric</span>
-      </button>
-      <button class="more-tool" data-page="roughlayout">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        <span>Rough Layout</span>
       </button>
       <button class="more-tool" data-page="ductestimator">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
@@ -4877,22 +4956,9 @@ function showPage(key) {
   var mp = document.getElementById('morePanel');
   if (mp) mp.classList.remove('open');
 
-  // Update duct estimator summary when navigating to that page
-  if (key === 'ductestimator') {
-    try {
-      var rooms = typeof getRoomsList === 'function' ? getRoomsList() : [];
-      var totalCfm = typeof getRoomsTotalCFM === 'function' ? getRoomsTotalCFM() : 0;
-      var supCount = (typeof SS !== 'undefined' && SS.collars) ? SS.collars.length : 0;
-      var retCount = (typeof SS !== 'undefined' && SS.retCollars) ? SS.retCollars.length : 0;
-      var deRC = document.getElementById('deRoomCount');
-      var deTC = document.getElementById('deTotalCfm');
-      var deSC = document.getElementById('deSupplyCount');
-      var deRet = document.getElementById('deReturnCount');
-      if (deRC) deRC.textContent = rooms.length;
-      if (deTC) deTC.textContent = totalCfm;
-      if (deSC) deSC.textContent = supCount;
-      if (deRet) deRet.textContent = retCount;
-    } catch(e) {}
+  // Duct estimator: restore tab mode when navigating to page
+  if (key === 'ductestimator' && typeof deSetMode === 'function') {
+    deSetMode(DE.mode || 'rough');
   }
 }
 
