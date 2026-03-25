@@ -1,29 +1,42 @@
-// ===== DUCT RUN BUILDER v5 =====
-// Tree structure: each trunk has a chain of nodes.
-// Splits (wye/tee/dbox) create child chains.
-// You build from collar to boots, piece by piece.
+// ===== DUCT RUN BUILDER v6 =====
+// Fixes: multi-boot rooms, dampers, fitting types, size enforcement
 
 var RB = { trunks: [], idx: 0, activePath: null, activeNode: -1 };
 
-// Node types
+// Damper positions and EQ lengths (Manual D based)
+var RB_DAMPER = {
+  'none': { label: 'No Damper', eq: 0 },
+  'open': { label: 'Wide Open', eq: 10 },
+  '25':   { label: '25% Closed', eq: 20 },
+  '50':   { label: '50% Closed', eq: 45 },
+  '75':   { label: '75% Closed', eq: 90 },
+  '100':  { label: 'Closed', eq: 999 }
+};
+
+// Node types — updated fittings
 var RB_TYPES = {
   trunk:     { name: 'Trunk', isTrunk: true },
   straight:  { name: 'Straight Duct' },
   elbow90:   { name: '90\u00B0 Elbow', eq: function(d){return d<=6?10:d<=8?15:d<=10?20:25;} },
   elbow45:   { name: '45\u00B0 Elbow', eq: function(){return 5;} },
   reducer:   { name: 'Reducer', eq: function(){return 5;} },
-  wye:       { name: 'Wye Split', eq: function(){return 15;}, splits: 2 },
-  tee:       { name: 'Tee Split', eq: function(){return 35;}, splits: 2 },
-  dbox:      { name: 'Dist Box', eq: function(){return 50;}, splits: 3 },
-  bullhead:  { name: 'Bullhead Tee', eq: function(){return 120;}, splits: 2 },
+  wye:       { name: 'Straight-Thru Wye', eq: function(){return 15;}, splits: 2,
+               desc: 'Inlet continues straight, offset branch splits off' },
+  bullhead:  { name: 'Bullhead Wye', eq: function(){return 120;}, splits: 2,
+               desc: 'Inlet splits evenly into two equal outlets' },
+  dbox:      { name: 'Distribution Box', eq: function(){return 50;}, splits: 3,
+               desc: 'Junction box with multiple collared outlets' },
   boot:      { name: 'Boot/Register', isEnd: true }
 };
+
 var RB_BOOTS = {
   '90boot':{name:'90\u00B0 Boot',eq:55},'straightboot':{name:'Straight Boot',eq:35},
   'ceilTop':{name:'Ceiling (top)',eq:10},'ceilSide':{name:'Ceiling (side)',eq:40},
-  'floorReg':{name:'Floor Reg',eq:35},'wallReg':{name:'Wall Reg',eq:40}
+  'floorReg':{name:'Floor Register',eq:35},'wallReg':{name:'Wall Register',eq:40},
+  'layIn2x2':{name:'2\u00D72 Lay-In Diffuser',eq:15}
 };
-var RB_REG_STYLES = ['Bar Grille','Stamped Face','High Sidewall','Linear Slot','Eggcrate','Perforated'];
+
+var RB_REG_STYLES = ['Stamped Face','Bar Grille','Eggcrate','Perforated','High Sidewall','Linear Slot','Step-Down'];
 
 // ---- Init ----
 function rbInit() {
@@ -33,12 +46,11 @@ function rbInit() {
       wizIdx: ti, label: t.label, airPath: t.airPath||'supply',
       size: parseInt(t.size)||12, length: parseFloat(t.length)||0,
       material: t.material||'metal', compression: t.compression||0,
-      // The chain: first node is always the trunk itself, then user adds pieces
       chain: [{
         type: 'trunk', size: parseInt(t.size)||12, length: parseFloat(t.length)||0,
-        material: t.material||'metal', compression: t.compression||0
+        material: t.material||'metal', compression: t.compression||0,
+        damper: 'none' // collar damper
       }]
-      // When a split is added, that node gets a 'children' array of sub-chains
     });
   });
 }
@@ -55,7 +67,6 @@ function rbRecSize(cfm,up,mat,comp){
 }
 function rbMaxCFM(sz,mat,comp){return typeof wizMaxCFM==='function'?wizMaxCFM(sz,mat,comp):999;}
 
-// Get the current duct size at a point in the chain
 function rbSizeAt(chain, upTo) {
   var sz = chain[0] ? chain[0].size : 12;
   for (var i=0; i<(upTo||chain.length); i++) {
@@ -64,46 +75,50 @@ function rbSizeAt(chain, upTo) {
   return sz;
 }
 
-// Count total CFM downstream of a point (sum all boots in this chain + children)
 function rbDownstreamCFM(chain, fromIdx) {
   var total = 0;
   for (var i=(fromIdx||0); i<chain.length; i++) {
     var n = chain[i];
     if (n.type === 'boot') total += (n.cfm || 0);
     if (n.children) {
-      n.children.forEach(function(subChain) { total += rbDownstreamCFM(subChain, 0); });
+      n.children.forEach(function(sub) { total += rbDownstreamCFM(sub, 0); });
     }
   }
   return total;
 }
 
-// Check if chain is complete (all paths end at boots)
 function rbChainComplete(chain) {
   if (!chain || chain.length === 0) return false;
   var last = chain[chain.length - 1];
   if (last.type === 'boot') return true;
-  if (last.children) {
-    return last.children.every(function(sub) { return rbChainComplete(sub); });
-  }
+  if (last.children) return last.children.every(function(sub) { return rbChainComplete(sub); });
   return false;
 }
 
-// Get unassigned rooms
-function rbGetUnassignedRooms() {
+// Get rooms with REMAINING CFM (multi-boot support)
+function rbGetRoomsWithRemaining() {
   var rooms = typeof getRoomsList === 'function' ? getRoomsList() : [];
-  var assigned = {};
-  // Walk all chains and find assigned room indices
+  var assigned = {}; // roomIdx -> total assigned CFM
   RB.trunks.forEach(function(trunk) {
     rbWalkChain(trunk.chain, function(node) {
-      if (node.type === 'boot' && node.roomIdx >= 0) assigned[node.roomIdx] = true;
+      if (node.type === 'boot' && node.roomIdx >= 0) {
+        if (!assigned[node.roomIdx]) assigned[node.roomIdx] = 0;
+        // Use the max CFM for the duct size as the assigned amount
+        var brCFM = rbMaxCFM(node.size || rbSizeAt([], 0) || 6, node.material || 'flex', node.compression || 0);
+        assigned[node.roomIdx] += Math.min(brCFM, node.cfm || brCFM);
+      }
     });
   });
   return rooms.map(function(r, i) {
-    return { name: r.name, cfm: r.cfm, idx: i, assigned: !!assigned[i] };
-  }).filter(function(r) { return !r.assigned; });
+    var needed = r.cfm || 0;
+    var given = assigned[i] || 0;
+    var remaining = Math.max(0, needed - given);
+    return { name: r.name, cfm: needed, idx: i, assigned: given, remaining: remaining };
+  });
 }
 
 function rbWalkChain(chain, fn) {
+  if (!chain) return;
   chain.forEach(function(node) {
     fn(node);
     if (node.children) node.children.forEach(function(sub) { rbWalkChain(sub, fn); });
@@ -149,10 +164,8 @@ function rbRender() {
     h += '</div>';
   }
 
-  // ===== TRUNK CARD =====
+  // Trunk card
   h += '<div class="rb-run-card">';
-
-  // Header
   h += '<div class="rb-run-hdr">';
   h += '<div class="rb-run-title">' + trunk.label + '</div>';
   h += '<div class="rb-run-badges">';
@@ -160,32 +173,25 @@ function rbRender() {
   h += '<span class="rb-badge rb-badge-size">' + trunk.size + '&#x2033;</span>';
   h += '</div></div>';
 
-  // Trunk CFM load
-  h += '<div style="margin-bottom:8px">';
-  h += '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">';
-  h += '<span style="color:var(--text-3)">Downstream CFM</span>';
+  // CFM bar
   var cfmOk = trunkCFM <= trunkMaxCFM;
-  h += '<span style="font-family:\'DM Mono\',monospace;font-weight:600;color:' + (cfmOk ? 'var(--green)' : 'var(--red)') + '">' + trunkCFM + ' / ' + trunkMaxCFM + ' CFM</span>';
-  h += '</div>';
   var pct = trunkMaxCFM > 0 ? Math.min(trunkCFM / trunkMaxCFM * 100, 100) : 0;
+  h += '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">';
+  h += '<span style="color:var(--text-3)">Downstream CFM</span>';
+  h += '<span style="font-family:\'DM Mono\',monospace;font-weight:600;color:' + (cfmOk ? 'var(--green)' : 'var(--red)') + '">' + trunkCFM + ' / ' + trunkMaxCFM + ' CFM</span></div>';
   h += '<div style="height:6px;border-radius:3px;background:var(--surface-3);overflow:hidden">';
-  h += '<div style="height:100%;width:' + pct + '%;border-radius:3px;background:' + (cfmOk ? 'var(--green)' : 'var(--red)') + ';transition:width 0.3s"></div>';
-  h += '</div></div>';
+  h += '<div style="height:100%;width:' + pct + '%;border-radius:3px;background:' + (cfmOk ? 'var(--green)' : 'var(--red)') + ';transition:width 0.3s"></div></div></div>';
 
-  // ===== CHAIN BUILDER =====
+  // Build chain
   h += '<div style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Build the Run</div>';
   h += rbRenderChain(trunk.chain, 'root', 0, trunk);
 
-  // Status
   if (isComplete) {
-    h += '<div class="rb-done-banner" style="margin-top:8px">';
-    h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
-    h += ' All paths complete';
+    h += '<div class="rb-done-banner" style="margin-top:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> All paths complete';
     if (sIdx < section.length - 1) h += ' \u2014 <span data-rb-next style="text-decoration:underline;cursor:pointer">next trunk \u203A</span>';
     h += '</div>';
   }
 
-  // Nav
   if (section.length > 1) {
     h += '<div style="display:flex;justify-content:space-between;margin-top:10px">';
     h += (sIdx > 0 ? '<button class="wiz-btn-secondary" data-rb-prev style="border-radius:10px;padding:8px 16px">\u2039 Prev</button>' : '<div></div>');
@@ -193,17 +199,16 @@ function rbRender() {
     h += '</div>';
   }
 
-  h += '</div>'; // /run-card
+  h += '</div>';
   el.innerHTML = h;
-  // Auto-save
   if (typeof wizAutoSave === 'function') wizAutoSave();
 }
 
-// Render a chain (recursive for sub-chains after splits)
+// Render chain recursively
 function rbRenderChain(chain, pathId, indent, trunk) {
   var h = '';
-  var indentPx = indent * 20;
-  var rooms = rbGetUnassignedRooms();
+  var indentPx = indent * 16;
+  var roomsInfo = rbGetRoomsWithRemaining();
   var allRooms = typeof getRoomsList === 'function' ? getRoomsList() : [];
 
   chain.forEach(function(node, ni) {
@@ -212,7 +217,6 @@ function rbRenderChain(chain, pathId, indent, trunk) {
     var curSize = rbSizeAt(chain, ni);
     var isSplit = RB_TYPES[node.type] && RB_TYPES[node.type].splits;
 
-    // Node card
     h += '<div class="rb-node' + (isActive ? ' rb-node-active' : '') + (node.type === 'boot' ? ' rb-node-end' : '') + (node.type === 'trunk' ? ' rb-node-start' : '') + '" style="margin-left:' + indentPx + 'px" data-rb-node="' + nodeId + '">';
     h += '<div class="rb-node-card">';
     h += '<div class="rb-node-icon" style="color:' + (node.type === 'boot' ? 'var(--green)' : node.type === 'trunk' ? 'var(--accent)' : isSplit ? 'var(--amber)' : 'var(--text-2)') + '">';
@@ -222,6 +226,7 @@ function rbRenderChain(chain, pathId, indent, trunk) {
     h += '<div class="rb-node-detail">';
     if (node.type === 'trunk') {
       h += node.size + '&#x2033; ' + node.material + ' &middot; ' + node.length + 'ft';
+      if (node.damper && node.damper !== 'none') h += ' &middot; Damper: ' + RB_DAMPER[node.damper].label;
     } else if (node.type === 'straight') {
       h += (node.size || curSize) + '&#x2033; ' + (node.material || 'flex') + ' &middot; ' + (node.length || 0) + 'ft';
       if (node.material === 'flex' && node.compression) h += ' &middot; ' + node.compression + '%';
@@ -229,63 +234,64 @@ function rbRenderChain(chain, pathId, indent, trunk) {
       h += curSize + '&#x2033; \u2192 ' + (node.size || '?') + '&#x2033;';
     } else if (node.type === 'boot') {
       var bt = RB_BOOTS[node.bootType] || { name: 'Boot' };
-      h += bt.name + (node.room ? ' \u2192 ' + node.room : '') + (node.cfm ? ' (' + node.cfm + ' CFM)' : '');
+      h += bt.name;
+      if (node.room) h += ' \u2192 ' + node.room;
+      if (node.cfm) h += ' (' + node.cfm + ' CFM)';
+      if (node.bootDimension) h += ' [' + node.bootDimension + ']';
     } else if (isSplit) {
       var eq = RB_TYPES[node.type].eq ? RB_TYPES[node.type].eq(curSize) : 0;
-      h += '+' + eq + 'ft EQ \u2014 splits into ' + (RB_TYPES[node.type].splits || 2) + ' paths';
+      h += '+' + eq + 'ft EQ';
     } else {
       var eq2 = RB_TYPES[node.type] && RB_TYPES[node.type].eq ? RB_TYPES[node.type].eq(curSize) : 0;
       h += '+' + eq2 + 'ft EQ';
     }
     h += '</div></div>';
-    // Delete (not trunk)
-    if (node.type !== 'trunk') {
-      h += '<div class="rb-node-x" data-rb-del="' + nodeId + '">&times;</div>';
-    }
-    h += '</div></div>'; // /node-card, /node
+    if (node.type !== 'trunk') h += '<div class="rb-node-x" data-rb-del="' + nodeId + '">&times;</div>';
+    h += '</div></div>';
 
-    // If this node is being edited, show edit form
-    if (isActive) {
-      h += rbEditForm(node, nodeId, curSize, trunk, rooms, allRooms);
-    }
+    // Edit form
+    if (isActive) h += rbEditForm(node, nodeId, curSize, trunk, roomsInfo, allRooms);
 
     // Connector
     if (ni < chain.length - 1 || (!node.children && node.type !== 'boot')) {
       h += '<div class="rb-connector" style="margin-left:' + (indentPx + 11) + 'px"></div>';
     }
 
-    // If this is a split node with children, render each sub-chain
+    // Sub-chains from splits
     if (node.children) {
       node.children.forEach(function(subChain, sci) {
         var subPath = pathId + '-' + ni + '-c' + sci;
-        var subLabel = isSplit ? (RB_TYPES[node.type].name + ' Leg ' + (sci + 1)) : 'Path ' + (sci + 1);
-        h += '<div style="margin-left:' + (indentPx + 10) + 'px;border-left:2px solid var(--surface-4);padding-left:8px;margin-top:4px;margin-bottom:4px">';
-        h += '<div style="font-size:10px;font-weight:600;color:var(--amber);margin-bottom:4px">' + subLabel + '</div>';
+        var splitName = RB_TYPES[node.type] ? RB_TYPES[node.type].name : 'Split';
+        var legLabel = node.type === 'wye' ? (sci === 0 ? 'Straight-Thru' : 'Offset Branch') :
+                       node.type === 'bullhead' ? ('Outlet ' + (sci+1)) :
+                       ('Outlet ' + (sci+1));
+        h += '<div style="margin-left:' + (indentPx + 10) + 'px;border-left:2px solid var(--surface-4);padding-left:8px;margin:4px 0">';
+        h += '<div style="font-size:10px;font-weight:600;color:var(--amber);margin-bottom:4px">' + legLabel + '</div>';
         h += rbRenderChain(subChain, subPath, indent + 1, trunk);
-        // Add piece button for this sub-chain (if not complete)
         if (!rbChainComplete(subChain)) {
-          h += rbAddPieceButtons(subPath, rbSizeAt(subChain, subChain.length), trunk);
+          h += rbAddPieceButtons(subPath, rbSizeAt(subChain.length > 0 ? subChain : chain, subChain.length), trunk, curSize);
         }
         h += '</div>';
       });
     }
   });
 
-  // Add piece buttons at the end (only for root-level chains that aren't complete)
+  // Add buttons at end
   var lastNode = chain[chain.length - 1];
   if (!lastNode || (!lastNode.children && lastNode.type !== 'boot')) {
-    h += rbAddPieceButtons(pathId, rbSizeAt(chain, chain.length), trunk);
+    var curSz = rbSizeAt(chain, chain.length);
+    h += rbAddPieceButtons(pathId, curSz, trunk, curSz);
   }
 
   return h;
 }
 
-// Add piece buttons
-function rbAddPieceButtons(pathId, curSize, trunk) {
+// Add piece buttons — sizes enforce downstream <= inlet
+function rbAddPieceButtons(pathId, curSize, trunk, maxSize) {
   var h = '<div class="rb-add-section" style="margin-top:6px">';
   h += '<div class="rb-add-title">Add next piece</div>';
   h += '<div class="rb-add-grid">';
-  var pieces = ['straight', 'elbow90', 'elbow45', 'reducer', 'wye', 'tee', 'dbox', 'boot'];
+  var pieces = ['straight', 'elbow90', 'elbow45', 'reducer', 'wye', 'bullhead', 'dbox', 'boot'];
   pieces.forEach(function(k) {
     h += '<div class="rb-add-btn" data-rb-add="' + k + '" data-rb-path="' + pathId + '">';
     h += rbNodeIcon(k);
@@ -295,30 +301,37 @@ function rbAddPieceButtons(pathId, curSize, trunk) {
   return h;
 }
 
-// Edit form for a node
-function rbEditForm(node, nodeId, curSize, trunk, unassignedRooms, allRooms) {
-  var h = '<div class="rb-edit" style="margin-left:' + 0 + 'px">';
+// Edit form
+function rbEditForm(node, nodeId, curSize, trunk, roomsInfo, allRooms) {
+  var h = '<div class="rb-edit">';
 
+  // TRUNK: damper
+  if (node.type === 'trunk') {
+    h += '<div class="rb-edit-row"><label class="input-label">Start Collar Damper</label>';
+    h += '<select class="input-field" data-rb-sel="damper" data-rb-nid="' + nodeId + '">';
+    Object.keys(RB_DAMPER).forEach(function(k) {
+      h += '<option value="' + k + '"' + (node.damper === k ? ' selected' : '') + '>' + RB_DAMPER[k].label + (k !== 'none' ? ' (+' + RB_DAMPER[k].eq + 'ft)' : '') + '</option>';
+    });
+    h += '</select></div>';
+  }
+
+  // STRAIGHT
   if (node.type === 'straight') {
-    // Material
     h += '<div class="rb-edit-row"><label class="input-label">Material</label>';
     h += '<div class="rb-seg">';
     h += '<div class="rb-seg-btn' + (node.material !== 'flex' ? ' active' : '') + '" data-rb-set="material" data-rb-v="metal" data-rb-nid="' + nodeId + '">Metal</div>';
     h += '<div class="rb-seg-btn' + (node.material === 'flex' ? ' active' : '') + '" data-rb-set="material" data-rb-v="flex" data-rb-nid="' + nodeId + '">Flex</div>';
     h += '</div></div>';
-    // Size
-    var recSz = rbRecSize(rbDownstreamCFM([node], 0) || 100, curSize, node.material, node.compression);
-    h += '<div class="rb-edit-row"><label class="input-label">Size <span class="rb-rec-tag">rec: ' + recSz + '&#x2033;</span></label>';
+    // Size — must be <= curSize (upstream)
+    h += '<div class="rb-edit-row"><label class="input-label">Size (max ' + curSize + '&#x2033;)</label>';
     h += '<select class="input-field" data-rb-sel="size" data-rb-nid="' + nodeId + '">';
     [4,5,6,7,8,9,10,12,14,16,18,20,22,24].forEach(function(s) {
-      if (s > trunk.size) return;
-      h += '<option value="' + s + '"' + (node.size == s ? ' selected' : '') + '>' + s + '&#x2033;' + (s == recSz ? ' \u2190 rec' : '') + '</option>';
+      if (s > curSize) return;
+      h += '<option value="' + s + '"' + ((node.size||curSize) == s ? ' selected' : '') + '>' + s + '&#x2033;</option>';
     });
     h += '</select></div>';
-    // Length
     h += '<div class="rb-edit-row"><label class="input-label">Length (ft)</label>';
     h += '<input type="number" class="input-field" value="' + (node.length || 12) + '" min="1" max="200" data-rb-inp="length" data-rb-nid="' + nodeId + '"></div>';
-    // Compression
     if (node.material === 'flex') {
       h += '<div class="rb-edit-row"><label class="input-label">Compression %</label>';
       h += '<div class="rb-comp-chips">';
@@ -329,8 +342,9 @@ function rbEditForm(node, nodeId, curSize, trunk, unassignedRooms, allRooms) {
     }
   }
 
+  // REDUCER
   if (node.type === 'reducer') {
-    h += '<div class="rb-edit-row"><label class="input-label">Reduce to:</label>';
+    h += '<div class="rb-edit-row"><label class="input-label">Reduce from ' + curSize + '&#x2033; to:</label>';
     h += '<select class="input-field" data-rb-sel="size" data-rb-nid="' + nodeId + '">';
     [4,5,6,7,8,9,10,12,14,16,18,20,22,24].forEach(function(s) {
       if (s >= curSize) return;
@@ -339,35 +353,57 @@ function rbEditForm(node, nodeId, curSize, trunk, unassignedRooms, allRooms) {
     h += '</select></div>';
   }
 
+  // D-BOX: dampers on each outlet
+  if (node.type === 'dbox' && node.children) {
+    h += '<div class="rb-edit-row"><label class="input-label">Outlet Dampers</label>';
+    node.children.forEach(function(sub, sci) {
+      var dVal = node['damper_' + sci] || 'none';
+      h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">';
+      h += '<span style="font-size:10px;color:var(--text-3);min-width:60px">Outlet ' + (sci+1) + ':</span>';
+      h += '<select class="input-field" style="flex:1" data-rb-sel="damper_' + sci + '" data-rb-nid="' + nodeId + '">';
+      Object.keys(RB_DAMPER).forEach(function(k) {
+        h += '<option value="' + k + '"' + (dVal === k ? ' selected' : '') + '>' + RB_DAMPER[k].label + '</option>';
+      });
+      h += '</select></div>';
+    });
+    h += '</div>';
+  }
+
+  // BOOT
   if (node.type === 'boot') {
-    // Room picker (only unassigned rooms)
-    h += '<div class="rb-edit-row"><label class="input-label">Room (destination)</label>';
+    // Room picker with remaining CFM
+    h += '<div class="rb-edit-row"><label class="input-label">Room</label>';
     h += '<select class="input-field" data-rb-sel="roomIdx" data-rb-nid="' + nodeId + '">';
     h += '<option value="-1">\u2014 Pick a Room \u2014</option>';
-    unassignedRooms.forEach(function(r) {
-      h += '<option value="' + r.idx + '"' + (node.roomIdx === r.idx ? ' selected' : '') + '>' + r.name + ' (' + r.cfm + ' CFM)</option>';
+    roomsInfo.forEach(function(r) {
+      var lbl = r.name + ' (' + r.cfm + ' CFM';
+      if (r.assigned > 0) lbl += ', ' + r.remaining + ' remaining';
+      lbl += ')';
+      h += '<option value="' + r.idx + '"' + (node.roomIdx === r.idx ? ' selected' : '') + '>' + lbl + '</option>';
     });
-    // Also show the currently assigned room if it's already assigned
-    if (node.roomIdx >= 0 && allRooms[node.roomIdx]) {
-      var alreadyInList = unassignedRooms.some(function(r) { return r.idx === node.roomIdx; });
-      if (!alreadyInList) {
-        h += '<option value="' + node.roomIdx + '" selected>' + allRooms[node.roomIdx].name + ' (' + allRooms[node.roomIdx].cfm + ' CFM) \u2713</option>';
-      }
-    }
     h += '<option value="-2">Custom / Home Run</option>';
     h += '</select></div>';
 
+    // Show assignment status
     if (node.roomIdx >= 0 && allRooms[node.roomIdx]) {
-      h += '<div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px">' + allRooms[node.roomIdx].cfm + ' CFM \u2192 ' + allRooms[node.roomIdx].name + '</div>';
+      var ri = roomsInfo.filter(function(r){return r.idx===node.roomIdx;})[0];
+      if (ri) {
+        var color = ri.remaining <= 0 ? 'var(--green)' : 'var(--amber)';
+        h += '<div style="font-size:11px;color:' + color + ';font-weight:600;margin-bottom:6px">';
+        h += ri.name + ': ' + ri.cfm + ' CFM needed, ' + ri.assigned + ' assigned';
+        if (ri.remaining > 0) h += ', <strong>' + ri.remaining + ' remaining</strong>';
+        else h += ' \u2714 Covered';
+        h += '</div>';
+      }
     } else if (node.roomIdx === -2) {
       h += '<div class="rb-edit-row"><label class="input-label">CFM</label><input type="number" class="input-field" value="' + (node.cfm||'') + '" data-rb-inp="cfm" data-rb-nid="' + nodeId + '"></div>';
       h += '<div class="rb-edit-row"><label class="input-label">Name</label><input type="text" class="input-field" value="' + (node.room||'') + '" data-rb-inp="room" data-rb-nid="' + nodeId + '"></div>';
     }
 
-    // Mount type (default from system config)
+    // Mount type
     var defaultMount = WIZ.bootPosition || 'floor';
     if (!node.mountType) node.mountType = defaultMount;
-    h += '<div class="rb-edit-row"><label class="input-label">Register Location</label>';
+    h += '<div class="rb-edit-row"><label class="input-label">Location</label>';
     h += '<div class="rb-seg">';
     ['floor','wall','ceiling'].forEach(function(mt) {
       h += '<div class="rb-seg-btn' + (node.mountType === mt ? ' active' : '') + '" data-rb-set="mountType" data-rb-v="' + mt + '" data-rb-nid="' + nodeId + '">' + mt.charAt(0).toUpperCase() + mt.slice(1) + '</div>';
@@ -385,18 +421,24 @@ function rbEditForm(node, nodeId, curSize, trunk, unassignedRooms, allRooms) {
     // Boot SVG
     h += '<div style="text-align:center;margin:6px 0">' + rbBootSVG(node.bootType, node.mountType) + '</div>';
 
-    // Boot size
+    // Boot dimension (manual entry or picker)
+    h += '<div class="rb-edit-row"><label class="input-label">Boot Dimensions</label>';
     if (typeof getBootSizes === 'function') {
       var cat = node.mountType === 'ceiling' ? 'ceiling' : (node.mountType === 'wall' ? 'wall' : 'floor');
       var bSizes = getBootSizes(curSize, cat);
       if (bSizes.length > 0) {
-        h += '<div class="rb-edit-row"><label class="input-label">Boot/Register Size</label>';
-        h += '<select class="input-field" data-rb-sel="bootSize" data-rb-nid="' + nodeId + '">';
+        h += '<select class="input-field" data-rb-sel="bootDimension" data-rb-nid="' + nodeId + '">';
         h += '<option value="">\u2014 Select \u2014</option>';
-        bSizes.forEach(function(bs) { h += '<option value="' + bs.reg + '"' + (node.bootSize === bs.reg ? ' selected' : '') + '>' + bs.reg + '</option>'; });
-        h += '</select></div>';
+        bSizes.forEach(function(bs) { h += '<option value="' + bs.reg + '"' + (node.bootDimension === bs.reg ? ' selected' : '') + '>' + bs.reg + '</option>'; });
+        h += '<option value="custom">Custom size...</option>';
+        h += '</select>';
+      } else {
+        h += '<input type="text" class="input-field" value="' + (node.bootDimension||'') + '" placeholder="e.g. 4x12" data-rb-inp="bootDimension" data-rb-nid="' + nodeId + '">';
       }
+    } else {
+      h += '<input type="text" class="input-field" value="' + (node.bootDimension||'') + '" placeholder="e.g. 4x12" data-rb-inp="bootDimension" data-rb-nid="' + nodeId + '">';
     }
+    h += '</div>';
 
     // Register style
     h += '<div class="rb-edit-row"><label class="input-label">Register Style</label>';
@@ -410,17 +452,16 @@ function rbEditForm(node, nodeId, curSize, trunk, unassignedRooms, allRooms) {
       var ok = brMax >= node.cfm;
       h += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:4px;background:' + (ok ? 'var(--green-soft)' : 'var(--red-soft)') + ';color:' + (ok ? 'var(--green)' : 'var(--red)') + '">';
       h += ok ? '\u2713 ' + curSize + '&#x2033; ' + (node.material||'flex') + ' delivers ' + brMax + ' CFM (need ' + node.cfm + ')' :
-                '\u26A0 ' + curSize + '&#x2033; ' + (node.material||'flex') + ' max ' + brMax + ' CFM \u2014 need ' + node.cfm + '. Upsize to ' + rbRecSize(node.cfm, trunk.size, node.material||'flex', node.compression||10) + '&#x2033;';
+                '\u26A0 ' + curSize + '&#x2033; ' + (node.material||'flex') + ' max ' + brMax + ' CFM \u2014 need ' + node.cfm + '. Size up to ' + rbRecSize(node.cfm, trunk.size, node.material||'flex', node.compression||10) + '&#x2033;';
       h += '</div>';
     }
   }
 
-  h += '<button class="rb-btn-done" data-rb-done>Done</button>';
-  h += '</div>';
+  h += '<button class="rb-btn-done" data-rb-done>Done</button></div>';
   return h;
 }
 
-// Node icons
+// Icons
 function rbNodeIcon(t) {
   var i = {
     trunk:'<svg viewBox="0 0 24 24" width="16" height="16"><rect x="7" y="2" width="10" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
@@ -428,107 +469,71 @@ function rbNodeIcon(t) {
     elbow90:'<svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 3v9a4 4 0 004 4h8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
     elbow45:'<svg viewBox="0 0 24 24" width="16" height="16"><path d="M10 3v6l7 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
     reducer:'<svg viewBox="0 0 24 24" width="16" height="16"><path d="M7 3v7l3 4v7M17 3v7l-3 4v7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
-    wye:'<svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="3" x2="12" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="5" y2="21" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="19" y2="21" stroke="currentColor" stroke-width="1.5"/></svg>',
-    tee:'<svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" stroke-width="1.5"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1.5"/></svg>',
+    wye:'<svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="3" x2="12" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="5" y2="21" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="12" y2="21" stroke="currentColor" stroke-width="1.5"/></svg>',
+    bullhead:'<svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="3" x2="12" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"/><line x1="7" y1="12" x2="7" y2="21" stroke="currentColor" stroke-width="1.5"/><line x1="17" y1="12" x2="17" y2="21" stroke="currentColor" stroke-width="1.5"/></svg>',
     dbox:'<svg viewBox="0 0 24 24" width="16" height="16"><rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="18" r="1.5" fill="currentColor"/><circle cx="12" cy="18" r="1.5" fill="currentColor"/><circle cx="16" cy="18" r="1.5" fill="currentColor"/></svg>',
-    bullhead:'<svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="3" x2="12" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2.5"/><line x1="6" y1="12" x2="6" y2="21" stroke="currentColor" stroke-width="1.5"/><line x1="18" y1="12" x2="18" y2="21" stroke="currentColor" stroke-width="1.5"/></svg>',
     boot:'<svg viewBox="0 0 24 24" width="16" height="16"><rect x="8" y="2" width="8" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 9L4 16h16l-4-7" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="19" x2="18" y2="19" stroke="currentColor" stroke-width="2"/></svg>'
   };
-  return i[t] || '<svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+  return i[t] || '';
 }
 
-// Boot SVG visual (Manual D inspired cross-section)
+// Boot SVG
 function rbBootSVG(bootType, mountType) {
-  var w = 140, ht = 90;
-  var s = '<svg viewBox="0 0 ' + w + ' ' + ht + '" width="' + w + '" height="' + ht + '">';
-  // Duct
+  var w=140, ht=90;
+  var s = '<svg viewBox="0 0 '+w+' '+ht+'" width="'+w+'" height="'+ht+'">';
   s += '<rect x="50" y="0" width="24" height="32" rx="2" fill="var(--surface-3)" stroke="var(--text-3)" stroke-width="1"/>';
   s += '<text x="62" y="18" text-anchor="middle" fill="var(--text-3)" font-size="8" font-weight="600">Duct</text>';
-
-  if (bootType === '90boot' || bootType === 'wallReg') {
-    // 90° bend to register
-    s += '<path d="M54 32 C54 50, 62 54, 80 54" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>';
-    s += '<path d="M70 32 C70 44, 74 48, 80 48" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>';
+  if (bootType==='90boot'||bootType==='wallReg') {
+    s += '<path d="M54 32 C54 50,62 54,80 54" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>';
+    s += '<path d="M70 32 C70 44,74 48,80 48" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>';
     s += '<rect x="80" y="42" width="8" height="18" rx="1" fill="var(--accent)" fill-opacity="0.2" stroke="var(--accent)" stroke-width="1.5"/>';
-    s += '<text x="80" y="72" fill="var(--text-2)" font-size="7" font-weight="600">' + (mountType === 'wall' ? 'Wall Reg' : '90\u00B0 Boot') + '</text>';
-    // Airflow arrow
-    s += '<path d="M62 10 L62 26" stroke="var(--green)" stroke-width="1" marker-end="url(#arrowG)"/>';
-    s += '<path d="M72 52 L78 52" stroke="var(--green)" stroke-width="1" marker-end="url(#arrowG)"/>';
-  } else if (bootType === 'straightboot' || bootType === 'floorReg') {
-    // Straight down transition
+    s += '<text x="80" y="72" fill="var(--text-2)" font-size="7">'+(mountType==='wall'?'Wall':'90\u00B0 Boot')+'</text>';
+  } else if (bootType==='straightboot'||bootType==='floorReg') {
     s += '<line x1="54" y1="32" x2="48" y2="60" stroke="var(--accent)" stroke-width="2.5"/>';
     s += '<line x1="70" y1="32" x2="76" y2="60" stroke="var(--accent)" stroke-width="2.5"/>';
     s += '<rect x="44" y="60" width="36" height="7" rx="1" fill="var(--accent)" fill-opacity="0.2" stroke="var(--accent)" stroke-width="1.5"/>';
-    s += '<text x="62" y="78" text-anchor="middle" fill="var(--text-2)" font-size="7" font-weight="600">' + (mountType === 'floor' ? 'Floor Reg' : 'Straight') + '</text>';
-    s += '<path d="M62 10 L62 56" stroke="var(--green)" stroke-width="1" marker-end="url(#arrowG)"/>';
-  } else if (bootType === 'ceilTop' || bootType === 'ceilSide') {
-    // Ceiling mount
+    s += '<text x="62" y="78" text-anchor="middle" fill="var(--text-2)" font-size="7">Floor</text>';
+  } else if (bootType==='ceilTop'||bootType==='ceilSide'||bootType==='layIn2x2') {
     s += '<line x1="54" y1="32" x2="54" y2="52" stroke="var(--accent)" stroke-width="2.5"/>';
     s += '<line x1="70" y1="32" x2="70" y2="52" stroke="var(--accent)" stroke-width="2.5"/>';
     s += '<rect x="38" y="52" width="48" height="5" fill="var(--surface-4)" stroke="var(--text-3)" stroke-width="1"/>';
     s += '<text x="62" y="55" text-anchor="middle" fill="var(--text-3)" font-size="5">CEILING</text>';
-    s += '<ellipse cx="62" cy="70" rx="14" ry="6" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-width="1.5"/>';
-    s += '<text x="62" y="73" text-anchor="middle" fill="var(--accent)" font-size="7" font-weight="600">Diff</text>';
-    s += '<path d="M62 10 L62 48" stroke="var(--green)" stroke-width="1" marker-end="url(#arrowG)"/>';
+    s += '<rect x="44" y="62" width="36" height="16" rx="2" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-width="1.5"/>';
+    s += '<text x="62" y="73" text-anchor="middle" fill="var(--accent)" font-size="7">'+(bootType==='layIn2x2'?'2x2 Lay-In':'Diffuser')+'</text>';
   } else {
     s += '<line x1="58" y1="32" x2="58" y2="58" stroke="var(--accent)" stroke-width="2"/>';
     s += '<line x1="66" y1="32" x2="66" y2="58" stroke="var(--accent)" stroke-width="2"/>';
     s += '<rect x="50" y="58" width="24" height="7" rx="1" fill="var(--accent)" fill-opacity="0.2" stroke="var(--accent)" stroke-width="1.5"/>';
   }
-  // Arrow marker
-  s += '<defs><marker id="arrowG" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6Z" fill="var(--green)"/></marker></defs>';
+  s += '<defs><marker id="arrowG" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="var(--green)"/></marker></defs>';
   s += '</svg>';
   return s;
 }
 
-// ============ EVENTS ============
+// ============ EVENTS (same structure as v5) ============
 function rbHandleClick(e) {
   var t = e.target;
-  // Section
   var sec = t.closest('[data-rb-section]');
   if (sec) { var ap=sec.dataset.rbSection; var s=RB.trunks.filter(function(x){return x.airPath===ap;}); if(s.length>0){RB.idx=RB.trunks.indexOf(s[0]);RB.activePath=null;RB.activeNode=-1;rbRender();} return; }
-  // Dots
   var dot = t.closest('[data-rb-trunk-dot]');
   if (dot) { RB.idx=parseInt(dot.dataset.rbTrunkDot); RB.activePath=null; RB.activeNode=-1; rbRender(); return; }
-  // Nav
   if (t.closest('[data-rb-prev]')) { rbNavTrunk(-1); return; }
   if (t.closest('[data-rb-next]')) { rbNavTrunk(1); return; }
-
-  // Add piece
   var add = t.closest('[data-rb-add]');
-  if (add) {
-    var type = add.dataset.rbAdd;
-    var pathId = add.dataset.rbPath || add.closest('[data-rb-path]')?.dataset.rbPath || 'root';
-    rbAddNode(type, pathId);
-    return;
-  }
-
-  // Tap node to edit
+  if (add) { rbAddNode(add.dataset.rbAdd, add.dataset.rbPath || 'root'); return; }
   var nodeEl = t.closest('[data-rb-node]');
   if (nodeEl && !t.closest('[data-rb-del]') && !t.closest('.rb-edit')) {
-    var nid = nodeEl.dataset.rbNode;
-    var parts = nid.split('-');
-    var pathParts = parts.slice(0, -1).join('-');
-    var nodeIdx = parseInt(parts[parts.length - 1]);
-    if (RB.activePath === pathParts && RB.activeNode === nodeIdx) {
-      RB.activePath = null; RB.activeNode = -1;
-    } else {
-      RB.activePath = pathParts; RB.activeNode = nodeIdx;
-    }
-    rbRender();
-    if (RB.activePath !== null) setTimeout(function(){ var ed=document.querySelector('.rb-edit'); if(ed)ed.scrollIntoView({behavior:'smooth',block:'center'});},50);
+    var nid = nodeEl.dataset.rbNode; var parts = nid.split('-');
+    var pp = parts.slice(0,-1).join('-'); var ni = parseInt(parts[parts.length-1]);
+    if (RB.activePath===pp && RB.activeNode===ni) { RB.activePath=null; RB.activeNode=-1; }
+    else { RB.activePath=pp; RB.activeNode=ni; }
+    rbRender(); if(RB.activePath!==null) setTimeout(function(){var ed=document.querySelector('.rb-edit');if(ed)ed.scrollIntoView({behavior:'smooth',block:'center'});},50);
     return;
   }
-
-  // Delete node
   var del = t.closest('[data-rb-del]');
   if (del) { rbDeleteNode(del.dataset.rbDel); return; }
-
-  // Set property (segment buttons)
   var setBtn = t.closest('[data-rb-set]');
   if (setBtn) { rbSetNodeProp(setBtn.dataset.rbNid, setBtn.dataset.rbSet, setBtn.dataset.rbV); return; }
-
-  // Done
   if (t.closest('[data-rb-done]')) { RB.activePath=null; RB.activeNode=-1; rbRender(); return; }
 }
 
@@ -538,164 +543,106 @@ function rbHandleChange(e) {
   if (t.dataset.rbInp) { rbSetNodeProp(t.dataset.rbNid, t.dataset.rbInp, t.value); return; }
 }
 
-// ---- Resolve a nodeId to the actual chain + index ----
 function rbResolveNode(nodeId) {
-  var trunk = RB.trunks[RB.idx];
-  if (!trunk) return null;
-  var parts = nodeId.replace('root-', '').split('-');
-  var chain = trunk.chain;
-  var idx = 0;
-  for (var i = 0; i < parts.length; i++) {
-    if (parts[i].charAt(0) === 'c') {
-      // Sub-chain index
-      var sci = parseInt(parts[i].substring(1));
-      var parentNode = chain[idx];
-      if (!parentNode || !parentNode.children || !parentNode.children[sci]) return null;
-      chain = parentNode.children[sci];
-      idx = 0;
-    } else {
-      idx = parseInt(parts[i]);
-    }
+  var trunk = RB.trunks[RB.idx]; if (!trunk) return null;
+  var parts = nodeId.replace('root-','').split('-');
+  var chain = trunk.chain; var idx = 0;
+  for (var i=0; i<parts.length; i++) {
+    if (parts[i].charAt(0)==='c') {
+      var sci=parseInt(parts[i].substring(1));
+      var pn=chain[idx]; if(!pn||!pn.children||!pn.children[sci])return null;
+      chain=pn.children[sci]; idx=0;
+    } else { idx=parseInt(parts[i]); }
   }
-  return { chain: chain, idx: idx, node: chain[idx] };
+  return { chain:chain, idx:idx, node:chain[idx] };
 }
 
 function rbAddNode(type, pathId) {
-  var trunk = RB.trunks[RB.idx];
-  if (!trunk) return;
-
-  // Resolve the chain to append to
+  var trunk = RB.trunks[RB.idx]; if (!trunk) return;
   var chain = trunk.chain;
   if (pathId !== 'root') {
-    var parts = pathId.replace('root-', '').split('-');
-    for (var i = 0; i < parts.length; i++) {
-      if (parts[i].charAt(0) === 'c') {
-        var sci = parseInt(parts[i].substring(1));
-        var parentIdx = parseInt(parts[i-1] || 0);
-        var parent = chain[parentIdx];
-        if (parent && parent.children && parent.children[sci]) {
-          chain = parent.children[sci];
-        }
+    var parts = pathId.replace('root-','').split('-');
+    for (var i=0; i<parts.length; i++) {
+      if (parts[i].charAt(0)==='c') {
+        var sci=parseInt(parts[i].substring(1));
+        var pidx=parseInt(parts[i-1]||0);
+        var pn=chain[pidx];
+        if(pn&&pn.children&&pn.children[sci]) chain=pn.children[sci];
       }
     }
   }
-
   var curSize = rbSizeAt(chain, chain.length);
   var node = { type: type };
-
-  if (type === 'straight') {
-    node.material = WIZ.material || 'flex';
-    node.size = curSize;
-    node.length = 12;
-    node.compression = (node.material === 'flex') ? 10 : 0;
-  } else if (type === 'reducer') {
-    var sizes = [4,5,6,7,8,9,10,12,14,16,18,20,22,24];
-    var ns = curSize;
-    for (var j = sizes.length-1; j >= 0; j--) { if (sizes[j] < curSize) { ns = sizes[j]; break; } }
-    node.size = ns;
-  } else if (type === 'boot') {
-    node.bootType = '90boot';
-    node.mountType = WIZ.bootPosition || 'floor';
-    node.roomIdx = -1;
-    node.room = '';
-    node.cfm = 0;
-    node.bootSize = '';
-    node.regStyle = 'Stamped Face';
+  if (type==='straight') {
+    node.material=WIZ.material||'flex'; node.size=curSize; node.length=12;
+    node.compression=(node.material==='flex')?10:0;
+  } else if (type==='reducer') {
+    var szs=[4,5,6,7,8,9,10,12,14,16,18,20,22,24];
+    var ns=curSize; for(var j=szs.length-1;j>=0;j--){if(szs[j]<curSize){ns=szs[j];break;}}
+    node.size=ns;
+  } else if (type==='boot') {
+    node.bootType='90boot'; node.mountType=WIZ.bootPosition||'floor';
+    node.roomIdx=-1; node.room=''; node.cfm=0; node.bootDimension='';
+    node.regStyle='Stamped Face'; node.size=curSize; node.material=WIZ.material||'flex';
+    node.compression=(WIZ.material==='flex')?10:0;
   }
-
-  // If it's a split type, create children arrays
   if (RB_TYPES[type] && RB_TYPES[type].splits) {
     var numSplits = RB_TYPES[type].splits || 2;
     node.children = [];
-    for (var s = 0; s < numSplits; s++) {
-      node.children.push([]); // empty sub-chains
-    }
+    for (var s=0; s<numSplits; s++) node.children.push([]);
   }
-
   chain.push(node);
-
-  // Activate edit for this node
-  var newIdx = chain.length - 1;
-  // Build the path ID for this new node
-  RB.activePath = pathId;
-  RB.activeNode = newIdx;
-
+  RB.activePath = pathId; RB.activeNode = chain.length - 1;
   rbRender();
-  setTimeout(function(){
-    var ed = document.querySelector('.rb-edit');
-    if (ed) ed.scrollIntoView({behavior:'smooth',block:'center'});
-  }, 50);
+  setTimeout(function(){var ed=document.querySelector('.rb-edit');if(ed)ed.scrollIntoView({behavior:'smooth',block:'center'});},50);
 }
 
 function rbDeleteNode(nodeId) {
-  var resolved = rbResolveNode(nodeId);
-  if (!resolved || resolved.node.type === 'trunk') return;
-  resolved.chain.splice(resolved.idx, 1);
-  RB.activePath = null; RB.activeNode = -1;
-  rbRender();
+  var r = rbResolveNode(nodeId); if(!r||r.node.type==='trunk')return;
+  r.chain.splice(r.idx,1); RB.activePath=null; RB.activeNode=-1; rbRender();
 }
 
 function rbSetNodeProp(nodeId, prop, value) {
-  var resolved = rbResolveNode(nodeId);
-  if (!resolved || !resolved.node) return;
-  var node = resolved.node;
-  var rooms = typeof getRoomsList === 'function' ? getRoomsList() : [];
-
-  if (prop === 'size' || prop === 'length' || prop === 'compression' || prop === 'cfm') {
-    node[prop] = parseInt(value) || 0;
-  } else if (prop === 'roomIdx') {
-    var ri = parseInt(value);
-    node.roomIdx = ri;
-    if (ri >= 0 && rooms[ri]) {
-      node.room = rooms[ri].name;
-      node.cfm = rooms[ri].cfm;
-    }
-  } else {
-    node[prop] = value;
+  var r = rbResolveNode(nodeId); if(!r||!r.node)return;
+  var node=r.node;
+  var rooms = typeof getRoomsList==='function'?getRoomsList():[];
+  if (prop==='size'||prop==='length'||prop==='compression'||prop==='cfm') node[prop]=parseInt(value)||0;
+  else if (prop==='roomIdx') {
+    var ri=parseInt(value); node.roomIdx=ri;
+    if(ri>=0&&rooms[ri]){node.room=rooms[ri].name;node.cfm=rooms[ri].cfm;}
+  } else node[prop]=value;
+  if (prop==='material') {
+    if(value==='flex'){node.compression=node.compression||10;} else node.compression=0;
   }
-
-  if (prop === 'material') {
-    if (value === 'flex') { node.compression = node.compression || 10; }
-    else { node.compression = 0; }
-  }
-
   rbRender();
 }
 
 function rbNavTrunk(dir) {
-  var trunk = RB.trunks[RB.idx];
-  var isS = trunk.airPath === 'supply';
-  var section = RB.trunks.filter(function(t) { return t.airPath === (isS ? 'supply' : 'return'); });
-  var si = section.indexOf(trunk);
-  var ns = si + dir;
-  if (ns >= 0 && ns < section.length) {
-    RB.idx = RB.trunks.indexOf(section[ns]);
-    RB.activePath = null; RB.activeNode = -1;
-    rbRender();
-  }
+  var trunk=RB.trunks[RB.idx]; var isS=trunk.airPath==='supply';
+  var section=RB.trunks.filter(function(t){return t.airPath===(isS?'supply':'return');});
+  var si=section.indexOf(trunk); var ns=si+dir;
+  if(ns>=0&&ns<section.length){RB.idx=RB.trunks.indexOf(section[ns]);RB.activePath=null;RB.activeNode=-1;rbRender();}
 }
 
 // ============ TRANSLATE ============
 function rbTranslateToBranches() {
-  WIZ.branches = [];
-  var num = 1;
+  WIZ.branches=[]; var num=1;
   RB.trunks.forEach(function(trunk) {
-    // Walk the chain and collect all boot endpoints as branches
     rbWalkChain(trunk.chain, function(node) {
-      if (node.type === 'boot') {
+      if (node.type==='boot') {
         WIZ.branches.push({
-          trunkIdx: trunk.wizIdx, num: num++, room: node.room || 'Branch',
-          cfm: node.cfm || '', shape: 'round', size: String(node.size || 6),
-          width: '8', height: '8', material: node.material || 'flex',
-          compression: node.compression || 0, length: '12',
-          fittings: [], bootType: node.bootType || '90boot',
-          takeoffType: 'straight90', done: true, recommended: String(node.size || 6),
-          runouts: [], mountType: node.mountType || 'floor',
-          bootSize: node.bootSize || '', regStyle: node.regStyle || ''
+          trunkIdx:trunk.wizIdx, num:num++, room:node.room||'Branch',
+          cfm:node.cfm||'', shape:'round', size:String(node.size||6),
+          width:'8',height:'8', material:node.material||'flex',
+          compression:node.compression||0, length:String(node.length||12),
+          fittings:[], bootType:node.bootType||'90boot',
+          takeoffType:'straight90', done:true, recommended:String(node.size||6),
+          runouts:[], mountType:node.mountType||'floor',
+          bootSize:node.bootDimension||'', regStyle:node.regStyle||''
         });
       }
     });
   });
 }
 
-function rbInitRuns() { rbInit(); }
+function rbInitRuns(){rbInit();}
