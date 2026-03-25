@@ -8474,68 +8474,78 @@ function wizRenderResults() {
   var balEl = document.getElementById('wizCfmBalance');
   if (balEl) balEl.innerHTML = balH;
 
-  // -- TESP Estimate --
-  // Fan Law 2: SP2 = SP1 × (CFM2/CFM1)²
-  // If return is undersized, actual velocity is higher → filter PD increases
-  var designFilterPD = filterPD || 0.12; // design filter PD
+  // -- TESP Estimate (Manual D method) --
+  // TESP = Supply PD + Return PD + Filter PD + Coil PD
+  // Supply PD = FR x longest supply TEL / 100
+  // Return PD = FR x longest return TEL / 100
+  var maxSupplyTEL = 0, maxReturnTEL = 0;
+  var supCritRoom = '', retCritRoom = '';
+  runs.forEach(function(r) {
+    var t2 = WIZ.trunks[r.branch.trunkIdx];
+    if (t2 && t2.airPath === 'supply' && r.tel > maxSupplyTEL) { maxSupplyTEL = r.tel; supCritRoom = r.branch.room; }
+    if (t2 && t2.airPath === 'return' && r.tel > maxReturnTEL) { maxReturnTEL = r.tel; retCritRoom = r.branch.room; }
+  });
+  var supplyDuctPD = maxSupplyTEL > 0 ? sysFR * maxSupplyTEL / 100 : 0;
+  var returnDuctPD = maxReturnTEL > 0 ? sysFR * maxReturnTEL / 100 : 0;
+
+  // Fan Law 2: undersized return -> higher filter PD
+  var designFilterPD = filterPD || 0.12;
   var actualFilterPD = designFilterPD;
   var returnUndersized = false;
-  if (totalReturnCFM > 0 && returnRuns.length > 0) {
-    // Check if any return duct is carrying more CFM than its capacity
-    returnRuns.forEach(function(r) {
-      var retMax = typeof wizMaxCFM === 'function' ? wizMaxCFM(r.branch.size, r.branch.material, r.branch.compression) : 999;
-      var retCfm = parseInt(r.branch.cfm) || 0;
-      if (retCfm > retMax) {
-        returnUndersized = true;
-        // Fan Law 2: PD increases with square of CFM ratio
-        var ratio = retCfm / retMax;
-        var adjustedPD = designFilterPD * ratio * ratio;
-        if (adjustedPD > actualFilterPD) actualFilterPD = adjustedPD;
-      }
-    });
-  }
+  returnRuns.forEach(function(r) {
+    var retMax2 = typeof wizMaxCFM === 'function' ? wizMaxCFM(r.branch.size, r.branch.material, r.branch.compression) : 999;
+    var retCfm2 = parseInt(r.branch.cfm) || 0;
+    if (retCfm2 > retMax2 && retMax2 > 0) {
+      returnUndersized = true;
+      var ratio2 = retCfm2 / retMax2;
+      var adj2 = designFilterPD * ratio2 * ratio2;
+      if (adj2 > actualFilterPD) actualFilterPD = adj2;
+    }
+  });
 
-  // Calculate duct PD from critical path
-  var ductPD = maxTEL > 0 ? sysFR * maxTEL / 100 : 0;
-  // Split between supply and return (approximate: assume 60/40 split)
-  var supplyDuctPD = ductPD * 0.6;
-  var returnDuctPD = ductPD * 0.4;
+  var estTESP = supplyDuctPD + returnDuctPD + actualFilterPD + coilPD;
+  var tespOverESP = estTESP - equipESP;
+  var tespColor = tespOverESP <= 0 ? 'var(--green)' : tespOverESP <= 0.2 ? 'var(--amber)' : 'var(--red)';
 
   var tespH = '<div style="font-size:12px">';
+  // Math verification box
+  tespH += '<div style="font-size:10px;color:var(--text-3);margin-bottom:6px;line-height:1.4;background:var(--surface-2);padding:6px 8px;border-radius:6px">';
+  tespH += '<strong>Calculation (Manual D):</strong><br>';
+  tespH += 'Supply PD = FR \u00D7 Supply TEL \u00F7 100 = ' + sysFR.toFixed(3) + ' \u00D7 ' + Math.round(maxSupplyTEL) + ' \u00F7 100 = <strong>' + supplyDuctPD.toFixed(3) + '</strong><br>';
+  tespH += 'Return PD = FR \u00D7 Return TEL \u00F7 100 = ' + sysFR.toFixed(3) + ' \u00D7 ' + Math.round(maxReturnTEL) + ' \u00F7 100 = <strong>' + returnDuctPD.toFixed(3) + '</strong><br>';
+  tespH += 'TESP = ' + supplyDuctPD.toFixed(3) + ' + ' + returnDuctPD.toFixed(3) + ' + ' + actualFilterPD.toFixed(3) + ' + ' + coilPD.toFixed(3) + ' = <strong>' + estTESP.toFixed(3) + ' IWC</strong></div>';
+
   tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
-  tespH += '<span style="color:var(--text-2)">Supply duct PD (est.)</span>';
+  tespH += '<span style="color:var(--text-2)">Supply PD (' + (supCritRoom||'longest') + ')</span>';
   tespH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600">' + supplyDuctPD.toFixed(3) + ' IWC</span></div>';
 
   tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
-  tespH += '<span style="color:var(--text-2)">Return duct PD (est.)</span>';
+  tespH += '<span style="color:var(--text-2)">Return PD (' + (retCritRoom||'longest') + ')</span>';
   tespH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600">' + returnDuctPD.toFixed(3) + ' IWC</span></div>';
 
   tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
-  tespH += '<span style="color:var(--text-2)">Filter PD' + (returnUndersized ? ' <span style="color:var(--red)">(Fan Law 2 adjusted)</span>' : '') + '</span>';
+  tespH += '<span style="color:var(--text-2)">Filter PD' + (returnUndersized ? ' <span style="color:var(--red)">(Fan Law 2)</span>' : '') + '</span>';
   tespH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600;color:' + (actualFilterPD > 0.2 ? 'var(--red)' : 'var(--text)') + '">' + actualFilterPD.toFixed(3) + ' IWC</span></div>';
 
   tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-2,#ddd)">';
   tespH += '<span style="color:var(--text-2)">Coil PD</span>';
   tespH += '<span style="font-family:\'DM Mono\',monospace;font-weight:600">' + coilPD.toFixed(3) + ' IWC</span></div>';
 
-  var estTESP = supplyDuctPD + returnDuctPD + actualFilterPD + coilPD;
-  var tespOk = estTESP <= equipESP;
-  tespH += '<div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:13px">';
+  tespH += '<div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:14px">';
   tespH += '<span style="color:var(--text)">Estimated TESP</span>';
-  tespH += '<span style="font-family:\'DM Mono\',monospace;color:' + (tespOk ? 'var(--green)' : 'var(--red)') + '">' + estTESP.toFixed(3) + ' IWC</span></div>';
+  tespH += '<span style="font-family:\'DM Mono\',monospace;color:' + tespColor + '">' + estTESP.toFixed(3) + ' IWC</span></div>';
 
-  tespH += '<div style="display:flex;justify-content:space-between;padding:4px 0">';
-  tespH += '<span style="color:var(--text-3);font-size:11px">Equipment rated ESP</span>';
-  tespH += '<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text-3)">' + equipESP.toFixed(2) + ' IWC</span></div>';
+  tespH += '<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--text-3);font-size:11px">Equipment ESP</span><span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text-3)">' + equipESP.toFixed(2) + ' IWC</span></div>';
+  tespH += '<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--text-3);font-size:11px">Max allowable (ESP + 0.2)</span><span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text-3)">' + (equipESP + 0.2).toFixed(2) + ' IWC</span></div>';
 
-  if (!tespOk) {
-    tespH += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:6px;background:var(--red-soft);color:var(--red)">\u26A0 Estimated TESP (' + estTESP.toFixed(3) + ') exceeds equipment ESP (' + equipESP.toFixed(2) + '). System will be starved for airflow. Reduce duct restrictions or select higher-capacity equipment.</div>';
+  if (tespOverESP > 0.2) {
+    tespH += '<div style="font-size:12px;padding:8px 10px;border-radius:8px;margin-top:6px;background:var(--red-soft);color:var(--red);border:1.5px solid var(--red);font-weight:600">\u26D4 CRITICAL: TESP ' + estTESP.toFixed(3) + ' exceeds max allowable ' + (equipESP + 0.2).toFixed(2) + ' IWC. System WILL be starved for airflow. Redesign ductwork.</div>';
+  } else if (tespOverESP > 0) {
+    tespH += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:6px;background:var(--amber-soft);color:var(--amber)">\u26A0 TESP ' + estTESP.toFixed(3) + ' is above ESP (' + equipESP.toFixed(2) + ') but within +0.2 range. Performance may be reduced.</div>';
   }
-
   if (returnUndersized) {
-    tespH += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:4px;background:var(--amber-soft);color:var(--amber)">\u26A0 <strong>Fan Law 2:</strong> Undersized return increases air velocity through the filter. Filter PD adjusted from ' + designFilterPD.toFixed(3) + ' to ' + actualFilterPD.toFixed(3) + ' IWC (pressure changes with the square of CFM ratio).</div>';
+    tespH += '<div style="font-size:11px;padding:6px 8px;border-radius:6px;margin-top:4px;background:var(--amber-soft);color:var(--amber)">\u26A0 <strong>Fan Law 2:</strong> Undersized return increased filter PD from ' + designFilterPD.toFixed(3) + ' to ' + actualFilterPD.toFixed(3) + ' IWC.</div>';
   }
-
   tespH += '</div>';
   var tespEl = document.getElementById('wizTESP');
   if (tespEl) tespEl.innerHTML = tespH;
@@ -9045,6 +9055,46 @@ function wizExportPDF() {
   doc.setFont('helvetica', 'bold');
   doc.text('RESULT: ' + (remaining >= 0.05 ? 'PASS' : remaining >= 0 ? 'TIGHT' : 'OVER BUDGET') + ' (remaining: ' + remaining.toFixed(3) + ' IWC)', lm+2, y); y += 8;
 
+  // TESP in PDF
+  if (y > 240) { doc.addPage(); y = 15; }
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Estimated TESP', lm, y); y += 6;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  // Calculate supply/return TEL separately
+  var pdfMaxSupTEL = 0, pdfMaxRetTEL = 0;
+  runs.forEach(function(r) {
+    var t3 = WIZ.trunks[r.branch.trunkIdx];
+    if (t3 && t3.airPath === 'supply' && r.tel > pdfMaxSupTEL) pdfMaxSupTEL = r.tel;
+    if (t3 && t3.airPath === 'return' && r.tel > pdfMaxRetTEL) pdfMaxRetTEL = r.tel;
+  });
+  var pdfSupPD = pdfMaxSupTEL > 0 ? sysFR * pdfMaxSupTEL / 100 : 0;
+  var pdfRetPD = pdfMaxRetTEL > 0 ? sysFR * pdfMaxRetTEL / 100 : 0;
+  var pdfFilterPD = 0.12; // default if not set
+  var pdfTESP = pdfSupPD + pdfRetPD + pdfFilterPD + coilPD;
+  doc.text('Supply duct PD: ' + pdfSupPD.toFixed(3) + ' IWC (longest supply TEL: ' + Math.round(pdfMaxSupTEL) + ' ft)', lm+2, y); y += 4;
+  doc.text('Return duct PD: ' + pdfRetPD.toFixed(3) + ' IWC (longest return TEL: ' + Math.round(pdfMaxRetTEL) + ' ft)', lm+2, y); y += 4;
+  doc.text('Filter PD: ' + pdfFilterPD.toFixed(3) + ' IWC  |  Coil PD: ' + coilPD.toFixed(3) + ' IWC', lm+2, y); y += 4;
+  doc.setFont('helvetica', 'bold');
+  var tespOk2 = pdfTESP <= equipESP + 0.2;
+  if (!tespOk2) doc.setTextColor(220, 38, 38);
+  doc.text('ESTIMATED TESP: ' + pdfTESP.toFixed(3) + ' IWC  (Equipment ESP: ' + equipESP.toFixed(2) + ', Max: ' + (equipESP + 0.2).toFixed(2) + ')', lm+2, y);
+  doc.setTextColor(0, 0, 0);
+  y += 4;
+  if (pdfTESP > equipESP + 0.2) {
+    doc.setTextColor(220, 38, 38);
+    doc.text('CRITICAL: TESP exceeds max allowable. Ductwork redesign required.', lm+2, y);
+    doc.setTextColor(0, 0, 0);
+    y += 4;
+  } else if (pdfTESP > equipESP) {
+    doc.setTextColor(200, 149, 44);
+    doc.text('WARNING: TESP above equipment ESP but within +0.2 allowable range.', lm+2, y);
+    doc.setTextColor(0, 0, 0);
+    y += 4;
+  }
+  y += 4;
+
   // Per-run table
   doc.setFontSize(10);
   doc.text('Per-Run Results', lm, y); y += 5;
@@ -9161,8 +9211,8 @@ function wizExportPDF() {
     var ft = matFlex[sz];
     var bags = Math.ceil(ft / 25);
     if (mStripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 3.5, 'F'); } mStripe=!mStripe;
-    doc.text('Flex Duct', lm+2, y); doc.text(sz + '\u2033', lm+60, y);
-    doc.text(Math.ceil(ft) + ' ft', lm+100, y); doc.text(String(bags), lm+130, y); doc.text('bags (25ft)', lm+160, y);
+    doc.text('Flex Duct', lm+2, y); doc.text(sz + ' inch', lm+55, y);
+    doc.text(Math.ceil(ft) + ' ft total', lm+85, y); doc.text(bags + ' bags', lm+125, y); doc.text('(25ft per bag)', lm+150, y);
     y += 3.5; if (y>265){doc.addPage();y=15;}
   });
 
@@ -9172,8 +9222,8 @@ function wizExportPDF() {
     var ft = matRoundMetal[sz];
     var sections = Math.ceil(ft / 5);
     if (mStripe) { doc.setFillColor(248,248,248); doc.rect(lm, y-3, pw, 3.5, 'F'); } mStripe=!mStripe;
-    doc.text('Round Metal', lm+2, y); doc.text(sz + '\u2033', lm+60, y);
-    doc.text(Math.ceil(ft) + ' ft', lm+100, y); doc.text(String(sections), lm+130, y); doc.text('pcs (5ft)', lm+160, y);
+    doc.text('Round Metal', lm+2, y); doc.text(sz + ' inch', lm+55, y);
+    doc.text(Math.ceil(ft) + ' ft total', lm+85, y); doc.text(sections + ' pcs', lm+125, y); doc.text('(5ft per section)', lm+145, y);
     y += 3.5; if (y>265){doc.addPage();y=15;}
   });
 
