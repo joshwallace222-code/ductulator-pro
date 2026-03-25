@@ -4576,6 +4576,85 @@ header.app-header { display: none !important; }
 </div>
 </div>
 
+<!-- ========================================
+     ROUGH LAYOUT HELPER PAGE
+     ======================================== -->
+<div id="page-roughlayout" class="page">
+<div class="app-container">
+
+  <div class="panel-title" style="font-size:18px;margin-bottom:4px">Rough Layout Helper</div>
+  <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">Rule-of-thumb first-pass duct layout. NOT a Manual D design — use as a starting point.</div>
+
+  <!-- System CFM -->
+  <div class="panel">
+    <div class="wiz-card-title" style="margin-bottom:8px">System Airflow</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <div style="flex:1">
+        <label class="input-label">Total System CFM</label>
+        <input type="number" class="input-field" id="rlTotalCFM" value="" placeholder="e.g. 1200" min="200" max="10000" style="font-size:14px">
+      </div>
+      <div style="flex:1">
+        <label class="input-label">Or: Tonnage</label>
+        <div style="display:flex;gap:4px">
+          <input type="number" class="input-field" id="rlTonnage" value="" placeholder="e.g. 3" min="0.5" max="10" step="0.5">
+          <button class="sys-add-btn" id="rlCalcFromTon" style="padding:6px 10px;font-size:11px;white-space:nowrap;min-height:36px">× <span id="rlCfmPerTon">400</span></button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:4px;align-items:center;font-size:10px;color:var(--text-3)">
+      <span>CFM/ton:</span>
+      <input type="number" class="input-field" id="rlCfmPerTonInput" value="400" min="300" max="500" step="10" style="width:60px;font-size:11px;padding:4px">
+    </div>
+  </div>
+
+  <!-- Target Parameters -->
+  <div class="panel">
+    <div class="wiz-card-title" style="margin-bottom:8px">Design Targets</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <div style="flex:1">
+        <label class="input-label">Target FR (IWC/100ft)</label>
+        <input type="number" class="input-field" id="rlTargetFR" value="0.08" min="0.01" max="0.20" step="0.01">
+      </div>
+      <div style="flex:1">
+        <label class="input-label">FR Range ±</label>
+        <input type="number" class="input-field" id="rlFRRange" value="0.02" min="0.005" max="0.05" step="0.005">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <div style="flex:1">
+        <label class="input-label">Min Velocity (FPM)</label>
+        <input type="number" class="input-field" id="rlMinVel" value="400" min="100" max="900" step="50">
+      </div>
+      <div style="flex:1">
+        <label class="input-label">Max Velocity (FPM)</label>
+        <input type="number" class="input-field" id="rlMaxVel" value="700" min="400" max="1200" step="50">
+      </div>
+    </div>
+  </div>
+
+  <!-- Room Clusters -->
+  <div class="panel">
+    <div class="wiz-card-title" style="margin-bottom:8px">Room Clusters</div>
+    <div style="font-size:10px;color:var(--text-3);margin-bottom:8px">Group rooms into clusters. Adjust the weight to bias more/less airflow. Higher weight = more CFM.</div>
+    <div id="rlClusters"></div>
+    <button class="sys-add-btn" id="rlAddCluster" style="width:100%;margin-top:8px;justify-content:center">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Cluster
+    </button>
+  </div>
+
+  <!-- Calculate Button -->
+  <button class="wiz-btn-primary" id="rlCalculate" style="width:100%;margin-top:8px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Calculate Layout
+  </button>
+
+  <!-- Results -->
+  <div id="rlResults" style="margin-top:12px"></div>
+
+</div>
+</div>
+
 <footer>
   <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">
     Created with Perplexity Computer
@@ -4629,6 +4708,10 @@ header.app-header { display: none !important; }
       <button class="more-tool" data-page="psychro">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
         <span>Psychrometric</span>
+      </button>
+      <button class="more-tool" data-page="roughlayout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span>Rough Layout</span>
       </button>
     </div>
   </div>
@@ -11435,5 +11518,6 @@ projLoad();
 </script>
 <script src="boot-data.js"></script>
 <script src="run-builder.js"></script>
+<script src="rough-layout.js"></script>
 </body>
 </html>
