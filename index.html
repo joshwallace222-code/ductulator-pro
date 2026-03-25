@@ -4661,9 +4661,57 @@ header.app-header { display: none !important; }
   </a>
 </footer>
 
+<!-- ========================================
+     ROUGH DUCT ESTIMATOR PAGE
+     ======================================== -->
+<div id="page-ductestimator" class="page">
+<div class="app-container">
 
+  <div class="panel-title" style="font-size:18px;margin-bottom:4px">Rough Duct Estimator</div>
+  <div style="font-size:11px;color:var(--text-3);margin-bottom:12px;line-height:1.4">Reads your rooms and collars to suggest a complete conceptual duct layout. Great for learning how rooms group together and what duct sizes to expect.</div>
 
+  <!-- System summary -->
+  <div class="panel" style="margin-bottom:10px">
+    <div class="wiz-card-title" style="margin-bottom:8px">Your System Data</div>
+    <div id="deSummary" style="font-size:11px;color:var(--text-2)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="deSummaryGrid">
+        <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;flex:1;min-width:100px">
+          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Rooms</div>
+          <div style="font-size:16px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace" id="deRoomCount">--</div>
+        </div>
+        <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;flex:1;min-width:100px">
+          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Total CFM</div>
+          <div style="font-size:16px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace" id="deTotalCfm">--</div>
+        </div>
+        <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;flex:1;min-width:100px">
+          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Supply Collars</div>
+          <div style="font-size:16px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace" id="deSupplyCount">--</div>
+        </div>
+        <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;flex:1;min-width:100px">
+          <div style="font-size:9px;color:var(--text-3);text-transform:uppercase">Return Collars</div>
+          <div style="font-size:16px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace" id="deReturnCount">--</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- Run button -->
+  <button class="wiz-btn-primary" id="deRunEstimate" style="width:100%;margin-bottom:8px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+    Estimate My Layout
+  </button>
+
+  <!-- Results -->
+  <div id="deResults"></div>
+
+</div>
+</div>
+
+<footer>
+  <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">
+    Created with Perplexity Computer
+  </a>
+</footer>
 
 
 <!-- ===== BOTTOM NAV ===== -->
@@ -4712,6 +4760,10 @@ header.app-header { display: none !important; }
       <button class="more-tool" data-page="roughlayout">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         <span>Rough Layout</span>
+      </button>
+      <button class="more-tool" data-page="ductestimator">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span>Duct Estimator</span>
       </button>
     </div>
   </div>
@@ -4824,6 +4876,24 @@ function showPage(key) {
   // Close more panel
   var mp = document.getElementById('morePanel');
   if (mp) mp.classList.remove('open');
+
+  // Update duct estimator summary when navigating to that page
+  if (key === 'ductestimator') {
+    try {
+      var rooms = typeof getRoomsList === 'function' ? getRoomsList() : [];
+      var totalCfm = typeof getRoomsTotalCFM === 'function' ? getRoomsTotalCFM() : 0;
+      var supCount = (typeof SS !== 'undefined' && SS.collars) ? SS.collars.length : 0;
+      var retCount = (typeof SS !== 'undefined' && SS.retCollars) ? SS.retCollars.length : 0;
+      var deRC = document.getElementById('deRoomCount');
+      var deTC = document.getElementById('deTotalCfm');
+      var deSC = document.getElementById('deSupplyCount');
+      var deRet = document.getElementById('deReturnCount');
+      if (deRC) deRC.textContent = rooms.length;
+      if (deTC) deTC.textContent = totalCfm;
+      if (deSC) deSC.textContent = supCount;
+      if (deRet) deRet.textContent = retCount;
+    } catch(e) {}
+  }
 }
 
 // ===== CALCULATOR CONTROLS =====
@@ -11519,5 +11589,6 @@ projLoad();
 <script src="boot-data.js"></script>
 <script src="run-builder.js"></script>
 <script src="rough-layout.js"></script>
+<script src="duct-estimator.js"></script>
 </body>
 </html>
