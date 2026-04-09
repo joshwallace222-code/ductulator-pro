@@ -5689,6 +5689,54 @@ function addBranch(parentIdx) {
   renderSystem();
 }
 
+// ---- Collar ID helper ----
+function makeCollarId() {
+  return 'col_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+}
+
+// Create a full collar object with stable ID
+function makeCollar(sz, tp, airPath) {
+  return {
+    id: makeCollarId(),
+    size: sz,
+    type: tp || 'tab',
+    airPath: airPath || 'supply',
+    source: 'layout',
+    trunkId: null
+  };
+}
+
+// Ensure legacy collars ({size, type} only) get upgraded to full objects
+function migrateCollars() {
+  if (typeof SS === 'undefined') return;
+  if (SS.collars) {
+    SS.collars = SS.collars.map(function(c) {
+      if (c.id) return c; // already migrated
+      return {
+        id: makeCollarId(),
+        size: c.size,
+        type: c.type || 'tab',
+        airPath: 'supply',
+        source: 'layout',
+        trunkId: c.trunkId || null
+      };
+    });
+  }
+  if (SS.retCollars) {
+    SS.retCollars = SS.retCollars.map(function(c) {
+      if (c.id) return c;
+      return {
+        id: makeCollarId(),
+        size: c.size,
+        type: c.type || 'tab',
+        airPath: 'return',
+        source: 'layout',
+        trunkId: c.trunkId || null
+      };
+    });
+  }
+}
+
 function initSystem() {
   SS.runs = [mkRun(0)];
   SS.activeRun = 0;
@@ -6083,19 +6131,38 @@ document.getElementById('page-system').addEventListener('click', function(ev) {
   const fi = t.closest('[data-fit-info]');
   if (fi) { const el=document.getElementById('fd-'+fi.dataset.fitInfo); if(el){el.style.display=el.style.display==='none'?'block':'none';} ev.stopPropagation(); return; }
   // Collar add
-  if (t.closest('#addCollarBtn')) { const sz=document.getElementById('collarSizeSel').value; const tp=document.getElementById('collarTypeSel')?document.getElementById('collarTypeSel').value:'tab'; SS.collars.push({size:sz,type:tp}); renderCollars(); return; }
+  if (t.closest('#addCollarBtn')) { const sz=document.getElementById('collarSizeSel').value; const tp=document.getElementById('collarTypeSel')?document.getElementById('collarTypeSel').value:'tab'; SS.collars.push(makeCollar(sz,tp,'supply')); renderCollars(); return; }
   // Collar remove
   const crm = t.closest('[data-col-rm]');
-  if (crm) { SS.collars.splice(parseInt(crm.dataset.colRm),1); renderCollars(); return; }
+  if (crm) {
+    var colIdx = parseInt(crm.dataset.colRm);
+    var removedCollar = SS.collars[colIdx];
+    SS.collars.splice(colIdx, 1);
+    // Remove linked trunk if it exists
+    if (removedCollar && removedCollar.id && WIZ.trunks) {
+      WIZ.trunks = WIZ.trunks.filter(function(t) { return t.sourceCollarId !== removedCollar.id; });
+    }
+    renderCollars();
+    if (typeof wizAutoSave === 'function') wizAutoSave();
+    return;
+  }
 
   // Return collar add
-  if (t.closest('#addRetCollarBtn')) { const sz=document.getElementById('retCollarSizeSel').value; const tp=document.getElementById('retCollarTypeSel')?document.getElementById('retCollarTypeSel').value:'tab'; SS.retCollars.push({size:sz,type:tp}); renderRetCollars();
+  if (t.closest('#addRetCollarBtn')) { const sz=document.getElementById('retCollarSizeSel').value; const tp=document.getElementById('retCollarTypeSel')?document.getElementById('retCollarTypeSel').value:'tab'; SS.retCollars.push(makeCollar(sz,tp,'return')); renderRetCollars();
 
 
  return; }
   // Return collar remove
   const rcrm = t.closest('[data-ret-col-rm]');
-  if (rcrm) { SS.retCollars.splice(parseInt(rcrm.dataset.retColRm),1); renderRetCollars();
+  if (rcrm) {
+    var retIdx = parseInt(rcrm.dataset.retColRm);
+    var removedRetCollar = SS.retCollars[retIdx];
+    SS.retCollars.splice(retIdx, 1);
+    // Remove linked trunk if it exists
+    if (removedRetCollar && removedRetCollar.id && WIZ.trunks) {
+      WIZ.trunks = WIZ.trunks.filter(function(t) { return t.sourceCollarId !== removedRetCollar.id; });
+    }
+    renderRetCollars();
 
 
  return; }
@@ -7524,9 +7591,14 @@ function wizGoTo(step) {
     wizSaveTrunks();
   }
 
-  // Init downstream data
-  if (step === 2 && WIZ.trunks.length === 0) wizInitTrunks();
-  if (step === 3) { if (WIZ.trunks.length === 0) wizInitTrunks(); if (typeof RB !== 'undefined' && typeof rbInit === 'function' && RB.trunks.length === 0) rbInit(); }
+  // Init downstream data — always sync trunks from collars when entering step 2 or 3
+  if (step === 2) {
+    wizInitTrunks(); // ensures collars exist, migrates legacy, syncs trunks
+  }
+  if (step === 3) {
+    wizInitTrunks(); // re-sync in case collars changed
+    if (typeof RB !== 'undefined' && typeof rbInit === 'function' && RB.trunks.length === 0) rbInit();
+  }
   if (step === 4) wizCalcResults();
 
   var prev = document.getElementById('wizStep' + WIZ.step);
@@ -7597,79 +7669,173 @@ function wizRecommendSize(cfm, isReturn, isTrunk, material, compression) {
   return '24';
 }
 
-function wizInitTrunks() {
-  WIZ.trunks = [];
-  var layout = WIZ.layout;
+// ---- Trunk ID helper ----
+function makeTrunkId() {
+  return 'trk_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+}
 
-  // ---- Auto-create collars if none exist ----
-  if (typeof SS !== 'undefined') {
-    if (!SS.collars) SS.collars = [];
-    if (!SS.retCollars) SS.retCollars = [];
-    if (SS.collars.length === 0 && SS.retCollars.length === 0) {
-      var totalCFM = typeof getRoomsTotalCFM === 'function' ? getRoomsTotalCFM() : 800;
-      if (totalCFM <= 0) totalCFM = 800;
-      // Size 2 supply collars to handle total system CFM split in half
-      var supCfmEach = Math.ceil(totalCFM / 2);
-      var supSize = typeof wizRecommendSize === 'function' ? wizRecommendSize(supCfmEach, false, true, 'metal', 0) : '10';
-      // Size 2 return collars — returns handle full system CFM split in half
-      var retCfmEach = Math.ceil(totalCFM / 2);
-      var retSize = typeof wizRecommendSize === 'function' ? wizRecommendSize(retCfmEach, true, true, 'metal', 0) : '14';
-      // Collar type based on plenum material
-      var supCollarType = (WIZ.supPlenumMaterial === 'ductboard') ? 'finger-saver' : 'tab';
-      var retCollarType = (WIZ.retPlenumMaterial === 'ductboard') ? 'finger-saver' : 'tab';
-      // Create 2 supply + 2 return
-      SS.collars.push({ size: supSize, type: supCollarType });
-      SS.collars.push({ size: supSize, type: supCollarType });
-      SS.retCollars.push({ size: retSize, type: retCollarType });
-      SS.retCollars.push({ size: retSize, type: retCollarType });
-      // Render collar chips
-      if (typeof renderCollars === 'function') renderCollars();
-      if (typeof renderRetCollars === 'function') renderRetCollars();
+// Create a new trunk record from a collar
+function makeTrunkFromCollar(collar, index) {
+  var ap = collar.airPath || 'supply';
+  var label = (ap === 'return' ? 'Return' : 'Supply') + ' ' + (index + 1) + ' (' + collar.size + '\u2033)';
+  var defLen = ap === 'return' ? '15' : '20';
+  var id = makeTrunkId();
+  // Link collar to this trunk
+  collar.trunkId = id;
+  return {
+    id: id,
+    sourceCollarId: collar.id,
+    label: label,
+    airPath: ap,
+    startSize: collar.size,
+    size: collar.size,
+    shape: 'round',
+    width: collar.size,
+    height: '8',
+    length: defLen,
+    elbows90: 0,
+    elbows45: 0,
+    distBoxes: 0,
+    material: 'metal',
+    compression: 0,
+    classification: 'pending',
+    isRadial: false
+  };
+}
+
+// ===== CORE SYNC: collar ↔ trunk synchronization =====
+// Ensures every collar has exactly one matching trunk, preserving edits.
+function wizSyncTrunksFromCollars() {
+  // Ensure collars are migrated to full objects
+  migrateCollars();
+
+  if (!WIZ.trunks) WIZ.trunks = [];
+  var allCollars = [].concat(SS.collars || []).concat(SS.retCollars || []);
+
+  // Build lookup of existing trunks by sourceCollarId
+  var trunkByCollar = {};
+  WIZ.trunks.forEach(function(t) {
+    if (t.sourceCollarId) trunkByCollar[t.sourceCollarId] = t;
+  });
+
+  // Build set of all current collar IDs
+  var collarIds = {};
+  allCollars.forEach(function(c) { collarIds[c.id] = true; });
+
+  // 1. Remove orphaned trunks (collar was deleted)
+  WIZ.trunks = WIZ.trunks.filter(function(t) {
+    if (!t.sourceCollarId) return true; // manual trunk, keep it
+    return collarIds[t.sourceCollarId]; // keep only if collar still exists
+  });
+
+  // Rebuild lookup after removal
+  trunkByCollar = {};
+  WIZ.trunks.forEach(function(t) {
+    if (t.sourceCollarId) trunkByCollar[t.sourceCollarId] = t;
+  });
+
+  // 2. For each collar, ensure a trunk exists
+  var supIdx = 0, retIdx = 0;
+  allCollars.forEach(function(collar) {
+    var idx = collar.airPath === 'return' ? retIdx++ : supIdx++;
+    var existing = trunkByCollar[collar.id];
+    if (existing) {
+      // Update startSize and airPath from collar (collar is source of truth for size)
+      existing.startSize = collar.size;
+      existing.airPath = collar.airPath || existing.airPath;
+      // If user hasn't manually changed the round size, update it from collar
+      if (existing.size === existing._prevCollarSize || !existing._userEditedSize) {
+        existing.size = collar.size;
+        if (existing.shape === 'round') existing.width = collar.size;
+      }
+      existing._prevCollarSize = collar.size;
+      // Update label prefix if airPath changed
+      var prefix = (collar.airPath === 'return' ? 'Return' : 'Supply');
+      if (existing.label.match(/^(Supply|Return) \d+/)) {
+        existing.label = prefix + ' ' + (idx + 1) + ' (' + collar.size + '\u2033)';
+      }
+      // Ensure bidirectional link
+      collar.trunkId = existing.id;
+    } else {
+      // Create new trunk from collar
+      var newTrunk = makeTrunkFromCollar(collar, idx);
+      WIZ.trunks.push(newTrunk);
     }
+  });
+
+  // 3. Re-order: supply trunks first, then return trunks, then any manual trunks
+  var supply = [], ret = [], manual = [];
+  WIZ.trunks.forEach(function(t) {
+    if (!t.sourceCollarId) { manual.push(t); }
+    else if (t.airPath === 'return') { ret.push(t); }
+    else { supply.push(t); }
+  });
+  WIZ.trunks = supply.concat(ret).concat(manual);
+
+  // 4. Update branch trunkIdx references (branches use index-based refs)
+  // Build old-to-new index map
+  if (WIZ.branches && WIZ.branches.length > 0) {
+    // Branches reference trunks by index — renumber as needed
+    // For now just clamp invalid indices
+    WIZ.branches.forEach(function(b) {
+      if (b.trunkIdx >= WIZ.trunks.length) b.trunkIdx = 0;
+    });
   }
 
-  // Auto-create from plenum collars if any exist
-  var supplyCollars = (typeof SS !== 'undefined' && SS.collars) ? SS.collars : [];
-  var returnCollars = (typeof SS !== 'undefined' && SS.retCollars) ? SS.retCollars : [];
-  var hasCollars = supplyCollars.length > 0 || returnCollars.length > 0;
+  if (typeof wizAutoSave === 'function') wizAutoSave();
+}
 
-  if (hasCollars) {
-    // Create supply trunks from supply collars
-    supplyCollars.forEach(function(col, i) {
-      WIZ.trunks.push({
-        label: 'Supply ' + (i + 1) + ' (' + col.size + '\u2033)',
-        airPath: 'supply', isRadial: false, shape: 'round',
-        size: col.size, width: col.size, height: '8',
-        length: '20', elbows90: 0, elbows45: 0
-      });
-    });
-    // Create return trunks from return collars
-    returnCollars.forEach(function(col, i) {
-      WIZ.trunks.push({
-        label: 'Return ' + (i + 1) + ' (' + col.size + '\u2033)',
-        airPath: 'return', isRadial: false, shape: 'round',
-        size: col.size, width: col.size, height: '8',
-        length: '15', elbows90: 0, elbows45: 0
-      });
-    });
-    if (WIZ.trunks.length > 0) return;
+// ===== Auto-create default collars if none exist =====
+function wizEnsureCollars() {
+  if (typeof SS === 'undefined') return;
+  if (!SS.collars) SS.collars = [];
+  if (!SS.retCollars) SS.retCollars = [];
+  if (SS.collars.length === 0 && SS.retCollars.length === 0) {
+    var totalCFM = typeof getRoomsTotalCFM === 'function' ? getRoomsTotalCFM() : 800;
+    if (totalCFM <= 0) totalCFM = 800;
+    var supCfmEach = Math.ceil(totalCFM / 2);
+    var supSize = typeof wizRecommendSize === 'function' ? wizRecommendSize(supCfmEach, false, true, 'metal', 0) : '10';
+    var retCfmEach = Math.ceil(totalCFM / 2);
+    var retSize = typeof wizRecommendSize === 'function' ? wizRecommendSize(retCfmEach, true, true, 'metal', 0) : '14';
+    var supCollarType = (WIZ.supPlenumMaterial === 'ductboard') ? 'finger-saver' : 'tab';
+    var retCollarType = (WIZ.retPlenumMaterial === 'ductboard') ? 'finger-saver' : 'tab';
+    SS.collars.push(makeCollar(supSize, supCollarType, 'supply'));
+    SS.collars.push(makeCollar(supSize, supCollarType, 'supply'));
+    SS.retCollars.push(makeCollar(retSize, retCollarType, 'return'));
+    SS.retCollars.push(makeCollar(retSize, retCollarType, 'return'));
+    if (typeof renderCollars === 'function') renderCollars();
+    if (typeof renderRetCollars === 'function') renderRetCollars();
   }
+}
 
-  // Fallback: layout-based defaults
+function wizInitTrunks() {
+  // Step 1: ensure collars exist (auto-create if empty)
+  wizEnsureCollars();
+
+  // Step 2: migrate any legacy collar format
+  migrateCollars();
+
+  // Step 3: sync trunks from collars (preserves existing, creates missing, removes orphans)
+  wizSyncTrunksFromCollars();
+
+  // Step 4: if still no trunks after sync (truly no collars), add layout-based fallbacks
+  if (WIZ.trunks.length > 0) return;
+
+  var layout = WIZ.layout;
   if (layout === 'RADIAL') {
-    WIZ.trunks.push({ label:'Plenum', airPath:'supply', isRadial:true, shape:'round', size:'12', width:'12', height:'10', length:'0', elbows90:0, elbows45:0, material:'metal', compression:0 });
+    WIZ.trunks.push({ id: makeTrunkId(), sourceCollarId: null, label:'Plenum', airPath:'supply', isRadial:true, shape:'round', size:'12', startSize:'12', width:'12', height:'10', length:'0', elbows90:0, elbows45:0, distBoxes:0, material:'metal', compression:0, classification:'pending' });
     return;
   }
   if (layout === 'LR') {
-    WIZ.trunks.push({ label:'Left Trunk',  airPath:'supply', isRadial:false, shape:'round', size:'12', width:'12', height:'10', length:'20', elbows90:0, elbows45:0, material:'metal', compression:0 });
-    WIZ.trunks.push({ label:'Right Trunk', airPath:'supply', isRadial:false, shape:'round', size:'12', width:'12', height:'10', length:'20', elbows90:0, elbows45:0, material:'metal', compression:0 });
+    WIZ.trunks.push({ id: makeTrunkId(), sourceCollarId: null, label:'Left Trunk', airPath:'supply', isRadial:false, shape:'round', size:'12', startSize:'12', width:'12', height:'10', length:'20', elbows90:0, elbows45:0, distBoxes:0, material:'metal', compression:0, classification:'pending' });
+    WIZ.trunks.push({ id: makeTrunkId(), sourceCollarId: null, label:'Right Trunk', airPath:'supply', isRadial:false, shape:'round', size:'12', startSize:'12', width:'12', height:'10', length:'20', elbows90:0, elbows45:0, distBoxes:0, material:'metal', compression:0, classification:'pending' });
     return;
   }
   if (layout === '1SIDE') {
-    WIZ.trunks.push({ label:'Main Trunk', airPath:'supply', isRadial:false, shape:'round', size:'12', width:'12', height:'10', length:'30', elbows90:0, elbows45:0, material:'metal', compression:0 });
+    WIZ.trunks.push({ id: makeTrunkId(), sourceCollarId: null, label:'Main Trunk', airPath:'supply', isRadial:false, shape:'round', size:'12', startSize:'12', width:'12', height:'10', length:'30', elbows90:0, elbows45:0, distBoxes:0, material:'metal', compression:0, classification:'pending' });
     return;
   }
-  WIZ.trunks.push({ label:'Trunk A', airPath:'supply', isRadial:false, shape:'round', size:'12', width:'12', height:'10', length:'20', elbows90:0, elbows45:0, material:'metal', compression:0 });
+  WIZ.trunks.push({ id: makeTrunkId(), sourceCollarId: null, label:'Trunk A', airPath:'supply', isRadial:false, shape:'round', size:'12', startSize:'12', width:'12', height:'10', length:'20', elbows90:0, elbows45:0, distBoxes:0, material:'metal', compression:0, classification:'pending' });
 }
 
 function wizRenderTrunks() {
@@ -7682,6 +7848,13 @@ function wizRenderTrunks() {
       html += '<div class="wiz-trunk-remove" data-wiz-trunk-rm="' + i + '">' + wizSvg('remove') + '</div>';
     }
     html += '</div>';
+    // Show collar link badge
+    if (t.sourceCollarId) {
+      html += '<div style="display:flex;align-items:center;gap:4px;margin-bottom:6px;font-size:10px;color:var(--accent,#c8952c)">';
+      html += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
+      html += '<span>Linked to ' + t.startSize + '\u2033 collar</span>';
+      html += '</div>';
+    }
 
     if (!t.isRadial) {
       // Air path toggle (Supply / Return)
@@ -7817,7 +7990,10 @@ function wizSaveTrunks() {
     var w = document.querySelector('[data-wiz-trunk-w="' + i + '"]');
     var h = document.querySelector('[data-wiz-trunk-h="' + i + '"]');
     if (lbl) t.label = lbl.value;
-    if (size) t.size = size.value;
+    if (size) {
+      if (t.size !== size.value) t._userEditedSize = true;
+      t.size = size.value;
+    }
     if (len) t.length = len.value;
     if (e90) t.elbows90 = parseInt(e90.value) || 0;
     if (e45) t.elbows45 = parseInt(e45.value) || 0;
@@ -9655,11 +9831,11 @@ function wizHandleClick(ev) {
     return true;
   }
 
-  // --- Add trunk ---
+  // --- Add trunk (manual, not linked to a collar) ---
   if (t.closest('#wizAddTrunk')) {
     wizSaveTrunks();
     var idx = WIZ.trunks.length;
-    WIZ.trunks.push({ label:'Trunk ' + String.fromCharCode(65 + idx), airPath:'supply', isRadial:false, shape:'round', size:'10', width:'10', height:'8', length:'20', elbows90:0, elbows45:0, material:'metal', compression:0 });
+    WIZ.trunks.push({ id: makeTrunkId(), sourceCollarId: null, label:'Trunk ' + String.fromCharCode(65 + idx), airPath:'supply', isRadial:false, shape:'round', size:'10', startSize:'10', width:'10', height:'8', length:'20', elbows90:0, elbows45:0, distBoxes:0, material:'metal', compression:0, classification:'pending' });
     WIZ.branches = []; // reset branches when trunks change
     WIZ.activeBranch = -1;
     if (typeof RB !== 'undefined') { RB.trunks = []; RB.idx = 0; RB.editBranch = -1; }
@@ -9673,10 +9849,18 @@ function wizHandleClick(ev) {
     wizSaveTrunks();
     var rmi = parseInt(trunkRm.getAttribute('data-wiz-trunk-rm'));
     if (WIZ.trunks.length > 1) {
+      var removedTrunk = WIZ.trunks[rmi];
+      // If this trunk is linked to a collar, remove the collar too
+      if (removedTrunk && removedTrunk.sourceCollarId) {
+        var srcId = removedTrunk.sourceCollarId;
+        SS.collars = SS.collars.filter(function(c) { return c.id !== srcId; });
+        SS.retCollars = SS.retCollars.filter(function(c) { return c.id !== srcId; });
+        if (typeof renderCollars === 'function') renderCollars();
+        if (typeof renderRetCollars === 'function') renderRetCollars();
+      }
       WIZ.trunks.splice(rmi, 1);
       WIZ.branches = WIZ.branches.filter(function(b){ return b.trunkIdx !== rmi; });
       WIZ.branches.forEach(function(b){ if (b.trunkIdx > rmi) b.trunkIdx--; });
-      // Renumber
       var n = 1; WIZ.branches.forEach(function(b){ b.num = n++; });
       WIZ.activeBranch = -1;
       wizRenderTrunks();
@@ -10096,6 +10280,8 @@ function wizAutoRestore() {
       var retColData = localStorage.getItem('dcp_retCollars');
       if (colData && typeof SS !== 'undefined') SS.collars = JSON.parse(colData);
       if (retColData && typeof SS !== 'undefined') SS.retCollars = JSON.parse(retColData);
+      // Migrate legacy collar format to full objects with IDs
+      migrateCollars();
       // Restore run builder
       var rbData = localStorage.getItem('dcp_rb');
       if (rbData && typeof RB !== 'undefined') {
